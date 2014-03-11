@@ -145,12 +145,27 @@ class tInstall {
      */
     public function run_installer() {
         if ($this->config_file == false || $this->db_exists == false || $this->installed == false) {
-            $this->show_installer_page($this->url);
+            die($this->show_installer_page($this->url));
             return false;
         }
         return true;
     }
 
+    
+     /**
+     * Defines information to be passed to javasript on page load
+     *
+     * @return json $info
+     */
+    private function define_javascript_info() {
+        $info = array(
+            "site_base"    => $this->base_url,
+            "feature"      => $this->feature_folder,
+            "feature_file" => $this->feature_file
+        );
+        return json_encode($info);
+    }
+    
     
     /**
      * Shows the contents of the installer
@@ -159,9 +174,14 @@ class tInstall {
      */
     private function show_installer_page()	{
         $data['base']   = $this->url;
-        $data['js']     = "<script src='system/js/jquery.js'></script>";
-        $data['js']     .= "<script src='system/js/ajax/ajax.js'></script>";
-        $data['js']     .= "<script src='system/js/main.js'></script>";
+        $js_files = array(
+            "<script src='system/js/jquery.js'></script>",
+            "<script src='system/js/ajax/ajax.js'></script>",
+            "<script src='system/editor/js/editor.js'></script>",
+            "<script src='system/js/main.js'></script>",
+            "<script>theamus.info = ".$this->define_javascript_info()."</script>"
+        );
+        $data['js'] = implode("", $js_files);
 
         include path(ROOT."/themes/installer/html.php");
         open_page($data);
