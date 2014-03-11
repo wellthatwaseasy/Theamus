@@ -1,0 +1,52 @@
+{
+    "layouts":
+        [
+            {
+                "layout":"default",
+                "file":"index.html",
+                "allow_nav":true
+            },
+            {
+                "layout":"error",
+                "file":"error.html",
+                "allow_nav":false
+            },
+            {
+                "layout":"blank",
+                "file":"blank.html",
+                "allow_nav":false
+            },
+            {
+                "layout":"empty",
+                "file":"empty.html",
+                "allow_nav":false
+            },
+            {
+                "layout":"login",
+                "file":"login.html",
+                "allow_nav":false
+            }
+        ],
+    "areas":
+        {
+            "header":"header.html",
+            "nav":"nav.html",
+            "body":"body.html",
+            "extra-nav":"extra-nav.html"
+        },
+    "navigation": ["main"],
+    "settings": false,
+    "theme":
+        {
+            "folder":"default",
+            "name":"Theamus Default Theme",
+            "version":"1.0"
+        },
+    "author":
+        {
+            "name":"Matthew Tempinski",
+            "alias":"Eyraahh",
+            "company":"Theamus",
+            "email":"matt.tempinski@theamus.com"
+        }
+}

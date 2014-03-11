@@ -1,0 +1,183 @@
+.media_list-img {
+    border: 1px solid #CCC;
+    border-radius: 10px;
+    box-pack: center;
+    box-align: center;
+    display: box;
+    display: -webkit-box;
+    -webkit-box-pack: center;
+    -webkit-box-align: center;
+    display: -moz-box;
+    -moz-box-pack: center;
+    -moz-box-align: center;
+    display: -ms-box;
+    -ms-box-pack: center;
+    -ms-box-align: center;
+    float: left;
+    height: 225px;
+    margin: 10px 1%;
+    padding: 10px;
+    position: relative;
+}
+.media_list-img > img {
+    max-height: 225px;
+    max-width: 300px;
+}
+
+.media_list-img:hover .media_list-options {
+    display: block;
+}
+
+.media_list-options {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    bottom: 0;
+    display: none;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+.media_list-remove {
+    background: #000;
+    color: #F44 !important;
+    font-size: 14pt;
+    font-weight: bold;
+    padding: 5px 20px;
+    position: absolute;
+    left: 20px;
+    top: 10px;
+}
+.media_list-remove:hover {
+    background: #444;
+    text-decoration: none !important;
+}
+
+/* Windows */
+.media_windows {
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 150px;
+    z-index: 200;
+}
+.media-window {
+    background-color: #FFF;
+    border: 1px solid #CCC;
+    box-shadow: 0px 0px 10px #CCC;
+    display: none;
+    margin: 0px auto;
+    width: 450px;
+    z-index: 2000000;
+}
+.media-window > .window-header {
+    border-bottom: 1px solid #EEE;
+    font-family: Raleway, sans-serif;
+    font-size: 12pt;
+    margin: 0 0 10px;
+    padding: 10px 0;
+    text-align: center;
+}
+.media-window > .window-content {
+    padding: 5px 20px 20px;
+    position: relative;
+    max-height: 400px;
+    overflow-y: auto;
+}
+.window-options {
+    border-top: 1px solid #CCC;
+    margin: 20px 0 0;
+    padding: 10px 10px;
+    text-align: right;
+}
+
+/* Add Window */
+.add_media-window {
+    width: 600px !important;
+}
+.media_dnd-area {
+    border: 3px dashed #AAA;
+    border-radius: 10px;
+    color: #888;
+    font-family: Raleway, sans-serif;
+    font-size: 20px;
+    padding: 20px 0;
+    text-align: center;
+}
+.media_dnd-alt {
+    padding: 10px 0 0 20px;
+}
+.media_add-list {
+    display: none;
+}
+.dnd_area-hover {
+    background-color: #EEE;
+    border: 3px solid #888;
+    box-shadow: inset 0 0 10px #555;
+    color: #444;
+    opacity: 0.5;
+}
+.media_add-fileitem {
+    border: 1px solid #EEE;
+    border-radius: 2px;
+    padding: 10px;
+    position: relative;
+}
+.media_add-fileitem:not(:last-child) {
+    margin-bottom: 10px;
+}
+.media_remove-fileitem {
+    color: #F44 !important;
+    font-size: 8pt;
+    padding: 0 20px 0 10px;
+}
+.media_remove-fileitem:hover {
+    color: #A44 !important;
+    font-weight: bold;
+    text-decoration: none !important;
+}
+#tempfile_input {
+    visibility: hidden;
+    position: absolute;
+}
+.media_add-filename {
+    color: #666;
+    text-transform: lowercase;
+}
+.media_add-filesize {
+    color: #CCC;
+    font-style: italic;
+    margin-left: 20px;
+    text-transform: lowercase;
+}
+.media_result {
+    float: right;
+    margin-right: 40px;
+}
+.media_upload-prog {
+    background-color: #EEF;
+    bottom: 0;
+    left: 0;
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    width: 0;
+}
+.media_upload-perc {
+    color: #666;
+    padding: 10px;
+    float: right;
+}
+.media_add-fileinfo {
+    position: relative;
+}
+
+.media_error-title {
+    background-color: #777;
+    border-radius: 50%;
+    color: #CCC;
+    cursor: default;
+    font-weight: bold;
+    margin-left: 10px;
+    padding: 3px 8px;
+}

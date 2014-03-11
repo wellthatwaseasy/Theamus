@@ -1,0 +1,55 @@
+<div class="black_bar">
+    <div id="result" style="visibility: hidden;"></div>
+    <header class="site_header">
+        <div class="site_header-company left">
+            <a href="#">
+                <span class="site_header-company-logo">
+                    <!-- Company logo -->
+                </span>
+                <span class="site_header-company-text">
+                    {t:var="site_name":}
+                </span>
+            </a>
+        </div>
+
+        {t:!admin:}
+        <div class="site_header-user right">
+            {t:user:}
+            <ul>
+                <li>
+                    <div class="site_header-user-pic">
+                        <img src="media/profiles/{t:user_var='picture':}" alt="" />
+                    </div>
+                    <div class="site_header-user-name">
+                        {t:user_var="firstname":} {t:user_var="lastname":}
+                    </div>
+                    <div class="site_header-user-arrow"></div>
+                    <div class="clearfix"></div>
+
+                    <ul>
+                        <li><a href="accounts/user/edit-account/">Edit Profile</a></li>
+                        <li class="site_header-hr"></li>
+                        <li><a href="#" onclick="return user_logout();">Logout</a></li>
+                    </ul>
+                </li>
+            </ul>
+            {t:/user:}
+            
+            {t:!user:}
+            <span class="site_login-reg">
+                <a href="accounts/login/">Login</a>
+                <a href="accounts/register/">Register</a>
+            </span>
+            {t:/!user:}
+        </div>
+        {t:/!admin:}
+        <div class="clearfix"></div>
+    </header>
+
+    <nav class="site_nav">
+        <ul>
+            <li class="home"><a href="#">Home</a></li>
+            {t:nav="main":}
+        </ul>
+    </nav>
+</div>
