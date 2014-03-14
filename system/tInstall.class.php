@@ -13,40 +13,40 @@
 class tInstall {
     /**
      * Complete base url to the current website (e.g. http://www.mysite.com/)
-     * 
+     *
      * @var string $url
      */
     private $url;
-    
-    
+
+
     /**
      * Holds the answer to whether or not the database exists
-     * 
+     *
      * @var boolean $db_exists
      */
     private $db_exists;
-    
-    
+
+
     /**
      * If the connection to the database fails, this is just false
      * If the connection doesn't fail, this holds the mysqli object
-     * 
+     *
      * @var boolean|object $connection
      */
     private $connection;
-    
-    
+
+
     /**
      * Holds the answer to whether or not the database has been installed
-     * 
+     *
      * @var boolean $installed
      */
     private $installed;
 
-    
+
     /**
      * Constructs the class, defining class-specific variables
-     * 
+     *
      * @param string $url
      * @return boolean
      */
@@ -55,21 +55,21 @@ class tInstall {
         $this->initiate_variables();
         return true;
     }
-    
+
     /**
      * Deconstructs the class, closing the database connection if there is one
-     * 
+     *
      * @return boolean
      */
     public function __destruct() {
         if ($this->connection) $this->connection->close();
         return true;
     }
-    
-    
+
+
     /**
      * Defines any class related variables
-     * 
+     *
      * @return boolean
      */
     private function initiate_variables() {
@@ -79,31 +79,31 @@ class tInstall {
         return true;
     }
 
-    
+
     /**
      * Checks for the existence of "config.php"
-     * 
+     *
      * @return boolean
      */
     private function check_configuration_file() {
         return file_exists(path(ROOT."/config.php")) ? true : false;
     }
 
-    
+
     /**
      * Performs a check to see whether or not the database credentials are valid
      *  and if the database exists
-     * 
+     *
      * It also defines the mysqli connection object if everything is ok
-     * 
+     *
      * @return boolean
      */
     private function check_database_existence() {
         if (file_exists(path(ROOT."/config.php"))) {
             include path(ROOT."/config.php");
-            $connection = @new mysqli($config['Database']['Host Address'], 
-                                      $config['Database']['Username'], 
-                                      $config['Database']['Password'], 
+            $connection = @new mysqli($config['Database']['Host Address'],
+                                      $config['Database']['Username'],
+                                      $config['Database']['Password'],
                                       $config['Database']['Name']);
 
                 if ($connection->connect_errno) {
@@ -117,10 +117,10 @@ class tInstall {
         return false;
     }
 
-    
+
     /**
      * Checks to see if the site has been installed in the database or not
-     * 
+     *
      * @return boolean
      */
     private function check_installation() {
@@ -130,17 +130,17 @@ class tInstall {
 
             $q = $tData->query("SELECT * FROM `".$tDataClass->get_system_prefix()."_settings` WHERE `installed`='1'");
             if ($q) $ret = $q->num_rows > 0 ? true : false;
-            
+
             $tDataClass->disconnect();
             return isset($ret) ? $ret : false;
         }
         return false;
     }
 
-    
+
     /**
      * If the site has not been installed, show the installer and go from there
-     * 
+     *
      * @return boolean
      */
     public function run_installer() {
@@ -151,7 +151,7 @@ class tInstall {
         return true;
     }
 
-    
+
      /**
      * Defines information to be passed to javasript on page load
      *
@@ -159,17 +159,15 @@ class tInstall {
      */
     private function define_javascript_info() {
         $info = array(
-            "site_base"    => $this->base_url,
-            "feature"      => $this->feature_folder,
-            "feature_file" => $this->feature_file
+            "site_base" => base_url
         );
         return json_encode($info);
     }
-    
-    
+
+
     /**
      * Shows the contents of the installer
-     * 
+     *
      * @return boolean
      */
     private function show_installer_page()	{
@@ -186,7 +184,5 @@ class tInstall {
         include path(ROOT."/themes/installer/html.php");
         open_page($data);
         close_page();
-        
-        return true;
     }
 }
