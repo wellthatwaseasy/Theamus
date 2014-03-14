@@ -283,7 +283,7 @@ body {
     color: #444;
     font-family: "Source Sans", sans-serif;
     font-size: 24pt;
-    margin: 0 0 30px;
+    margin: 0 0 10px;
     padding: 15px 0 10px 30px;
 }
 .site_content-main-header {
@@ -352,6 +352,9 @@ body {
     margin-left: 200px;
     padding: 10px 30px;
     width: calc(100% - 260px);
+}
+.site_content .body-header {
+    display: block;
 }
 
 /* Containers */
