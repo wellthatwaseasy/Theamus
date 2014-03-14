@@ -1,11 +1,8 @@
 <?php
 
-// This is my last attempt to create a CMS system.
-// If it doesn't work... I'll give up.
-
 /**
  * Theamus -- a modular content management system that makes websites easy.
- * 
+ *
  * PHP Version 5.5.3
  * Version 0.6
  * @package Theamus
