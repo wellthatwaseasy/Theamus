@@ -26,8 +26,7 @@ if (in_array("true", $ingroup)) {
 
 	// Update the page view count
 	$views = $page['views'] + 1;
-	$update = "UPDATE `".$table."` SET `views`='".$views."' WHERE
-		`alias`='".$alias."'";
+	$update = "UPDATE `".$table."` SET `views`='".$views."' WHERE `alias`='".$alias."'";
 	$tData->query($update);
 } else {
     echo '<div class="content-header">Hah! Caught you.</div>';
