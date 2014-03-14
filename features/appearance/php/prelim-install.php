@@ -3,7 +3,7 @@
 try {
     $config = $Appearance->prelim_install();
 } catch (Exception $ex) {
-    $Appearance->print_exception($ex);
+    die($Appearance->print_exception($ex));
 }
 
 ?>
