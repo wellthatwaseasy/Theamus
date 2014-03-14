@@ -529,6 +529,7 @@ class tCall {
 
             if (array_key_exists(0, $this->parameters)) {
                 $file = $this->parameters[0].$extension;
+                array_shift($this->parameters);
             } elseif ($this->page == true) {
                 $file = "show-page.php";
             } else {
