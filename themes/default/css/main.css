@@ -808,3 +808,19 @@ body {
     max-height: 1000px;
     visibility: visible;
 }
+
+/* Definition Lists */
+.site_content dl {
+    margin: 0;
+    padding: 0;
+}
+.site_content dl dt {
+    color: #555;
+    font-family: Monaco, monospace;
+    font-size: 11pt;
+    font-style: italic;
+    font-weight: bold;
+}
+.site_content dl dd {
+    margin: 5px 20px 20px;
+}
