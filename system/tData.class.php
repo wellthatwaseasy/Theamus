@@ -69,7 +69,8 @@ class tData {
      * @return
      */
     private function set_timezone() {
-        date_default_timezone_set($this->config['timezone']);
+        $tz = isset($this->config['timezone']) ? $this->config['timezone'] : "America/Chicago";
+        date_default_timezone_set($tz);
         return;
     }
 
@@ -175,7 +176,7 @@ class tData {
      */
     public function t_decode($inp) {
         if ($inp == "") return array();
-        
+
         preg_match_all('/{t:/i', $inp, $r);
         if (count($r[0]) > 1) throw new Exception("tData: Recusive encoding is not allowed.");
 
