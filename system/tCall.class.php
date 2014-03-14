@@ -614,7 +614,7 @@ class tCall {
 
         if ($feature_info['enabled'] == 0) die($this->error_page());
 
-        //include $this->define_theme_path();
+        $url_params = $this->parameters;
 
         if ($this->define_classes()) {
             $init_class = $this->init_class;
@@ -828,15 +828,15 @@ class tCall {
     private function get_css($for_ajax = false) {
         //if ($for_ajax) return "";
         $ret[] = $this->default_css();
- 
+
         $folder = $this->get_custom_folder("css");
         $path = "features/$this->feature_folder/$folder";
- 
+
         if ($folder != false) {
             $files = $this->get_custom_files("css");
             $ret[] = $this->define_css_tags($path, $files, $for_ajax);
         }
- 
+
         return implode("\n", $ret);
     }
 
