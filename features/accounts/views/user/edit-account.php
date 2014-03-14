@@ -61,7 +61,7 @@ $user = $tUser->user;
         <div class="site-formlabel">Current Picture</div>
         <div class="site-formimg">
             <?php if ($user['picture'] == ""): ?>
-            <img id="current-pic" src="themes/default/img/default-user-icon.png" height="150px" />
+            <img id="current-pic" src="media/profiles/default-user-picture.png" height="150px" />
             <?php else: ?>
             <img id="current-pic" src="media/profiles/<?=$user['picture']?>" height="150px" />
             <?php endif; ?>
