@@ -80,7 +80,7 @@ class tTheme {
      *
      * @var boolean $admin
      */
-    private $admin;
+    public $admin;
 
 
     /**
