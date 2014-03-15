@@ -98,7 +98,8 @@ class tData {
                                   $this->config['Database']['Password'],
                                   $this->config['Database']['Name']);
 
-        if ($connection) {
+        if ($connection->connect_errno) return false;
+        else {
             $this->connection = $connection;
             return $connection;
         }
