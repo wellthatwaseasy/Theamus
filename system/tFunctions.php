@@ -155,7 +155,7 @@ function show_page_navigation($loc = "main", $child_of = 0) {
     
     $q = $tData->query("SELECT * FROM `".$tDataClass->get_system_prefix()."_links` WHERE `location`='$loc' AND `child_of`='$child_of'");
     while ($link = $q->fetch_assoc()) {
-        $in = [];
+        $in = array();
         foreach (explode(",", $link['groups']) as $group) $in[] = $tUser->in_group($group) ? "true" : "false";
 
         if (in_array("true", $in)) {

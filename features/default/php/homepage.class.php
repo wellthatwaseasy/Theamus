@@ -39,7 +39,7 @@ class HomePage {
     }
 
     private function get_user_groups($g) {
-        $ret = [];
+        $ret = array();
         $gs = explode(",", $g);
         foreach ($gs as $g) {
             $g = $this->tData->real_escape_string($g);
@@ -54,7 +54,7 @@ class HomePage {
     private function check_group_home() {
         if (!$this->tUser->user) return false;
         else {
-            $ret = [];
+            $ret = array();
             foreach ($this->get_user_groups($this->tUser->user['groups']) as $g) {
                 if ($g !== "false") $ret[] = $this->tDataClass->t_decode($g);
             }

@@ -215,7 +215,7 @@ class tPages {
      */
     private function query_db() {
         $this->get_limits();
-        $ret = [];
+        $ret = array();
         $q = $this->tData->query($this->sql." LIMIT ".$this->start.", ".$this->end);
         if ($q)
             while ($res = $q->fetch_assoc()) $ret[] = $res;

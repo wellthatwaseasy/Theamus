@@ -31,7 +31,7 @@ class tFiles {
      * @return type array
      */
     function scan_folder($path, $clean = false, $return_type = "files") {
-        $ret = [];
+        $ret = array();
         $root = scandir(path($path));
         foreach ($root as $value) {
             if ($value === '.' || $value === '..') continue;
@@ -62,7 +62,7 @@ class tFiles {
      */
     function clean_filenames($array, $clean = '') {
         if (is_array($array)) {
-            $result = [];
+            $result = array();
             foreach ($array as $val) $result[] = str_replace(path($clean . '/'), '', $val);
             return $result;
         }

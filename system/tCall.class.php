@@ -869,7 +869,7 @@ class tCall {
      * @return string
      */
     private function define_css_tags($path, $files, $for_ajax) {
-        $ret = [];
+        $ret = array();
         if (!empty($files)) {
             foreach ($files as $f) {
                 if ($for_ajax == false) {
@@ -956,7 +956,7 @@ class tCall {
      * @return string
      */
     private function define_javascript_tags($path, $files, $for_ajax) {
-        $ret = [];
+        $ret = array();
         if (!empty($files)) {
             foreach ($files as $f) {
                 if ($for_ajax == false) {
@@ -1002,7 +1002,7 @@ class tCall {
      * @return string
      */
     private function define_javascript_scripts($scripts, $for_ajax) {
-        $ret = [];
+        $ret = array();
         if (!empty($scripts)) {
             foreach ($scripts as $s) {
                 if ($for_ajax == false) $ret[] = "<script>$s</script>";

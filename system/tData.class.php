@@ -160,7 +160,7 @@ class tData {
      */
     public function flatten_array($array) {
         if (!is_array($array)) return array($array);
-        $ret = [];
+        $ret = array();
         foreach ($array as $value) $ret = array_merge($ret, flattenArray($value));
         return $ret;
     }

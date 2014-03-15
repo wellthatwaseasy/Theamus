@@ -298,7 +298,7 @@ class tTheme {
                 $theme_data_table = $this->tDataClass->prefix."_themes-data";
                 $q = $this->tData->query("SELECT * FROM `$theme_data_table` WHERE `selector` LIKE '".trim($match[1], "\"")."-%' AND `theme`='".$this->get_theme_folder()."' ORDER BY `selector`");
                 if ($q) {
-                    $vars = [];
+                    $vars = array();
                     while ($row = $q->fetch_assoc()) $vars[] = $row;
                     $clean_vars = $this->clean_theme_vars($vars);
                     return $this->set_loop_variables($match[2], $clean_vars);
@@ -338,7 +338,7 @@ class tTheme {
      * @return array
      */
     private function clean_theme_vars($vars) {
-        $ret = [];
+        $ret = array();
         foreach ($vars as $v) {
             $ret[$v['selector']][$v['key']] = $v['value'];
             if (!array_key_exists("selector", $ret[$v['selector']])) $ret[$v['selector']]['selector'] = $v['selector'];

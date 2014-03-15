@@ -32,7 +32,7 @@ class tEditor {
     }
 
     private function print_executable_options($array) {
-        $ret = [];
+        $ret = array();
         foreach ($array as $a) {
             if (isset($a['option']) && $this->var[$a['option']] == false) continue;
             if (isset($a['separator'])) $ret[] = "<span class='rta-separator'></span>";
