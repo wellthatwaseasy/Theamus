@@ -651,6 +651,10 @@ body {
     background: #BEB;
     border-bottom: 3px solid #ADA;
 }
+.site_content input[type="submit"].inline,
+.site_content input[type="button"].inline {
+    padding: 5px 25px;
+}
 
 /* Select */
 .site-selectlabel > select {
