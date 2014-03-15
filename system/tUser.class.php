@@ -190,7 +190,7 @@ class tUser {
     private function force_logout() {
         if ($this->check_login()) {
             if ($this->user == false) {
-                session_start();
+                @session_start();
                 session_destroy();
                 setcookie("session", "", 30, "/");
                 setcookie("userid", "", 30, "/");
