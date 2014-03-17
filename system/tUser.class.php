@@ -13,40 +13,40 @@
 class tUser {
     /**
      * Holds the Theamus system data class
-     * 
+     *
      * @var object $tDataClass
      */
     private $tDataClass;
-    
-    
+
+
     /**
      * Holds the mysqli object
-     * 
+     *
      * @var object $tData
      */
     private $tData;
-    
-    
+
+
     /**
      * Holds information about the currently logged in user
-     * 
+     *
      * @var boolean|array $user
      */
     public $user;
-    
-    
+
+
     /**
      * Holds the cookies provided by the browser
-     * 
+     *
      * @var array $cookies
      */
     private $cookies;
 
-    
+
     /**
      * Constructs the class, initializing class variables and defining
      *  user information
-     * 
+     *
      * @return boolean
      */
     public function __construct() {
@@ -54,22 +54,22 @@ class tUser {
         $this->get_user_info();
         return true;
     }
-    
-    
+
+
     /**
      * Deconstructs the class, disconnecting from the database
-     * 
+     *
      * @return boolean
      */
     public function __destruct() {
         $this->tDataClass->disconnect();
         return true;
     }
-    
-    
+
+
     /**
      * Defines variables that will be used within the class
-     * 
+     *
      * @return boolean
      */
     private function initialize_variables() {
@@ -80,10 +80,10 @@ class tUser {
         return true;
     }
 
-    
+
     /**
      * Performs a check to see if a user is logged in
-     * 
+     *
      * @return boolean
      */
     private function check_login() {
@@ -92,11 +92,11 @@ class tUser {
         return false;
     }
 
-    
+
     /**
      * Gets all of the database information related to the user being logged in.
      *  If there is no user logged in, it will return false
-     * 
+     *
      * @return boolean|array $this->user
      */
     private function get_user_info() {
@@ -112,10 +112,10 @@ class tUser {
         return false;
     }
 
-    
+
     /**
      * Gets information specific to a user, from the provided ID
-     * 
+     *
      * @param int $id
      * @return boolean|array
      */
@@ -125,11 +125,11 @@ class tUser {
         return false;
     }
 
-    
+
     /**
-     * Defines the user's groups from the given user database information 
+     * Defines the user's groups from the given user database information
      *  (e.g. $this->user)
-     * 
+     *
      * @param array $data
      * @return array
      */
@@ -138,10 +138,10 @@ class tUser {
         return explode(",", $data['groups']);
     }
 
-    
+
     /**
      * Performs a check to see if the currently logged in user is an administrator
-     * 
+     *
      * @return boolean
      */
     public function is_admin() {
@@ -149,10 +149,10 @@ class tUser {
         return true;
     }
 
-    
+
     /**
      * Performs a check to see if a user is in a group
-     * 
+     *
      * @param string $group
      * @return boolean
      */
@@ -162,10 +162,10 @@ class tUser {
         return true;
     }
 
-    
+
     /**
      * Performs a check to see if a user has permission to do something
-     * 
+     *
      * @param string $permission
      * @return boolean
      */
@@ -174,17 +174,18 @@ class tUser {
         foreach(explode(",", $this->user['groups']) as $group) {
             $q = $this->tData->query("SELECT `permissions` FROM `".$this->tDataClass->prefix."_groups` ".
                 "WHERE `alias`='".$group."'");
-            $permissions = explode(",", $this->tDataClass->check_query_and_return($q)['permissions']);
+            $qd = $this->tDataClass->check_query_and_return($q);
+            $permissions = explode(",", $qd['permissions']);
             if (in_array($permission, $permissions)) $ret[] = "true";
         }
         if (in_array("true", $ret)) return true;
         return false;
     }
 
-    
+
     /**
      * Destroys a user's session, forcing them to re-login
-     * 
+     *
      * @return boolean
      */
     private function force_logout() {
@@ -201,11 +202,11 @@ class tUser {
         return false;
     }
 
-    
+
     /**
      * Performs a check on a user's permissions.  Dies and notifies if they do not
      *  have permission
-     * 
+     *
      * @param string $permission
      * @return die
      */
@@ -213,11 +214,11 @@ class tUser {
         if (!$this->has_permission($permission))
             return die(notify("admin", "failure", "You don't have permission to do this."));
     }
-    
-    
+
+
     /**
      * Denies any non-amdinistrator users from seeing a specific file
-     * 
+     *
      * @param string $current
      * @param array $files
      * @return boolean

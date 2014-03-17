@@ -208,7 +208,7 @@ class tTheme {
      * @throws Exception
      */
     private function get_config() {
-        $config_path = path($this->data['theme']."/config.json");
+        $config_path = path($this->data['theme']."config.json");
         if (file_exists($config_path)) {
             return json_decode(file_get_contents($config_path));
         }
@@ -268,6 +268,93 @@ class tTheme {
 
 
     /**
+     * This function is used during preg_replace_callback() to replace old data with new data
+     *
+     * @param array $match
+     * @return string
+     */
+    private function preg_replace($match) {
+        return str_replace($match[0], $this->preg_replace_data[$match[1]], $match[0]);
+    }
+
+
+    /**
+     * Returns user information relative to the condition being called
+     *
+     * @param array $match
+     * @return string
+     */
+    private function preg_user_replace($match) {
+        if ($this->preg_replace_data) return str_replace($match[0], $match[1], $match[0]);
+        else return str_replace($match[0], "", $match[0]);
+    }
+
+
+    /**
+     * Performs a loop based on the preg_replace_callback()
+     *
+     * @param array $match
+     * @return string
+     * @throws Exception
+     */
+    private function preg_loop($match) {
+        $theme_data_table = $this->tDataClass->prefix."_themes-data";
+        $q = $this->tData->query("SELECT * FROM `$theme_data_table` WHERE `selector` LIKE '".trim($match[1], "\"")."-%' AND `theme`='".$this->get_theme_folder()."' ORDER BY `selector`");
+        if ($q) {
+            $vars = array();
+            while ($row = $q->fetch_assoc()) $vars[] = $row;
+            $clean_vars = $this->clean_theme_vars($vars);
+            return $this->set_loop_variables($match[2], $clean_vars);
+        } else throw new Exception("Invalid loop query.");
+    }
+
+
+    /**
+     * Adds header data to the page based on the preg_replace_callback()
+     *
+     * @param array $match
+     * @return string
+     */
+    private function preg_header_data($match) {
+        $base = "<base href='".$this->data['base']."' />";
+        $info = $base.$this->data['js'].$this->data['css'].$match[1];
+        return str_replace($match[1], $info, $match[0]);
+    }
+
+
+    /**
+     * Determines whether or not there is a navigation area on the page
+     *
+     * @param array $match
+     * @return
+     */
+    private function preg_nav_area($match) {
+        if ($match[1] == "extra-nav" && (!isset($this->data['nav']) || $this->data['nav'] == "")) $ret = "false";
+        else $ret = "true";
+        $this->nav[] = $ret;
+        return;
+    }
+
+
+    /**
+     * Gets the navigation for the area being called, then returns the links
+     *
+     * @param array $match
+     * @return string
+     */
+    private function preg_navigation($match) {
+        if ($match[1] == "main") {
+            return str_replace($match[0], show_page_navigation(), $match[0]);
+        } elseif ($match[1] == "extra") {
+            if ($this->data['nav'] != "") return str_replace($match[0], extra_page_navigation($this->data['nav']), $match[0]);
+            else return;
+        } else {
+            return str_replace($match[0], show_page_navigation($match[1]), $match[0]);
+        }
+    }
+
+
+    /**
      * Finds any calls for variables in the theme contents and replaces them with actual
      *  data/values
      *
@@ -275,11 +362,8 @@ class tTheme {
      * @return string $output
      */
     private function set_variables($contents) {
-        $output = preg_replace_callback(
-            array("/{t:var='(.*?)':}/s", "/{t:var=\"(.*?)\":}/s"),
-            function($match) { return str_replace($match[0], $this->nice_data[$match[1]], $match[0]); },
-            $contents
-        );
+        $this->preg_replace_data = $this->nice_data;
+        $output = preg_replace_callback(array("/{t:var='(.*?)':}/s", "/{t:var=\"(.*?)\":}/s"), array($this, "preg_replace"), $contents);
         return $output;
     }
 
@@ -292,20 +376,7 @@ class tTheme {
      * @throws Exception
      */
     private function do_loops($contents) {
-        $output = preg_replace_callback(
-            "/{t:loop\((.*?)\):}(.*?){t:\/loop:}/s",
-            function($match) {
-                $theme_data_table = $this->tDataClass->prefix."_themes-data";
-                $q = $this->tData->query("SELECT * FROM `$theme_data_table` WHERE `selector` LIKE '".trim($match[1], "\"")."-%' AND `theme`='".$this->get_theme_folder()."' ORDER BY `selector`");
-                if ($q) {
-                    $vars = array();
-                    while ($row = $q->fetch_assoc()) $vars[] = $row;
-                    $clean_vars = $this->clean_theme_vars($vars);
-                    return $this->set_loop_variables($match[2], $clean_vars);
-                } else throw new Exception("Invalid loop query.");
-            },
-            $contents
-        );
+        $output = preg_replace_callback("/{t:loop\((.*?)\):}(.*?){t:\/loop:}/s", array($this, "preg_loop"), $contents);
         return $output;
     }
 
@@ -320,9 +391,10 @@ class tTheme {
     private function set_loop_variables($template, $clean_vars) {
         $return_template = "";
         foreach ($clean_vars as $cv) {
+            $this->preg_replace_data = $cv;
             $temp_template = preg_replace_callback(
                 array("/{t:loop_var='(.*?)':}/s", "/{t:loop_var=\"(.*?)\":}/s"),
-                function($match) use ($template, $cv) { return str_replace($match[0], $cv[$match[1]], $match[0]); },
+                array($this, "preg_replace"),
                 $template
             );
             $return_template .= $temp_template;
@@ -354,15 +426,7 @@ class tTheme {
      * @return string $output
      */
     private function add_header_data($contents) {
-        $output = preg_replace_callback(
-            "/<head>(.*?)<\/head>/s",
-            function($match) {
-                $base = "<base href='".$this->data['base']."' />";
-                $info = $base.$this->data['js'].$this->data['css'].$match[1];
-                return str_replace($match[1], $info, $match[0]);
-            },
-            $contents
-        );
+        $output = preg_replace_callback("/<head>(.*?)<\/head>/s", array($this, "preg_header_data"), $contents);
         return $output;
     }
 
@@ -374,16 +438,7 @@ class tTheme {
      * @return
      */
     private function get_areas($contents) {
-        $output = preg_replace_callback(
-            array("/{t:area=\"(.*?)\":}/s", "/{t:area='(.*?)':}/s"),
-            function($match) {
-                if ($match[1] == "extra-nav" && (!isset($this->data['nav']) || $this->data['nav'] == "")) $ret = "false";
-                else $ret = "true";
-                $this->nav[] = $ret;
-                return;
-            },
-            $contents
-        );
+        $output = preg_replace_callback(array("/{t:area=\"(.*?)\":}/s", "/{t:area='(.*?)':}/s"), array($this, "preg_nav_area"), $contents);
         if (is_array($this->nav)) {
             $this->nice_data['nav'] = in_array("false", $this->nav) ? "" : "site_with-nav";
         } else $this->nice_data['nav'] = "";
@@ -398,11 +453,7 @@ class tTheme {
      * @return string $output
      */
     private function set_areas($contents) {
-        $output = preg_replace_callback(
-            array("/{t:area=\"(.*?)\":}/s", "/{t:area='(.*?)':}/s"),
-            function($match) { return $this->get_area_content($match[1]); },
-            $contents
-        );
+        $output = preg_replace_callback(array("/{t:area=\"(.*?)\":}/s", "/{t:area='(.*?)':}/s"), array($this, "get_area_content"), $contents);
         return $output;
     }
 
@@ -415,9 +466,9 @@ class tTheme {
      * @return string
      */
     private function get_area_content($area) {
-        if ($area == "extra-nav" && (!isset($this->data['nav']) || $this->data['nav'] == "")) return "";
-        if (property_exists($this->config->areas, $area)) {
-            $path = path($this->data['theme']."/".$this->config->areas->$area);
+        if ($area[1] == "extra-nav" && (!isset($this->data['nav']) || $this->data['nav'] == "")) return "";
+        if (property_exists($this->config->areas, $area[1])) {
+            $path = path($this->data['theme']."/".$this->config->areas->$area[1]);
             if (file_exists($path)) return $this->set_variables(file_get_contents($path));
         }
         return "";
@@ -431,20 +482,7 @@ class tTheme {
      * @return string $output
      */
     private function get_navigation($contents) {
-        $output = preg_replace_callback(
-            array("/{t:nav='(.*?)':}/s", "/{t:nav=\"(.*?)\":}/s"),
-            function($match) {
-                if ($match[1] == "main") {
-                    return str_replace($match[0], show_page_navigation(), $match[0]);
-                } elseif ($match[1] == "extra") {
-                    if ($this->data['nav'] != "") return str_replace($match[0], extra_page_navigation($this->data['nav']), $match[0]);
-                    else return;
-                } else {
-                    return str_replace($match[0], show_page_navigation($match[1]), $match[0]);
-                }
-            },
-            $contents
-        );
+        $output = preg_replace_callback(array("/{t:nav='(.*?)':}/s", "/{t:nav=\"(.*?)\":}/s"), array($this, "preg_navigation"), $contents);
         return $output;
     }
 
@@ -494,14 +532,8 @@ class tTheme {
                 $replace = !$this->tUser->user ? true : false;
                 break;
         }
-        $output = preg_replace_callback(
-            $regex,
-            function($match) use($replace, $regex) {
-                if ($replace) return str_replace($match[0], $match[1], $match[0]);
-                else return str_replace($match[0], "", $match[0]);
-            },
-            $contents
-        );
+        $this->preg_replace_data = $replace;
+        $output = preg_replace_callback($regex, array($this, "preg_user_replace"), $contents);
         return $output;
     }
 
@@ -514,13 +546,8 @@ class tTheme {
      * @return string
      */
     private function set_user_variables($contents) {
-        $output = preg_replace_callback(
-            array("/{t:user_var='(.*?)':}/s", "/{t:user_var=\"(.*?)\":}/s"),
-            function($match) {
-                return str_replace($match[0], urldecode($this->tUser->user[$match[1]]), $match[0]);
-            },
-            $contents
-        );
+        $this->preg_replace_data = $this->tUser->user;
+        $output = preg_replace_callback(array("/{t:user_var='(.*?)':}/s", "/{t:user_var=\"(.*?)\":}/s"), array($this, "preg_replace"), $contents);
         return $output;
     }
 

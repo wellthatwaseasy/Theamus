@@ -81,7 +81,10 @@ class Appearance {
 
     private function get_class_variables() {
         $class_settings = $this->check_class_variables();
-        if ($class_settings) return $this->settings_config()['class'];
+        if ($class_settings) {
+            $sc = $this->settings_config();
+            return $sc['class'];
+        }
         else throw new Exception("Required class fields are missing in the settings information file.");
     }
 
@@ -119,12 +122,12 @@ class Appearance {
         foreach ($files as $f) if ($f != path($path."/blank.txt")) unlink($f);
         foreach ($folders as $f) $this->tFiles->remove_folder($f);
     }
-    
+
     private function clean_theme_folder($f = false) {
         if (!$f) return;
         $this->tFiles->remove_folder(path(ROOT."/themes/".$f));
     }
-    
+
     private function check_config_layouts($c) {
         if (!isset($c['layouts'])) throw new Exception("There are no layouts defined for this theme.  Is everything set up correctly?");
         $ret['default'] = $ret['error'] = $ret['empty'] = $ret['blank'] = false;
@@ -137,20 +140,20 @@ class Appearance {
         if ($ret['default'] && $ret['error'] && $ret['empty'] && $ret['blank']) return true;
         else throw new Exception("There are required layouts missing that are causing the installation to fail.");
     }
-    
+
     private function check_config_theme($c) {
         if (!isset($c['theme'])) throw new Exception("The theme information is missing from the configuration file.");
         if (isset($c['theme']['folder']) && isset($c['theme']['name']) && isset($c['theme']['version'])) return true;
         else throw new Exception("There is a field missing from the theme information section in the configuration file.");
     }
-    
+
     private function check_config_author($c) {
         if (!isset($c['author'])) throw new Exception("The author's information for this theme doesn't exist.  It needs to.");
         $a = $c['author'];
         if (isset($a['name']) && isset($a['alias']) && isset($a['company']) && isset($a['email'])) return true;
         else throw new Exception("There is a field missing from the author's information section in the configuration file.");
     }
-    
+
     private function check_install_config($c) {
         if (!is_array($c)) return false;
         if (empty($c)) return false;
@@ -161,7 +164,7 @@ class Appearance {
         $this->check_config_theme($c);
         $this->check_config_author($c);
     }
-    
+
     private function run_theme_installer($t, $info) {
         $path = ROOT."/features/appearance/temp/".trim($t, ".zip");
         if (file_exists(path($path."/install.php"))) {
@@ -170,7 +173,7 @@ class Appearance {
             install_theme($info);
         }
     }
-    
+
     private function extract_theme($f, $c) {
         $path = ROOT."/features/appearance/temp/";
         if ($this->tFiles->extract_zip(path($path.$f), path(ROOT."/themes/".$c['theme']['folder']))) return true;
@@ -179,7 +182,7 @@ class Appearance {
             throw new Exception("There was an issue extracting the theme");
         }
     }
-    
+
     private function add_theme_db($c) {
         $q = $this->tData->query("INSERT INTO `".$this->tDataClass->prefix."_themes` (`alias`, `name`, `active`, `permanent`) VALUES ".
                 "('".$c['theme']['folder']."', '".$c['theme']['name']."', 0, 0)");
@@ -230,7 +233,7 @@ class Appearance {
             throw new Exception("There was an issue extracting the theme");
         }
     }
-    
+
     public function prelim_install() {
         $theme = $this->upload_theme();
         $this->extract_tmp_theme($theme);
@@ -239,7 +242,7 @@ class Appearance {
         $this->clean_temp_folder();
         return $config;
     }
-    
+
     public function install_theme() {
         $theme = $this->upload_theme();
         $this->extract_tmp_theme($theme);

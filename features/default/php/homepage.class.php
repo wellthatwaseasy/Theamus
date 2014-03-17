@@ -24,7 +24,8 @@ class HomePage {
         $q = $this->tData->query("SELECT `home` FROM `".$this->tDataClass->prefix."_settings`");
         if (!$q) throw new Exception("Cannot find the home page in the settings table.");
         if ($q->num_rows == 0) throw new Exception("There is no home page column in the settings table.");
-        return $q->fetch_assoc()['home'];
+        $r = $q->fetch_assoc();
+        return $r['home'];
     }
 
     private function decode_home($given = false) {
@@ -46,7 +47,8 @@ class HomePage {
             $q = $this->tData->query("SELECT `home_override` FROM `".$this->tDataClass->prefix."_groups` WHERE `alias`='$g'");
             if (!$q) continue;
             if ($q->num_rows == 0) continue;
-            $ret[] = $q->fetch_assoc()['home_override'];
+            $r = $q->fetch_assoc();
+            $ret[] = $r['home_override'];
         }
         return $ret;
     }
@@ -64,7 +66,8 @@ class HomePage {
 
     private function handle_type($given = false) {
         $gh = $this->check_group_home();
-        $type = $given == false ? $this->decode_home()['type'] : $given['after-type'];
+        $dh = $this->decode_home();
+        $type = $given == false ? $dh['type'] : $given['after-type'];
         if (count($gh) >= 1 && $gh != false) {
             $type = $gh[0]['type'];
             $given = $gh[0];

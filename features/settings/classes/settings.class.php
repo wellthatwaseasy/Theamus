@@ -23,7 +23,8 @@ class Settings {
         $q = $this->tData->query("SELECT `home` FROM `".$this->tDataClass->prefix."_settings`");
         if (!$q) throw new Exception("Cannot find the home page in the settings table.");
         if ($q->num_rows == 0) throw new Exception("There is no home page column in the settings table.");
-        return $q->fetch_assoc()['home'];
+        $r = $q->fetch_assoc();
+        return $r['home'];
     }
 
     private function decode_home() {

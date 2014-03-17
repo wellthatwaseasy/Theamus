@@ -235,6 +235,17 @@ class tPages {
 
 
     /**
+     * This is the function called in the "populate_list_template()" function's preg_replace_callback()
+     *
+     * @param array $match
+     * @return string
+     */
+    private function populate_preg_function($match) {
+        return str_replace($match[0], $this->match_data_item[$match[1]], $match[0]);
+    }
+
+
+    /**
      * Takes and populates all of the keys in the template to their relative
      *  data array row
      *
@@ -244,14 +255,23 @@ class tPages {
      * @return string
      */
     private function populate_list_template($data_item) {
-        $output = preg_replace_callback(
-            "/%(.*?)%/s",
-            function($match) use ($data_item) {
-                return str_replace($match[0], $data_item[$match[1]], $match[0]);
-            },
-            $this->list_template
-        );
+        $this->match_data_item = $data_item;
+        $output = preg_replace_callback("/%(.*?)%/s", array($this, "populate_preg_function"), $this->list_template);
         return $this->eval_template($output);
+    }
+
+
+    /**
+     * This is the function called in the "eval_template()" function's preg_replace_callback()
+     *
+     * @param array $match
+     * @return string
+     */
+    private function eval_preg_function($match) {
+        $tUser = new tUser();
+        $replace = "";
+        eval("\$replace = ".$match[1].";");
+        return str_replace($match[0], $replace, $match[0]);
     }
 
 
@@ -264,16 +284,7 @@ class tPages {
      * @return string
      */
     private function eval_template($template) {
-        $output = preg_replace_callback(
-            "/::(.*?)::/s",
-            function($match) {
-                $tUser = new tUser();
-                $replace = "";
-                eval("\$replace = ".$match[1].";");
-                return str_replace($match[0], $replace, $match[0]);
-            },
-            $template
-        );
+        $output = preg_replace_callback("/::(.*?)::/s", array($this, "eval_preg_function"), $template);
         return $output;
     }
 

@@ -4,25 +4,28 @@ class Pages {
     public function __construct() {
         $this->initialize_variables();
     }
-    
+
     public function __destruct() {
         $this->tDataClass->disconnect();
         return;
     }
-    
+
     private function initialize_variables() {
         $this->tDataClass = new tData();
         $this->tData = $this->tDataClass->connect();
         $this->tDataClass->prefix = $this->tDataClass->get_system_prefix();
         return;
     }
-    
+
     private function get_current_theme() {
         $q = $this->tData->query("SELECT `alias` FROM `".$this->tDataClass->prefix."_themes` WHERE `active`=1");
-        if ($q) return $q->fetch_assoc()['alias'];
+        if ($q) {
+            $r = $q->fetch_assoc();
+            return $r['alias'];
+        }
         else throw new Exception("Error finding the active theme.");
     }
-    
+
     private function get_theme_options() {
         $alias = $this->get_current_theme();
         $config_path = path(ROOT."/themes/$alias/config.json");
@@ -35,7 +38,7 @@ class Pages {
             return $ret;
         } else throw new Exception("Error locating the theme configuration file.");
     }
-    
+
     private function set_selectable_layouts($current) {
         $layouts = $this->get_theme_options();
         if (!empty($layouts)) {
@@ -49,7 +52,7 @@ class Pages {
             return implode("", $ret);
         } else throw new Exception("There are no layouts for this theme, the default has been selected.");
     }
-    
+
     public function get_selectable_layouts($current = "") {
         try {
             return $this->set_selectable_layouts($current);
