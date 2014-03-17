@@ -1,0 +1,26 @@
+{
+    "version": "1.0",
+    "changes": {
+        "database": [
+            ["modified", "dflt_home-apps"],
+            ["created", "themes-data"]
+        ],
+        "files": [
+            ["modified", "features/settings/classes/settings.class.php"],
+            ["modified", "features/settings/js/settings.js"],
+            ["modified", "features/settings/php/check-update.php"],
+            ["added", "features/settings/php/prelim-update.php"],
+            ["added", "features/settings/views/update-manually.php"],
+            ["modified", "features/settings/files.info.php"]
+        ],
+        "bugs": [
+            "Updated files to work in version(s) PHP 5.2.17+",
+            "Updated the Theamus Settings feature to allow a manual update"
+        ]
+    },
+    "authors": [
+        ["Matthew Tempinski", "Eyraahh", "matt.tempinski@gmail.com"]
+    ],
+    "run_update_script": true,
+    "update_files": ["update-sql.php", "update.php"]
+}

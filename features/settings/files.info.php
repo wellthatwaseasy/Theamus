@@ -22,7 +22,10 @@ switch ($file) {
         $feature['js']['file'][] = 'settings.js';
         break;
 
+    case "update-manually.php":
+        $feature['js']['file'][] = "settings.js";
+        break;
+
     default :
         break;
 }
-?>

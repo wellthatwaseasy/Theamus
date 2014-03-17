@@ -128,4 +128,296 @@ class Settings {
         if (!$q) throw new Exception("There was an error updating the settings database.");
         else return true;
     }
+
+
+    /**
+     * Cleans all of the contents out of the temp directory
+     */
+    private function clean_temp_folder() {
+        // Define the path to the temp directory and get the files/folders from it
+        $temp_directory = ROOT."/features/settings/temp";
+        $temp_files     = $this->tFiles->scan_folder($temp_directory);
+        $temp_folders   = $this->tFiles->scan_folder($temp_directory, false, "folders");
+
+        // Loop through all of the files and folders, removing them
+        foreach ($temp_files as $file) if ($file != path($temp_directory."/blank.txt")) unlink($file);
+        foreach ($temp_folders as $folder) $this->tFiles->remove_folder($folder);
+    }
+
+
+    /**
+     * Takes a URL, gets headers from it, and returns based on the HTTP response
+     *
+     * @param string $url
+     * @return boolean
+     */
+    private function ping_release_server($url = false) {
+        // Check the given url argument for a valid url
+        if ($url == false || filter_var($url, FILTER_VALIDATE_URL)) return false;
+
+        // Get the headers from the URL
+        $server_headers = get_headers($url);
+        $http_response_array = explode(" ", $server_headers[0]);
+        $http_response = $http_response_array[1];
+
+        // Return based on the response in the headers
+        if ($http_response == "404") return false;
+        if ($http_response == "200") return true;
+        return false;
+    }
+
+
+    /**
+     * Checks the release server for updates and whether or not updates are available
+     *  to this system
+     *
+     * @throws Exception
+     */
+    public function check_for_updates() {
+        $release_server = "http://theamus.com/releases/update/";
+
+        // Ping the release server to check that it's up and running
+        if (!$this->ping_release_server($release_server)) {
+            throw new Exception("Cannot connect to the update server. - ".
+                "Have the files? <a href='#' onclick=\"return admin_go('settings', 'settings/update-manually/');\">Update Manually</a>");
+        } else {
+            // Define the current system's information and the update information
+            $system_info = $this->get_system_info();
+            $update_info = file_get_contents($release_server);
+
+            // Check for a new version
+            if (!empty($update_info) && in_array($system_info['version'], $update_info['old_versions'])) {
+                echo "There's a new update available for your system.";
+                run_after_ajax("prepare_update");
+            } else {
+                throw new Exception("There are no new updates at this time.");
+            }
+        }
+    }
+
+
+    /**
+     * Gets and checks the information about the uploaded file
+     *
+     * @return array
+     * @throws Exception
+     */
+    private function get_uploaded_file() {
+        // Check for the file in the files array
+        if (count($_FILES) == 0) throw new Exception("Choose a file to upload.");
+        if (!isset($_FILES['file'])) throw new Exception("There was an error finding the uploaded file.");
+
+        // Check the filetype - zip files only
+        $uploaded_file = $_FILES['file'];
+        $uploaded_filename_array = explode(".", $uploaded_file['name']);
+        if (end($uploaded_filename_array) != "zip") throw new Exception("This type of file can't be uploaded in this situation.");
+
+
+        return $uploaded_file; // Return the file/information
+    }
+
+
+    /**
+     * Uploads a file to the temp directory
+     *
+     * @param array $file
+     * @return string $temp_filename
+     * @throws Exception
+     */
+    private function upload_file($file) {
+        // Define the temp directory and filename
+        $temp_directory = ROOT."/features/settings/temp/";
+        $temp_filename = md5(time());
+
+        // Try to upload the file to the temp directory
+        if (move_uploaded_file($file['tmp_name'], path($temp_directory.$temp_filename.".zip"))) {
+            return $temp_filename;
+        } else {
+            throw new Exception("There was an issue moving the uploaded file.");
+        }
+    }
+
+
+    /**
+     * Extracts the uploaded file to the relevant location
+     *
+     * @param string $filename
+     * @param string $type
+     * @return boolean
+     * @throws Exception
+     */
+    private function extract_update($filename = "", $type = "temp") {
+        // Check the filename and define the extraction directory
+        if ($filename == "") throw new Exception("The zip file cannot be extracted.  The filename is incorrect.");
+        $temp_directory = ROOT."/features/settings/temp/";
+        $extract_directory = $type == "temp" ? $temp_directory.$filename : ROOT."/";
+
+        // Extract the files
+        if (!$this->tFiles->extract_zip(path($temp_directory.$filename.".zip"), path($extract_directory))) {
+            throw new Exception("There was an issue when extracting the uploaded file.");
+        }
+        return true;
+    }
+
+
+    /**
+     * Gets update information from the update directory and returns it if possible
+     *
+     * @return array
+     * @throws Exception
+     */
+    private function get_update_information($filename = "") {
+        // Define the update information file
+        $temp_directory = ROOT."/features/settings/temp/$filename/";
+        $information_file = path($temp_directory."update/update.json");
+
+        // Check for the existence of the update file
+        if (!file_exists($information_file)) {
+            throw new Exception("Cannot find the update information file; aborting the update.");
+        }
+
+        // Return the json contents of the file as an array
+        return json_decode(file_get_contents($information_file), true);
+    }
+
+
+    /**
+     * Checks one array for the existance of values in another
+     *
+     * @param array $given
+     * @param array $required
+     * @return boolean
+     * @throws Exception
+     */
+    private function validate_array($given = array(), $required = array()) {
+        // Check the given and required variables
+        if (empty($given) || empty($required) || !is_array($given) || !is_array($required)) {
+            throw new Exception("Invalid given or required variables to validate.");
+        }
+
+        // Loop through all of the required items, checking them against the given items
+        foreach ($required as $item) {
+            $catch[] = in_array($item, $given) ? true : false;
+        }
+
+        // Return true/false based on the loop above
+        return in_array(false, $catch) ? false : true;
+    }
+
+
+    /**
+     * Checks the upload information for valid/required fields
+     *
+     * @param array $update_information
+     * @return boolean
+     * @throws Exception
+     */
+    private function check_update_information($update_information = "") {
+        // Check for valid update information
+        if ($update_information == "" || !is_array($update_information)) {
+            throw new Exception("The provided update information is invalid; aborting the update.");
+        }
+
+        // Define and perform checks on the required information
+        $required = array("version", "changes", "authors", "run_update_script", "update_files");
+        $check_required = $this->validate_array($update_information, $required);
+
+        // Return true/false
+        return $check_required == true ? true : false;
+    }
+
+
+    /**
+     * Clean the temp folder out, notify the user about the error, then die.
+     *
+     * @param object $ex
+     */
+    public function abort_update($ex) {
+        $this->clean_temp_folder();
+        notify("admin", "failure", "<b>Update Error:</b> ".$ex->getMessage());
+        die();
+    }
+
+
+    /**
+     * Takes the information from the update information file and allows it to be
+     *  accessible to the preliminary update file
+     *
+     * @param array $update_information
+     * @return array $return
+     */
+    private function define_update_information($update_information, $filename) {
+        // Define all of the information that will be shown during preliminary update
+        $return['filename']             = $filename;
+        $return['version']              = $update_information['version'];
+        $return['run_update_script']    = $update_information['run_update_script'];
+        $return['database_changes']     = count($update_information['changes']['database']);
+        $return['file_changes']         = count($update_information['changes']['files']);
+        $return['bugs']                 = $update_information['changes']['bugs'];
+        $return['authors']              = $update_information['authors'];
+
+        // Return the information to be accessible
+        return $return;
+    }
+
+
+    /**
+     * Runs a preliminary update, to show the user what's going to happen before it does
+     */
+    public function prelim_update() {
+        // Upload and extract the file
+        $uploaded_file = $this->get_uploaded_file();
+        $uploaded_filename = $this->upload_file($uploaded_file);
+        $this->extract_update($uploaded_filename);
+
+        // Perform checks to ensure this is a legit update
+        $update_information = $this->get_update_information($uploaded_filename);
+        $check_information = $this->check_update_information($update_information);
+        if ($check_information) $this->update_information = $this->define_update_information($update_information, $uploaded_filename);
+    }
+
+
+    /**
+     * Includes the defined update files
+     *
+     * @param string $filename
+     * @param string|array $files
+     * @return boolean
+     */
+    public function include_update_files($filename, $files = array()) {
+        // Check the files argument and define the temp folder
+        if ((is_array($files) && empty($files)) || $files == "") return false;
+        $temp_directory = ROOT."/features/settings/temp/$filename/update/";
+
+        // Define the files string as an array, if not, then loop through including all the files
+        if (!is_array($files)) $files = array($files);
+        foreach ($files as $file) {
+            include path($temp_directory.$file);
+        }
+    }
+
+
+    /**
+     * Handles a manual update
+     */
+    public function manual_update() {
+        // Get the update information
+        $filename = filter_input(INPUT_POST, "filename");
+        $update_information = $this->get_update_information($filename);
+
+        // Extract the update files to the root directory
+        $this->extract_update($filename, "root");
+
+        // Run the update scripts based on what's requested
+        if ($update_information['run_update_script'] == true) {
+            // Include the update files, run the update function if it's there
+            $this->include_update_files($filename, $update_information['update_files']);
+            if (function_exists("update")) {
+                update();
+            }
+        }
+
+        // Clean the temp folder and done!
+        $this->clean_temp_folder();
+    }
 }
