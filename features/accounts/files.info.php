@@ -21,6 +21,12 @@ $admin_files = array(
 // Deny bad users
 $tUser->deny_non_admins($file, $admin_files);
 
+$admin_files = array("index.php", "add.php", "edit.php", "remove-user.php", "users-list.php", "remove.php", "save.php");
+if (in_array($file, $admin_files)) {
+    if ($location != "admin") back_up();
+    if ($location != "admin" && $ajax != "include") die("Error");
+}
+
 // Customize files
 switch ($file) {
     case "index.php":
@@ -47,9 +53,7 @@ switch ($file) {
         break;
 
     case "register.php":
-        if ($tUser->user) {
-            back_up();
-        }
+        if ($tUser->user) back_up();
         $feature['title'] = "Register";
         $feature['header'] = "Register";
         $feature['js']['file'][] = "sessions.js";
