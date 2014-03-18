@@ -340,6 +340,17 @@ class tCall {
 
 
     /**
+     * Checks the AJAX request hash
+     */
+    private function check_ajax_hash() {
+        $hash = json_decode(urldecode(filter_input(INPUT_POST, "ajax-hash-data")), true);
+        if (!isset($_COOKIE['420hash'])) die("No 420hash defined.");
+        if ($hash == "") die("No hash defined.");
+        if ($_COOKIE['420hash'] != $hash['key']) die("Hashfail.");
+    }
+
+
+    /**
      * Defines where to look and what to call for every page call
      *
      * @return array $ret
@@ -355,6 +366,7 @@ class tCall {
             $ret['look_folder'] = $installed ? "view" : false;
             $ret['do_call'] = $installed ? "show_page" : false;
         } else {
+            $this->check_ajax_hash();
             switch ($post['ajax']) {
                 case "script":
                     $ret['type'] = "script";
@@ -635,6 +647,7 @@ class tCall {
         $tTheme->print_header();
         if ($this->tUser->is_admin() && $tTheme->admin == true) include $data['admin'];
         $tTheme->print_body();
+        echo '<input type="hidden" id="ajax-hash-data" name="ajax-hash-data" value=\'{"key":"'.$_COOKIE['420hash'].'"}\' />';
         include $this->complete_file_path;
         $tTheme->print_footer();
 
@@ -752,6 +765,8 @@ class tCall {
         $feature_path = path(ROOT."/features/$this->feature_folder/");
         $folders = explode("/", $this->feature_path_folders);
         $file = $this->feature_path_folders.$this->feature_file;
+        $location = urldecode(filter_input(INPUT_POST, "location"));
+        $ajax = filter_input(INPUT_POST, "ajax") != "" ? filter_input(INPUT_POST, "ajax") : false;
 
         $file_info = array();
         if (file_exists($feature_path."files.info.php")) {
@@ -827,7 +842,6 @@ class tCall {
      * @return string
      */
     private function get_css($for_ajax = false) {
-        //if ($for_ajax) return "";
         $ret[] = $this->default_css();
 
         $folder = $this->get_custom_folder("css");
@@ -1170,7 +1184,7 @@ class tCall {
 
 
     /**
-     * Includes a page via AJAX with no theme styling, just the styling of the
+     * Includes a page via  with no theme styling, just the styling of the
      * feature's configuration
      *
      * @return boolean

@@ -52,6 +52,7 @@ class tUser {
     public function __construct() {
         $this->initialize_variables();
         $this->get_user_info();
+        $this->set_420hash();
         return true;
     }
 
@@ -78,6 +79,30 @@ class tUser {
         $this->tData = $this->tDataClass->connect();
         $this->tDataClass->prefix = $this->tDataClass->get_system_prefix();
         return true;
+    }
+
+
+    /**
+     * In an attempt to stop people from requesting things they shouldn't be,
+     *  this function will set a hash to a user and only allow this user to make calls.
+     *
+     * If the cookie doesn't exist or match, they can't do anything.
+     */
+    private function set_420hash() {
+        // Define the hash variables
+        $user_ip = $_SERVER['REMOTE_ADDR'];
+        $date = date("Y-d-m");
+        $server_ip = $_SERVER['SERVER_ADDR'];
+
+        // Define the hash
+        $hash = md5($user_ip.$date.$server_ip);
+
+        // Set the hash cookie
+        if (!isset($_COOKIE['420hash'])) {
+            setcookie("420hash", $hash, time()*60*60*24, "/");
+        } elseif ($_COOKIE['420hash'] != $hash) {
+            setcookie("420hash", $hash, time()*60*60*24, "/");
+        }
     }
 
 

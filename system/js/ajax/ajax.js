@@ -10,6 +10,8 @@ var ajax = new function() {
         form_data = this.get_extra_fields(info, form_data);
         form_data = this.add_ajax_type(info, form_data);
         form_data = this.add_file_object(info, form_data);
+        form_data = this.get_ajax_hash(form_data);
+        form_data = this.get_location(form_data);
 
         url = this.sanitize_url(info);
 
@@ -219,6 +221,27 @@ var ajax = new function() {
         }
     };
 
+    this.get_ajax_hash = function(form_data) {
+        var hash_data = document.getElementById("ajax-hash-data");
+
+        if (hash_data === undefined) {
+            this.fail = "Unable to make AJAX request.";
+        } else {
+            form_data = this.form_data_append(form_data, "ajax-hash-data", hash_data.value);
+            return form_data;
+        }
+    };
+
+    this.get_location = function(form_data) {
+        var admin_content = document.getElementById("admin-content");
+        if (admin_content === null || !admin_content.classList.contains("admin_content-wrapper-open")) {
+            form_data = this.form_data_append(form_data, "location", "site");
+        } else {
+            form_data = this.form_data_append(form_data, "location", "admin");
+        }
+        return form_data;
+    };
+
     this.sanitize_url = function(info) {
         var trailing, url;
 
@@ -308,7 +331,7 @@ var ajax = new function() {
 
     this.run_after = function(info) {
         var do_function, arguments;
- 
+
         if ("after" in info) {
             if (typeof info.after === "function") info.after();
             else if ("do_function" in info.after) {
