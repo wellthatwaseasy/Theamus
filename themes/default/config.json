@@ -25,6 +25,11 @@
                 "layout":"login",
                 "file":"login.html",
                 "allow_nav":false
+            },
+            {
+                "layout":"homepage",
+                "file":"homepage.html",
+                "allow_nav":false
             }
         ],
     "areas":
