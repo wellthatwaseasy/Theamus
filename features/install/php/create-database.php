@@ -205,9 +205,10 @@ $data[] = "INSERT IGNORE INTO `".$prefix."_groups` ".
 
 
 // Pages
+$homepage_content = $this->tData->real_escape_string("Welcome to your new website.<br><br>Getting started is pretty easy if you ask me.  All you have to do is <a href='accounts/login/'>log in</a> then go to the administration panel.  That's where you can do the fun things like:<ul>  <li>Add Themes to change the appearance of your website</li>  <li>Add Features to change the functionality of your website</li>  <li>Manage users and groups</li>  <li>Create Pages for the visitors of your website</li></ul>Using the Theamus platform as your content management system will make your life easier and more customizable than ever before.  The modularity of the system and the seamless integration of stand-alone applications will give you the freedom you're looking for.  Freedom, that doesn't look like it was whipped together at the whim of someone looking to make a quick buck.<br><br>Hold on tight because documentation is coming soon.");
 $data[] = "INSERT IGNORE INTO `".$prefix."_pages` ".
     "(`alias`, `title`, `content`, `views`, `permanent`, `groups`, `theme`, `navigation`) VALUES ".
-    "('home_page', 'Home Page', 'This is your home page!', 0, 1, 'everyone', 'default', '');";
+    "('home_page', 'Hello, World!', '$homepage_content', 0, 1, 'everyone', 'homepage', '');";
 
 
 // Features
