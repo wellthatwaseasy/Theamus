@@ -36,12 +36,6 @@ switch ($file) {
         $feature['js']['file'][] = "admin-home.js";
         break;
 
-    case "timezone.php":
-        $feature['html'] = "html-nav";
-        $feature['header'] = "Hello, world!";
-        $feature['theme']   = "parallax";
-        break;
-
     default :
         $feature = true;
         break;
