@@ -404,6 +404,9 @@ class Settings {
         // Get the update information
         $filename = filter_input(INPUT_POST, "filename");
         $update_information = $this->get_update_information($filename);
+        
+        // Get the system info
+        $system_info = $this->get_system_info();
 
         // Extract the update files to the root directory
         $this->extract_update($filename, "root");
@@ -413,7 +416,7 @@ class Settings {
             // Include the update files, run the update function if it's there
             $this->include_update_files($filename, $update_information['update_files']);
             if (function_exists("update")) {
-                update();
+                update($system_info);
             }
         }
 
