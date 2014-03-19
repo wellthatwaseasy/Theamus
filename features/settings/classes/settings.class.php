@@ -416,7 +416,9 @@ class Settings {
             // Include the update files, run the update function if it's there
             $this->include_update_files($filename, $update_information['update_files']);
             if (function_exists("update")) {
-                update($system_info);
+                if (!update($system_info)) {
+                    throw new Exception("There was an error when running the update scripts.");
+                }
             }
         }
 
