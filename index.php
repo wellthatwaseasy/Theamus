@@ -13,8 +13,6 @@
 
 // Define any ini_set variables
 ini_set("session.gc_maxlifetime", 7*24*60*60);
-ini_set("post_max_size", "4G");
-ini_set("upload_max_filesize", "4G");
 
 session_start(); // Start the session!
 define("ROOT", dirname(__FILE__)); // Define the root of the system
