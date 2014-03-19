@@ -1,9 +1,11 @@
 <?php
 
-function update() {
-    // Say something
-    echo "Update!";
+function update($system_info) {
+    switch ($system_info['version']) {
+        case "0.1": if (update_02() == false) return false;
+    }
     
-    // Call a function from another file
-    echo say_something();
+    if (update_version() == false) return false;
+    update_cleanup();
+    return true;
 }

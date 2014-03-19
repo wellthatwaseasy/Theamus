@@ -1,8 +1,7 @@
 {
-    "version": "1.0",
+    "version": "0.8",
     "changes": {
         "database": [
-            ["modified", "dflt_home-apps"],
             ["created", "themes-data"]
         ],
         "files": [
@@ -14,6 +13,11 @@
             ["modified", "features/settings/files.info.php"]
         ],
         "bugs": [
+            "Perform checks on the update script",
+            "Removal on unnecessary ini_set options in the index file",
+            "Added a system to check the incoming AJAX calls and prevent XSS/calls that shouldn't be",
+            "New homepage layout for the default theme",
+            "Added variables to help restrict or grant access to files via the feature files configuration file",
             "Updated files to work in version(s) PHP 5.2.17+",
             "Updated the Theamus Settings feature to allow a manual update"
         ]
@@ -22,5 +26,5 @@
         ["Matthew Tempinski", "Eyraahh", "matt.tempinski@gmail.com"]
     ],
     "run_update_script": true,
-    "update_files": ["update-sql.php", "update.php"]
+    "update_files": ["update-functions.php", "update.php"]
 }

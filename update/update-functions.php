@@ -1,49 +1,46 @@
 <?php
 
-function update_05() {
+function update_02() {
+    // Define the return array, connect and define database variables
+    $return = array();
     $tDataClass = new tData();
-    $tData = $tDataClass->Connect();
-    $tDataClass->Prefix = $tDataClass->GetTablePrefix();
-
-    $perm_table = $tDataClass->Prefix."_permissions";
-    $feature_table = $tDataClass->Prefix."_features";
-    $group_table = $tDataClass->Prefix."_groups";
-
-    $sql['permissions'] = "INSERT INTO `$perm_table` (`feature`, `permission`) VALUES ".
-        "('media', 'add_media'), ".
-        "('media', 'remove_media');";
-
-    $sql['feature'] = "INSERT INTO `$feature_table` ".
-        "(`alias`, `name`, `groups`, `permanent`, `enabled`, `db_prefix`) VALUES ".
-        "('media', 'Media', 'administrators', 1, 1, 'tm_');";
-
-
-    $tsql['find-group'] = "SELECT `permissions` FROM `$group_table` WHERE `alias`='administrators'";
-    $tqry['find-group'] = $tData->query($tsql['find-group']);
-    $admin_group = $tqry['find-group']->fetch_assoc();
-
-    $sql['group'] = "UPDATE `$group_table` SET ".
-        "`permissions`='".$admin_group['permissions'].",add_media,remove_media' WHERE ".
-        "`alias`='administrator`'";
-
-    foreach ($sql as $s) {
-        $tData->query($s);
+    $tData = $tDataClass->connect();
+    $prefix = $tDataClass->get_system_prefix();
+    
+    // Define the queries to perform
+    $queries = array("CREATE TABLE IF NOT EXISTS `".$prefix."_themes-data` (`id` INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(`id`), `key` TEXT NOT NULL, `value` TEXT NOT NULL, `selector` TEXT NOT NULL, `theme` VARCHAR(50) NOT NULL);");
+    
+    // Perform the queries
+    foreach ($queries as $query) {
+        $return[] = $tData->query($query) ? true : false;
     }
-
-    $tDataClass->Disconnect();
-    update_06();
+    
+    // Disconnect from the database and return
+    $tDataClass->disconnect();
+    return in_array(false, $return) ? false : true;
 }
 
-function update_06() {
-    unlink(path(ROOT."/system/install.php"));
-    unlink(path(ROOT."/system/functions.php"));
-    unlink(path(ROOT."/system/external/rangy.js"));
-    unlink(path(ROOT."/system/js/ajax/ajax_old.js"));
-    unlink(path(ROOT."/system/js/ajax/readme.txt"));
+function update_version() {
+    // Define the return array, connect and define database variables
+    $return = array();
+    $tDataClass = new tData();
+    $tData = $tDataClass->connect();
+    $prefix = $tDataClass->get_system_prefix();
+    
+    // Update the version
+    $return[] = $tData->query("UPDATE `".$prefix."_settings` SET `version`='0.8'") ? true : false;
+    
+    // Disconnect from the database and return
+    $tDataClass->disconnect();
+    return in_array(false, $return) ? false : true;
 }
 
-function cleanup() {
-    deleteFolder(path(ROOT."/themes/installer/"));
-    deleteFolder(path(ROOT."/features/install/"));
-    deleteFolder(path(ROOT."/update/"));
+function update_cleanup() {
+    // Define the file management class
+    $tFiles = new tFiles();
+    
+    // Remove the unnecessary folders
+    $tFiles->remove_folder(path(ROOT."/themes/installer/"));
+    $tFiles->remove_folder(path(ROOT."/features/install/"));
+    $tFiles->remove_folder(path(ROOT."/update/"));
 }
