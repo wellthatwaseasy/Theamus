@@ -633,6 +633,8 @@ class tCall {
             $init_class = $this->init_class;
             ${$init_class} = new $init_class;
         }
+        
+        $ajax_hash_cookie = isset($_COOKIE['420hash']) ? $_COOKIE['420hash'] : "";
 
         $settings_table = $this->tDataClass->prefix . "_settings";
         $q = $this->tData->query("SELECT * FROM `$settings_table`");
@@ -647,7 +649,7 @@ class tCall {
         $tTheme->print_header();
         if ($this->tUser->is_admin() && $tTheme->admin == true) include $data['admin'];
         $tTheme->print_body();
-        echo '<input type="hidden" id="ajax-hash-data" name="ajax-hash-data" value=\'{"key":"'.$_COOKIE['420hash'].'"}\' />';
+        echo '<input type="hidden" id="ajax-hash-data" name="ajax-hash-data" value=\'{"key":"'.$ajax_hash_cookie.'"}\' />';
         include $this->complete_file_path;
         $tTheme->print_footer();
 
