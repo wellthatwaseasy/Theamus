@@ -422,7 +422,8 @@ class Settings {
             }
         }
 
-        // Clean the temp folder and done!
+        // Clean the temp folder and notify the user
         $this->clean_temp_folder();
+        notify("admin", "success", "Everything went smoothly.  In order for things to take effect, you need to <a href='./'>refresh the page</a>.");
     }
 }

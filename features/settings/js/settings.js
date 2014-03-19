@@ -20,16 +20,16 @@ function add_manual_listeners() {
     $("[name='file']").change(function(e) {
         e.preventDefault();
 
+        // Disable the file input, show the preliminary area
+        $("#settings_prelim-info-wrapper").show();
+        $("[name='file']").prop("disabled", "true");
+
         // Show the working gif in the information wrapper then run the prelim update
         $("#prelim-notes").html(working());
         theamus.ajax.run({
             url:    "settings/prelim-update/",
             result: "prelim-notes",
-            form:   "settings_update-form",
-            after:  function() {
-                $("#settings_prelim-info-wrapper").show();
-                $("[name='file']").prop("disabled", "true");
-            }
+            form:   "settings_update-form"
         });
     });
 
