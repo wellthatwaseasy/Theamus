@@ -170,7 +170,8 @@ class tInstall {
      *
      * @return boolean
      */
-    private function show_installer_page()	{
+    private function show_installer_page() {
+        $tUser = new tUser();
         $data['base']   = $this->url;
         $js_files = array(
             "<script src='system/js/jquery.js'></script>",
@@ -181,8 +182,13 @@ class tInstall {
         );
         $data['js'] = implode("", $js_files);
 
+        
+        $tUser->set_420hash();
+        $ajax_hash_cookie = isset($_COOKIE['420hash']) ? $_COOKIE['420hash'] : "";
+        
         include path(ROOT."/themes/installer/html.php");
         open_page($data);
+        echo '<input type="hidden" id="ajax-hash-data" name="ajax-hash-data" value=\'{"key":"'.$ajax_hash_cookie.'"}\' />';
         close_page();
     }
 }
