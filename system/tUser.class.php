@@ -87,7 +87,7 @@ class tUser {
      *
      * If the cookie doesn't exist or match, they can't do anything.
      */
-    private function set_420hash() {
+    public function set_420hash() {
         // Define the hash variables
         $user_ip = $_SERVER['REMOTE_ADDR'];
         $date = date("Y-d-m");
