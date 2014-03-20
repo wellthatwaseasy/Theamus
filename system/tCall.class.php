@@ -634,6 +634,7 @@ class tCall {
             ${$init_class} = new $init_class;
         }
         
+        $this->tUser->set_420hash();
         $ajax_hash_cookie = isset($_COOKIE['420hash']) ? $_COOKIE['420hash'] : "";
 
         $settings_table = $this->tDataClass->prefix . "_settings";

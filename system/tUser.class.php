@@ -52,7 +52,6 @@ class tUser {
     public function __construct() {
         $this->initialize_variables();
         $this->get_user_info();
-        $this->set_420hash();
         return true;
     }
 
@@ -98,10 +97,9 @@ class tUser {
         $hash = md5($user_ip.$date.$server_ip);
 
         // Set the hash cookie
-        if (!isset($_COOKIE['420hash'])) {
-            setcookie("420hash", $hash, time()*60*60*24, "/");
-        } elseif ($_COOKIE['420hash'] != $hash) {
-            setcookie("420hash", $hash, time()*60*60*24, "/");
+        $cookie_hash = isset($_COOKIE['420hash']) ? $_COOKIE['420hash'] : false;
+        if ($cookie_hash == false || $cookie_hash != $hash) {
+            setcookie("420hash", $hash, (time()+60*60*24), "/");
         }
     }
 
