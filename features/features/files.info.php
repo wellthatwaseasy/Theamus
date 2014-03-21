@@ -41,4 +41,13 @@ switch ($file) {
     case "remove-feature.php":
         $tUser->check_permissions("remove_features");
         break;
+
+    // Scripts
+    case "install/prelim.php":
+        if ($ajax != "script" || !$tUser->has_permission("install_features")) die("Error.");
+
+        $feature['class']['file'] = "features.class.php";
+        $feature['class']['init'] = "Features";
+
+        break;
 }

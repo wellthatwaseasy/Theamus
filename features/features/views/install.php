@@ -10,19 +10,23 @@
 
 <div class="admin_page-content">
     <div id="install-result"></div>
-    <form class="admin-form" id="install-form">
+    <form class="admin-form" id="feature_install-form">
 		<div class="admin-formrow">
 			<div class="admin-formlabel">Feature Files</div>
 			<div class="admin-forminput">
 				<input type="file" name="file" />
 			</div>
 			<div class="admin-forminfo">
-                <?=show_upload_progress()?>
                 Features should come in the form of zip archives.<br />
                 Select the feature you want to install and everything will be handled
                 automatically from there.
             </div>
 		</div>
+
+        <div id="feature_prelim-info-wrapper" style="display: none; margin-top: 50px;">
+            <div class="admin-formheader">Preliminary Installation Information</div>
+            <div id="prelim-notes"></div>
+        </div>
 
 		<hr />
 
