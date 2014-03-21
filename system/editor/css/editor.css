@@ -126,7 +126,7 @@
     max-height: 500px;
     overflow: auto;
     position: absolute;
-    right: 5px;
+    right: 20px;
     top: 55px;
 }
 .editor_window-submit {
@@ -272,7 +272,7 @@
     max-width: 100%;
 }
 .editor_window-image .info-wrapper {
-    bottom: 20px;
+    bottom: 5px;
     left: 120px;
     position: absolute;
     right: 0;
@@ -292,7 +292,7 @@
     position: absolute;
 }
 .editor_window-edit-image .image {
-    display: inline-block;
+    float:left;
     width: 200px;
 }
 .editor_window-edit-image .image img {
@@ -300,9 +300,15 @@
 }
 .editor_window-edit-image .options {
     display: inline-block;
-    left: 220px;
-    position: absolute;
-    right: 0;
+    float: left;
+    width: 280px;
+}
+.image-window-tabs {
+    border-bottom: 1px solid #CCC;
+    padding: 0 0 10px;
+}
+.image-window-tabs a {
+    margin: 0 10px;
 }
 .options .options-row:first-child {
     margin-top: 0;

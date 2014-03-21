@@ -3,7 +3,7 @@
 $get = filter_input_array(INPUT_GET);
 $path = isset($get['path']) ? urldecode($get['path']) : "";
 
-$image = str_replace("{t:period:}", ".", $path);
+$image = str_replace("{t:bslash:}", "/", str_replace("{t:colon:}", ":", str_replace("{t:period:}", ".", $path)));
 
 $width = isset($get['width']) ? $get['width'] : 0;
 $height = isset($get['height']) ? $get['height'] : 0;

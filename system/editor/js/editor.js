@@ -507,8 +507,8 @@ var editor = new function() {
                 result: "editor_wc-"+argv.id,
                 type:   "system",
                 after: function() {
-                    editor.center_window(el);
                     editor.set_window_height(el, content_el);
+                    editor.center_window(el);
                     argv.after();
                     document.body.style.overflow = "hidden";
                     el.style.visibility = "";
@@ -526,10 +526,19 @@ var editor = new function() {
         if (open) this.window_wrapper.removeChild(open);
     };
 
-    this.set_window_height = function(el, content_el) {
+    this.set_window_height = function(el, content_el, last) {
+        if (last === undefined || last === null) last = 0;
         if (el) {
-            el.style.height = (93 + content_el.offsetHeight)+"px";
-            content_el.style.top = "55px";
+            var new_height = $(content_el).height();
+            if (new_height !== last) {
+                el.style.height = (93 + new_height)+"px";
+                content_el.style.top = "55px";
+                
+                $(".editor_window-submit").css("top", (55 + new_height));
+                setTimeout(function() {
+                    editor.set_window_height(el, content_el, new_height);
+                }, 200);
+            }
         } else {
             setTimeout(function() { editor.set_window_height(); }, 200);
         }
@@ -774,6 +783,37 @@ var editor = new function() {
             }
         });
     };
+    
+    this.add_img_tabs = function() {
+        var image_tabs = "<div class='image-window-tabs'><a href='#' name='image_type' data-for='url'>Add Image from URL</a><a href='#' name='image_type' data-for='lib'>Add Image from Library</a></div>";
+        $("#editor_wc-add-image").prepend(image_tabs);
+
+        for (var i = 0; i < $("[name='image_type']").length; i++) {
+            editor.add_event_listener({
+                element: $("[name='image_type']")[i],
+                action: "click",
+                "do": function(e) {
+                    e.preventDefault();
+                    var data = editor.dataset(this.element, "for"),
+                        url = "";
+                    if (data === "url") url = "editor/windows/add-image-link/";
+                    if (data === "lib") url = "editor/windows/add-image/";
+
+                    $("#editor_wc-add-image").html(working());
+                    theamus.ajax.run({
+                        url:    url,
+                        result: "editor_wc-add-image",
+                        type:   "system",
+                        after:  function() {
+                            editor.add_img_tabs();
+                            editor.set_window_height($(".editor_window")[0], $("#editor_wc-add-image")[0]);
+                            editor.center_window($(".editor_window")[0]);
+                        }
+                    });
+                }
+            });
+        }
+    };
 
     this.add_image_window = function() {
         editor.create_window({
@@ -784,6 +824,7 @@ var editor = new function() {
             after: function() {
                 editor.center_after_imgload();
                 editor.add_img_listeners();
+                editor.add_img_tabs();
 
                 editor.add_event_listener({
                     element: document.getElementById("close_window"),
@@ -792,11 +833,6 @@ var editor = new function() {
                         editor.close_window(this.element);
                     }
                 });
-
-                //document.getElementById("add-image").removeEventListener("click", function(){console.log("hi")}, false);
-
-                document.querySelector(".editor_window-submit").style.top =
-                    (document.querySelector(".editor_window").offsetHeight - 63)+"px";
             },
             buttons: [
                 "<input type='button' name='cancel' id='close_window' value='Close' />"
@@ -902,13 +938,13 @@ var editor = new function() {
                         editor.listeners.push(imgs[i]);
                         imgs[i].addEventListener("click", function() {
                             var src = this.getAttribute("src").split("/"),
-                                path = src[src.length - 3]+"/"+src[src.length - 2]+"/"+src[src.length - 1],
+                                path = src.indexOf("http:") === -1 ? src[src.length - 3]+"/"+src[src.length - 2]+"/"+src[src.length - 1] : this.getAttribute("src"),
                                 params = [
-                                "path="+path.replace(/\./g, "{t:period:}"),
-                                "width="+this.offsetWidth,
-                                "height="+this.offsetHeight,
-                                "align="+this.getAttribute("align")
-                            ];
+                                    "path="+path.replace(/:/g, "{t:colon:}").replace(/\//g, "{t:bslash:}").replace(/\./g, "{t:period:}"),
+                                    "width="+this.offsetWidth,
+                                    "height="+this.offsetHeight,
+                                    "align="+this.getAttribute("align")
+                                ];
 
                             var range = rangy.createRange();
                             range.selectNode(this);

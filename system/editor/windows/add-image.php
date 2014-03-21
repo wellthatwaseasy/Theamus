@@ -41,3 +41,6 @@ $tPages->set_page_data(array(
 $tPages->print_list();
 $tPages->print_pagination("editor.images_next_page");
 ?>
+<script>
+    $("#add-image-url").remove();
+</script>

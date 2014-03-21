@@ -1,13 +1,13 @@
 <?php
 
 class tEditor {
-	public function __construct($options) {
+	public function __construct($options = array()) {
         $this->options($options);
         $this->show_editor();
         return;
 	}
 
-    public function options($options = array()) {
+    public function options($options) {
         $this->var['code']      = isset($options['code']) ? $options['code'] : true;
         $this->var['images']    = isset($options['images']) ? $options['images'] : true;
         $this->var['sink']      = isset($options['sink']) ? $options['sink'] : true;
