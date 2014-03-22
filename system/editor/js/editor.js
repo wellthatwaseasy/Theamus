@@ -938,7 +938,7 @@ var editor = new function() {
                         editor.listeners.push(imgs[i]);
                         imgs[i].addEventListener("click", function() {
                             var src = this.getAttribute("src").split("/"),
-                                path = src.indexOf("http:") === -1 ? src[src.length - 3]+"/"+src[src.length - 2]+"/"+src[src.length - 1] : this.getAttribute("src"),
+                                path = src.indexOf("http:") === -1 && src.indexOf("https:") === -1 ? src[src.length - 3]+"/"+src[src.length - 2]+"/"+src[src.length - 1] : this.getAttribute("src"),
                                 params = [
                                     "path="+path.replace(/:/g, "{t:colon:}").replace(/\//g, "{t:bslash:}").replace(/\./g, "{t:period:}"),
                                     "width="+this.offsetWidth,
