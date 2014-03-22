@@ -126,6 +126,10 @@ var ajax = new function() {
 
         for (var i = 0; i < elements.length; i++) {
             element = elements[i];
+            if (element === undefined || element === null) {
+                this.fail = "Failed to gather an element.";
+                break;
+            }
 
             if (element.type === "checkbox") {
                 value = element.checked === true ? "true" : "false";
