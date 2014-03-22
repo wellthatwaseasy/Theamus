@@ -229,7 +229,8 @@ function insert_at_caret(ele, val) {
 }
 
 function working() {
-    var div = $("<div class='site-notifyinfo'></div>");
+    var notify_class = $("#admin-content").hasClass("admin_content-wrapper-open") ? "admin-notifyinfo" : "site-notifyinfo";
+    var div = $("<div class='"+notify_class+"'></div>");
     div.append("<img src='themes/default/img/loading.gif' height='16px' align='left' />");
     div.append("<span style='margin-left:20px'>Working...</span>");
     return div;
