@@ -68,8 +68,10 @@ if (isset($get['id'])) {
     </span>
     <div class="clearfix"></div>
     <?php
+        else:
+            echo "<input type='hidden' id='remove_links' name='remove_links' value='false' />";
         endif;
-    }
+    } 
     ?>
     <div class="window-options">
         <input type="button" value="OK" onclick="return submit_remove_page();" class="admin-greenbtn" />
