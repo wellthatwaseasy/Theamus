@@ -34,7 +34,7 @@ class FeatureInstall {
             if (!is_array($column)) $table_columns[] = $column;
             else $table_columns[] = implode(" ", $column);
         }
-        $create_query = "CREATE TABLE `$table` (".implode(", ", $table_columns).")";
+        $create_query = "CREATE TABLE `$table` (".implode(", ", $table_columns).");";
 
         // Add the query to the global install sql
         $this->install_sql[] = $create_query;
@@ -49,7 +49,7 @@ class FeatureInstall {
             } else {
                 // Add the key/value combination to be returned
                 $temp['keys'][] = "`".$key."`";
-                $temp['vals'][] = "'".$this->tData->real_escape_string(htmlspecialchars($val))."'";
+                $temp['vals'][] = "'".$this->tData->real_escape_string($val)."'";
             }
         }
 

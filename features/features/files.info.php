@@ -50,4 +50,12 @@ switch ($file) {
         $feature['class']['init'] = "Features";
 
         break;
+        
+    case "install/install.php":
+        if ($ajax != "script" || !$tUser->has_permission("install_features")) die("Error.");
+
+        $feature['class']['file'] = "features.class.php";
+        $feature['class']['init'] = "Features";
+
+        break;
 }

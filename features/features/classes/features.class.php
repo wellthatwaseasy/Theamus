@@ -40,6 +40,17 @@ class Features {
         if ($this->tFiles->extract_zip(path($path.$f), path(trim($path.$f, ".zip")))) return true;
         else throw new Exception("There was an issue extracting the theme");
     }
+    
+    private function extract_feature($f, $c) {
+        // Define the path
+        $temp_path = path(ROOT."/features/features/temp/$f");
+        $path = path(ROOT."/features/".$c['alias']);
+
+        // Extract the uploaded file
+        if ($this->tFiles->extract_zip($temp_path, $path)) return true;
+        else throw new Exception("There was an issue extracting the theme");
+    }
+    
 
     private function check_structure($f) {
         // Define the path to the config file
@@ -70,8 +81,13 @@ class Features {
             $temp[] = isset($var) ? true : false;
         }
 
-        // Return
+        // Check for all valid requirements
         if (in_array(false, $temp)) throw new Exception("One or more requirements are missing in the feature configuration file.");
+        
+        // Define the feature folder alias for the feature
+        $this->feature_folder_alias = $feature['alias'];
+        
+        // Return
         return $feature;
     }
 
@@ -108,6 +124,101 @@ class Features {
         // Define the install SQL
         $this->install_sql = $Features->install->get_install_sql();
     }
+    
+    private function format_bytes($bytes) {
+        // Define the units
+        $units = array('B', 'KB', 'MB', 'GB', 'TB'); 
+
+        // Do the math to get the new bytesize
+        $bytes = max($bytes, 0); 
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024)); 
+        $pow = min($pow, count($units) - 1);
+        $bytes /= pow(1024, $pow);
+
+        // Return the bytesize
+        return round($bytes, 2) . ' ' . $units[$pow]; 
+    }
+    
+    private function gather_information($f, $c) {
+        // Define the filename of the upload
+        $return['filename'] = $f;
+        
+        // Define the files in the folder
+        $files = $this->tFiles->scan_folder(path(ROOT."/features/features/temp/".trim($f, ".zip")));
+        
+        // Define the counts of things that will change
+        $return['files']        = count($files);
+        $return['db_changes']   = count($this->install_sql);
+        
+        // Define the filesize that will be used
+        $filesize = 0;
+        foreach ($files as $file) $filesize += filesize($file);
+        $return['filesize']     = $this->format_bytes($filesize);
+        
+        // Define the information given from the configuration file
+        $return['alias']        = $c['alias'];
+        $return['name']         = $c['name'];
+        $return['version']      = isset($c['version']) ? $c['version'] : "";
+        $return['notes']        = isset($c['notes']) ? $c['notes'] : "";
+        
+        // Define the author's information
+        if (isset($c['author'])) {
+            $return['author']   = isset($c['author']['name']) ? $c['author']['name'] : "";
+            $return['alias']    = isset($c['author']['alias']) ? $c['author']['alias'] : "";
+            $return['email']    = isset($c['author']['email']) ? $c['author']['email'] : "";
+            $return['company']  = isset($c['author']['company']) ? $c['author']['company'] : "";
+        }
+        
+        // Return the information
+        return $return;
+    }
+    
+    private function get_filename() {
+        $filename = urldecode(filter_input(INPUT_POST, "filename"));
+        if ($filename == "") throw new Exception("There was an error finding the filename.");
+        return $filename;
+    }
+    
+    private function install_database() {
+        // Check for any queries to install
+        if (!empty($this->install_sql)) {
+            // Query the database, running the install queries
+            $query = $this->tData->multi_query(implode("", $this->install_sql));
+            
+            // Check the query
+            if (!$query) throw new Exception("There was an error installing the database information for this feature.");
+        }
+    }
+    
+    private function install_database_feature($config = array()) {
+        // Check the config argument
+        if (empty($config) || !is_array($config)) throw new Exception("Cannot install the feature in the database with this information.");
+        
+        // Define the database friendly information
+        $alias = $this->tData->real_escape_string($config['alias']);
+        $name = $this->tData->real_escape_string($config['name']);
+        $groups = $this->tData->real_escape_string(implode(",", $config['groups']));
+        $prefix = $this->tData->real_escape_string($config['db_prefix']);
+        
+        // Query the database, installing the feature in the theamus features table
+        $query = $this->tData->query("INSERT INTO `".$this->tDataClass->prefix."_features` ".
+                "(`alias`, `name`, `groups`, `permanent`, `enabled`, `db_prefix`) VALUES ".
+                "('$alias', '$name', '$groups', 0, 1, '$prefix')");
+        
+        // Check the query
+        if (!$query) throw new Exception("There was an error installing this feature in the database.");
+    }
+    
+    public function remove_feature_folder() {
+        // Define the path
+        $path = path(ROOT."/features/".$this->feature_folder_alias);
+        
+        // Check for the folder's existance
+        if (is_dir($path)) {
+            // Remove the folder
+            $this->tFiles->remove_folder($path);
+        }
+    }
 
     public function clean_temp_folder() {
         // Define the path, all files and all folders
@@ -121,15 +232,35 @@ class Features {
     }
 
     public function prelim_install() {
-        // Upload the file
+        // Upload and extract the file
         $filename = $this->upload_feature();
         $this->extract_temp_feature($filename);
+        
+        // Perform checks
         $this->check_structure($filename);
         $config = $this->check_config($filename);
+        
+        // Gather information
         $this->gather_install_script($filename, $config);
-
-        Pre($this->install_sql);
-
+        return $this->gather_information($filename, $config);
+    }
+    
+    public function install_feature() {
+        // Define the filename
+        $filename = $this->get_filename();
+        
+        // Define the config information and gather the install information
+        $config = $this->check_config($filename);
+        $this->gather_install_script($filename, $config);
+        
+        // Extract the files to their location
+        $this->extract_feature($filename, $config);
+        
+        // Attempt to install the database information
+        $this->install_database_feature($config);
+        $this->install_database();
+        
+        // Clean the temp folder
         $this->clean_temp_folder();
     }
 }
