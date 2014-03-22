@@ -22,11 +22,11 @@ function search_pages() {
 function remove_page(id) {
     admin_scroll_top();
     $("#remove-window").show();
-	$("#remove-window").html(working());
+    $("#remove-window").html(working());
     theamus.ajax.run({
-        url: "pages/remove-page&id=" + id,
+        url:    "pages/remove-page&id=" + id,
         result: "remove-window",
-        type: "include"
+        type:   "include"
     });
 
 	return false;
