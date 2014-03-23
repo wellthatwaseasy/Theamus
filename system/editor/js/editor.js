@@ -40,8 +40,10 @@ var editor = new function() {
         editor.sink = document.getElementById(editor.sink_id);
         if (typeof CodeMirror !== "undefined") {
             if (CodeMirror.xml_loaded === undefined) {
-                add_js_file("system/editor/js/codemirror/mode/xml/xml.js?x="+new Date().getTime());
-                add_css("system/editor/css/codemirror.css?x="+new Date().getTime());
+                var xml_script = "system/editor/js/codemirror/mode/xml/xml.js?x="+editor.load_time;
+                
+                if (check_js_file(xml_script) === true) add_js_file(xml_script);
+                add_css("system/editor/css/codemirror.css?x="+editor.load_time);
             } else if (CodeMirror.xml_loaded) {
                 editor.codemirror = CodeMirror.fromTextArea(editor.code_el, {
                     mode: "xml",
@@ -55,10 +57,13 @@ var editor = new function() {
     };
 
     this.initialize = function(argv) {
+        // Define the load time, if it isn't defined already
+        if (editor.load_time === undefined) editor.load_time = new Date().getTime();
+        
         var test = editor.test_load();
         editor.set_options(argv);
         if (!test) {
-            setTimeout(function() { editor.initialize(argv); }, 200);
+            setTimeout(function() { editor.initialize(argv); }, 500);
         } else {
             if (navigator.appVersion.indexOf("MSIE 8.0") === -1) {
                 editor.load_listeners();
@@ -77,13 +82,14 @@ var editor = new function() {
     };
 
     this.test_load = function() {
-        var ret = [];
-        if (typeof CodeMirror !== "undefined") {
-            ret.push(true);
-            if (CodeMirror.xml_loaded !== undefined) ret.push(true);
-            else ret.push(false);
+        var ret = [],
+            codemirror_script = "system/editor/js/codemirror/codemirror.js?x="+editor.load_time;
+        if (check_js_file(codemirror_script) === false) {
+            if (typeof CodeMirror === "undefined") ret.push(false);
+            if (CodeMirror.xml_loaded === undefined) ret.push(false);
+            else ret.push(true);
         } else {
-            add_js_file("system/editor/js/codemirror/codemirror.js?x="+new Date().getTime());
+            add_js_file(codemirror_script);
             ret.push(false);
         }
         if (editor.el_id !== "undefined") ret.push(true);
