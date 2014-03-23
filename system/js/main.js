@@ -24,36 +24,41 @@ theamus = {
 };
 
 function add_js_file(source) {
-    var base, scripts, srcs, head, remove, checkSource;
-
-    base = document.getElementsByTagName("base")[0].href;
-    scripts = document.getElementsByTagName("script");
-    srcs = new Array;
-    remove = new Array;
-    head = document.getElementsByTagName("head")[0];
-
-    checkSource = source.split("?")[0];
-
-    // Loop through all of the scripts
-    for (var i = 0; i < scripts.length; i++) {
-        // Check for a valid source
-        if (scripts[i].src !== "") {
-            // Add the source to the catchall
-            srcs.push(scripts[i].src.split("?")[0]);
-
-            if (srcs.indexOf(base + checkSource) !== -1) {
-                $(scripts[i]).remove();
-            }
-        }
+    // Define the source without the time variable
+    var new_source = source.split("?")[0];
+    
+    // Loop through all of the scripts in the header
+    for (var i = 0; i < $("script").length; i++) {
+        // Ignore any undefined scripts
+        if ($($("script")[i]).attr("src") === undefined) continue;
+        
+        // Define the script source for the loop and check it against the desired 
+        var script_source = $($("script")[i]).attr("src").split("?")[0];
+        if (script_source === new_source) ($("script")[i]).remove();
     }
 
-    // Create the new script element
-    var newScript = document.createElement("script");
-    newScript.type = "text/javascript";
-    newScript.src = source;
+    // Add the new script source to the header
+    $("head").append("<script type='text/javascript' src='"+source+"'></script>");
+}
 
-    // Add the new js to the header
-    head.appendChild(newScript);
+function check_js_file(source) {
+    // Define the temp variable and source without the time variable
+    var temp = new Array(),
+        new_source = source.split("?")[0];
+    
+    // Loop through all of the scripts in the header
+    for (var i = 0; i < $("script").length; i++) {
+        // Define the script element and check to see if it has a valid source
+        var script = $($("script")[i]);
+        if (script.attr("src") === undefined) continue;
+        
+        // Define the script source, before the time variable and check to see if it exists already
+        var script_src = script.attr("src").split("?")[0];
+        temp.push(script_src === new_source ? true : false);
+    }
+    
+    // Check the temp array for the scripts existance in the header
+    return temp.indexOf(true) === -1 ? true : false;
 }
 
 function add_extras() {
