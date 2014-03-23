@@ -94,6 +94,31 @@ class FeatureInstall {
         // Add the query to the global install sql
         $this->install_sql[] = $query;
     }
+    
+    public function modify_table($table = "", $ar = "add", $column = "", $args = "") {
+        // Check the requirements
+        if ($table == "") throw new Exception("The table to be modified cannot be blank.");
+        if ($column == "") throw new Exception("The column to be modified cannot be blank.");
+        
+        // Check the database for this table column's existance
+        $check_query = $this->tData->query("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE `table_name`='$table' AND `column_name`='$column'");
+        
+        if ($check_query->num_rows == 0 || $ar != "add") {
+            // Create the query
+            $query = "ALTER TABLE `$table` ".$ar." `".$column."` ".$args;
+
+            // Add the query to the global install sql
+            $this->install_sql[] = trim($query).";";
+        }
+    }
+    
+    public function query($query = "") {
+        // Check the data
+        if ($query == "") throw new Exception("The custom query being run cannot be blank.");
+        
+        // Add the query to the global install sql
+        $this->install_sql[] = trim($query, ";").";";
+    }
 
     public function get_install_sql() {
         return $this->install_sql;

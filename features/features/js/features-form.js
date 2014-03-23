@@ -11,7 +11,10 @@ function save_feature() {
     theamus.ajax.run({
         url:    "features/save/",
         result: "edit-result",
-        form:   "edit-form"
+        form:   "edit-form",
+        after:  function() {
+            $("[name='file']").attr("disabled", true);
+        }
     });
 }
 

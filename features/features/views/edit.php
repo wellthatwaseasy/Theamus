@@ -49,6 +49,18 @@ if ($qry['find'] && $qry['find']->num_rows == 0) {
     else: ?>
     <div id="edit-result"></div>
     <form class="admin-form" id="edit-form">
+        <div class="admin-formheader">Feature Update</div>
+        <div class="admin-formrow">
+            <div class="admin-formlabel">Feature Files</div>
+            <div class="admin-forminput">
+                <input type="file" name="file" />
+            </div>
+            <div class="admin-forminfo">
+                Features should come in the form of zip archives.<br />
+                Select the feature you want to install and everything will be handled
+                automatically from there.
+            </div>
+        </div>
         <div class="admin-formheader">Feature Accessibility</div>
         <input type="hidden" name="id" value="<?=$feature['id']?>" />
         <div class="admin-formrow">

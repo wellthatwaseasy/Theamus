@@ -43,6 +43,20 @@ switch ($file) {
         break;
 
     // Scripts
+    case "save.php":
+        if ($ajax != "script" || !$tUser->has_permission("edit_features")) die("Error.");
+        
+        $feature['class']['file'] = "features.class.php";
+        $feature['class']['init'] = "Features";
+        break;
+        
+    case "remove.php":
+        if ($ajax != "script" || !$tUser->has_permission("remove_features")) die("Error.");
+        
+        $feature['class']['file'] = "features.class.php";
+        $feature['class']['init'] = "Features";
+        break;
+    
     case "install/prelim.php":
         if ($ajax != "script" || !$tUser->has_permission("install_features")) die("Error.");
 
