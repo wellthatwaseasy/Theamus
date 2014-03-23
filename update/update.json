@@ -1,25 +1,26 @@
 {
-    "version": "0.8",
+    "version": "0.9",
     "changes": {
         "database": [
-            ["created", "themes-data"]
+            
         ],
         "files": [
-            ["modified", "features/settings/classes/settings.class.php"],
-            ["modified", "features/settings/js/settings.js"],
-            ["modified", "features/settings/php/check-update.php"],
-            ["added", "features/settings/php/prelim-update.php"],
-            ["added", "features/settings/views/update-manually.php"],
-            ["modified", "features/settings/files.info.php"]
+            ["removed", "features/features/php/upload.php"],
+            ["created", "features/features/install/prelim.php"],
+            ["created", "features/features/install/install.php"],
+            ["created", "features/features/classes/features.class.php"],
+            ["created", "features/features/classes/install.class.php"],
+            ["created", "features/features/classes/uninstall.class.php"],
+            ["modified", "features/features/js/features-form.js"],
+            ["modified", "features/features/js/features-index.js"],
+            ["modified", "features/features/php/remove.php"],
+            ["modified", "features/features/php/save.php"],
+            ["modified", "features/features/views/edit.php"],
+            ["modified", "features/features/config.php"],
+            ["modified", "features/features/files.info.php"]
         ],
         "bugs": [
-            "Perform checks on the update script",
-            "Removal on unnecessary ini_set options in the index file",
-            "Added a system to check the incoming AJAX calls and prevent XSS/calls that shouldn't be",
-            "New homepage layout for the default theme",
-            "Added variables to help restrict or grant access to files via the feature files configuration file",
-            "Updated files to work in version(s) PHP 5.2.17+",
-            "Updated the Theamus Settings feature to allow a manual update"
+            "Install, update, and remove features with custom scripts and more information"
         ]
     },
     "authors": [
