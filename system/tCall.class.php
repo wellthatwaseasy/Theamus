@@ -357,7 +357,8 @@ class tCall {
      */
     private function define_call() {
         $post = filter_input_array(INPUT_POST);
-        if (!isset($post['ajax'])) {
+        $get = filter_input_array(INPUT_GET);
+        if (!isset($post['ajax']) && !isset($get['ajax'])) {
             require path(ROOT."/system/tInstall.class.php");
             $install = new tInstall($this->base_url);
             $installed = $install->run_installer();
@@ -367,6 +368,10 @@ class tCall {
             $ret['do_call'] = $installed ? "show_page" : false;
         } else {
             $this->check_ajax_hash();
+            $ajax = false;
+            if (isset($post['ajax'])) $ajax = $post['ajax'];
+            if (isset($get['ajax']) && $ajax == false) $ajax = $get['ajax'];
+            if ($ajax == false) die("AJAX type cannot be found.");
             switch ($post['ajax']) {
                 case "script":
                     $ret['type'] = "script";
@@ -1265,6 +1270,68 @@ class tCall {
         return false;
     }
 
+	
+    /**
+     * Takes the variables given from the POST and GET requests and strips
+     *  anything that isn't relevant to the user
+     *
+     * @param array $input
+     * @return array
+     */
+    private function define_api_variables($input) {
+        $ret = array();
+        $ignore = array("method_class", "method", "params", "ajax");
+        foreach ($input as $key => $value) {
+            if (!in_array($key, $ignore)) $ret[$key] = $value;
+        }
+        return $ret;
+    }
+ 
+ 
+    /**
+     * Runs an API request from a front end somewhere
+     */
+    private function run_api() {
+        // Define both of the inputs
+        $post = filter_input_array(INPUT_POST);
+        $get = filter_input_array(INPUT_GET);
+ 
+        // Determine which inputs to use
+        $inp = false;
+        if (is_array($post)) $inp = $post;
+        if (is_array($get) && $inp == false) $inp = $get;
+ 
+        // Define the return array, which will be shown as JSON and the error
+        $return = array();
+        $error = $response = "";
+        $function_variables = $this->define_api_variables($inp);
+ 
+        // Determine the method and class (if applicable)
+        if (isset($inp['method_class']) && $inp['method_class'] != "") {
+            if (isset($this->feature['config']['api']['class_file'])) {
+                $class_file = $this->feature['config']['api']['class_file'];
+                $class_file_path = path(ROOT."/features/".$this->feature_folder."/".$class_file);
+                if (file_exists($class_file_path)) {
+                    include_once $class_file_path;
+                    if (class_exists($inp['method_class'])) {
+                        if (method_exists($inp['method_class'], $inp['method'])) {
+                            $class = ${$inp['method_class']} = new $inp['method_class'];
+                            $response = call_user_func(array($class, $inp['method']), $function_variables);
+                        }
+                    } else $error = "The class requested doesn't exist.";
+                } else $error = "The API class file doesn't exist.";
+            } else $error = "The API class file could not be found.";
+        } elseif (isset($inp['method'])) {
+            if (function_exists($inp['method'])) {
+                $response = call_user_func($inp['method'], $function_variables);
+            } else $error = "The method being requested does not exist and therefore cannot run.";
+        } else $error = "No method was defined.";
+ 
+        $return['response'] = $response;
+        $return['error']['message'] = $error;
+        echo json_encode($return);
+    }
+	
 
     /**
      * Cleans all of the request variables that are sent through POST and GET

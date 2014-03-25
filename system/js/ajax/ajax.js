@@ -2,6 +2,7 @@ var ajax = new function() {
     this.fail = false;
     this.has_file = false;
     this.hideable = false;
+    this.allow_file_upload = true;
 
     this.run = function(info) {
         var form_data, url;
@@ -94,7 +95,7 @@ var ajax = new function() {
     };
 
     this.get_form_elements = function(form_id) {
-        var elements = $("#" + form_id + " :input");
+        var elements = typeof form_id === "object" ? $(form_id).find(":input") : $("#" + form_id + " :input");
         return elements;
     };
 
@@ -120,9 +121,11 @@ var ajax = new function() {
         return elements;
     };
 
-    this.get_element_values = function(elements) {
+    this.get_element_values = function(elements, values_only) {
         var elements_values, element, value;
         elements_values = new Array();
+ 
+        if (values_only === undefined || values_only === null) values_only = false;
 
         for (var i = 0; i < elements.length; i++) {
             element = elements[i];
@@ -135,7 +138,7 @@ var ajax = new function() {
                 value = element.checked === true ? "true" : "false";
 
             } else if (element.type === "file" && window.FormData !== undefined) {
-                if (element.files.length > 0) {
+                if (element.files.length > 0 && this.allow_file_upload === true) {
                     if (element.files.length >= 1) {
                         value = element.files[0];
                         this.has_file = true;
@@ -143,6 +146,9 @@ var ajax = new function() {
                         value = "false";
                         this.has_file = false;
                     }
+                } else {
+                    value = "false";
+                    this.has_file = false;
                 }
 
             } else if (element.type === "radio") {
@@ -176,10 +182,15 @@ var ajax = new function() {
                 value = element.value;
             }
 
-            if (element.name === undefined) {
-                elements_values[element.id] = value;
+            if (values_only === false) {
+ 
+                if (element.name === undefined) {
+                    elements_values[element.id] = value;
+                } else {
+                    elements_values[element.name] = value;
+                }
             } else {
-                elements_values[element.name] = value;
+                elements_values.push(value);
             }
         }
 
@@ -392,5 +403,155 @@ var ajax = new function() {
         }
 
         return form_data;
+	};
+ 
+ 
+    // Theamus AJAX API --------------------------------------------------------
+    this.api = function(args) {
+        this.api_fail = false;
+ 
+        // Check the arguments and for a failure
+        var api_vars = this.check_api_args(args);
+        api_vars.url = this.sanitize_url(api_vars);
+ 
+        // Set up the type data (GET or POST)
+        api_vars.data = this.make_api_data(api_vars);
+        api_vars.form_data = api_vars.type === "post" ? this.make_form_data(api_vars.data) : api_vars.data;
+ 
+        // Define the api_fail json response
+        this.api_fail = this.api_fail_response();
+ 
+        // TESTING
+        //console.log(this.has_file);
+        //this.api_fail = {success: 0, message: "Testing"};
+ 
+        // Check for any errors
+        if (this.api_fail.success === 0) console.log("Theamus API failure: "+this.api_fail.message);
+ 
+        // Run the AJAX to call the API
+        if (this.api_fail === false) {
+            $.ajax({
+                type: api_vars.type,
+                url: api_vars.url,
+                data: api_vars.form_data,
+                processData: this.processData,
+                contentType: this.contentType,
+                success: function (data, text, xhr) {
+                    var data = $.parseJSON(data);
+ 
+                    data.ajax_response = {};
+                    data.ajax_response.headers = xhr.getAllResponseHeaders();
+                    data.ajax_response.text = text;
+                    data.ajax_response.status = xhr.status;
+ 
+                    api_vars.success(data);
+                }
+            });
+        }
     };
+ 
+    this.check_api_args = function(args) {
+        var ret = {};
+ 
+        // Define defaults
+        ret.ajax = "api";
+ 
+        // Check the type and URL
+        if ("type" in args && typeof args.type === "string") {
+            if (args.type !== "post" && args.type !== "get") this.api_fail = "API request type must be 'post' or 'get'.";
+            else ret.type = args.type.toLowerCase();
+ 
+            if (args.type === "get") this.allow_file_upload = false;
+        } else this.api_fail = "Invalid API request type.";
+        "url" in args && typeof args.url === "string" ? ret.url = args.url : this.api_fail = "Invalid API url.";
+ 
+        // Check the method
+        if ("method" in args) {
+            ret.method_class = "";
+            if (typeof args.method === "string") {
+                ret.method = args.method;
+            } else if (typeof args.method === "object") {
+                args.method.length >= 1 ? ret.method_class = args.method[0] : this.api_fail = "Undefined API method.";
+                args.method.length >= 2 ? ret.method = args.method[1] : this.api_fail = "Undefined API method after finding class.";
+            } else this.api_fail = "Invalid API method defined.";
+        } else this.api_fail = "API method not defined.";
+ 
+        // Check the data
+        if ("data" in args) {
+            if ("form" in args.data) {
+                typeof args.data.form === "object" ? ret.data_form = args.data.form : this.api_fail = "Invalid API form selector.";
+            }
+ 
+            if ("custom" in args.data) {
+                typeof args.data.custom === "object" ? ret.data_custom = args.data.custom : this.api_fail = "Invalid API custom data type.";
+            }
+ 
+            if ("elements" in args.data) {
+                typeof args.data.elements === "object" ? ret.data_elements = args.data.elements : this.api_fail = "Invalid API elements data type.";
+            }
+        }
+ 
+        // Check the success
+        if ("success" in args) {
+            typeof args.success === "function" ? ret.success = args.success : this.api_fail = "API success must be a function.";
+        } else this.api_fail = "Undefined 'success' function to run.";
+ 
+        // Return the argument data
+        return ret;
+    };
+ 
+    this.api_fail_response = function() {
+        if (this.api_fail !== false) {
+            var data = {
+                success: 0,
+                message: this.api_fail
+            };
+            return data;
+        }
+        return false;
+    };
+ 
+    this.make_api_data = function(args) {
+        var data = {
+            method_class: args.method_class,
+            method: args.method,
+            ajax: args.ajax
+        };
+ 
+        // Define the form elements/objects
+        var form_elements = this.get_form_elements(args.data_form),
+            form_values = this.get_element_values(form_elements);
+        for (var key in form_values) data[key] = form_values[key];
+ 
+        // Define the custom data
+        for (var key in args.data_custom) {
+            if (data[key] !== undefined) {
+                this.api_fail = "Multiple data key detected. Conflicted key = '"+key+"'.";
+                break;
+            } else data[key] = args.data_custom[key];
+        }
+ 
+        // Define the elements
+        if (args.data_elements !== undefined) {
+            for (var i = 0; i < args.data_elements.length; i++) {
+                if (args.data_elements[i].length > 1) {
+                    this.api_fail = "Multiple custom elements detected where there should be one.";
+                    break;
+                } else {
+                    var element = $(args.data_elements[i]),
+                        key = "";
+                    if (element.attr("id") !== undefined) key = element.attr("id");
+                    if (key === "" && element.attr("name") !== undefined) key = element.attr("name");
+                    if (key === "") {
+                        this.api_fail = "Element has no identifiable name or id.";
+                        break;
+                    } else if (data[key] !== undefined) {
+                        this.api_fail = "Multiple data key detected.  Conflicted key = '"+key+"'.";
+                    } else data[key] = this.get_element_values(args.data_elements[i], true)[0];
+                }
+            }
+        }
+ 
+        return data;
+	};
 };
