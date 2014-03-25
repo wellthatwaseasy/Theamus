@@ -2,7 +2,7 @@
 
 /**
  * Prints out a notification on the website
- * 
+ *
  * @param string $for
  * @param string $type
  * @param string $message
@@ -19,7 +19,7 @@ function notify($for, $type, $message, $extras = "") {
 
 /**
  * Prints out an input that requests the site to include an extra javascript file
- * 
+ *
  * @param string $path
  * @return boolean
  */
@@ -31,7 +31,7 @@ function add_js($path) {
 
 /**
  * Runs a javascript function after an ajax call
- * 
+ *
  * @param string $function
  * @param string $arguments
  * @return boolean
@@ -44,7 +44,7 @@ function run_after_ajax($function, $arguments="") {
 
 /**
  * Shows the holder for a countdown timer
- * 
+ *
  * @return string
  */
 function js_countdown() {
@@ -81,7 +81,7 @@ function web_path($path) {
 
 /**
  * Takes the user back a page
- * 
+ *
  * @return header
  */
 function back_up() {
@@ -91,7 +91,7 @@ function back_up() {
 
 /**
  * Shortcut to email people through the provided database information (and SMTP)
- * 
+ *
  * @param string $to
  * @param string $subject
  * @param string $message
@@ -100,7 +100,7 @@ function back_up() {
 function tMail($to, $subject, $message) {
     $tDataClass = new tData();
     $tData = $tDataClass->connect();
-    
+
     $q = $tData->query("SELECT * FROM `".$tDataClass->get_system_prefix()."_settings`");
     $settings = $q->fetch_assoc();
 
@@ -127,7 +127,7 @@ function tMail($to, $subject, $message) {
 
 /**
  * Shows a holder for an upload progress bar and percentage holder
- * 
+ *
  * @param string $pro
  * @param string $per
  * @return string
@@ -143,16 +143,16 @@ function show_upload_progress($pro = "upload-progress", $per = "upload-percentag
 
 /**
  * Shows all of the relevant page navigation defined by the links in the database
- * 
+ *
  * @return boolean
  */
 function show_page_navigation($loc = "main", $child_of = 0) {
     $ret = array();
     $tDataClass = new tData();
     $tData      = $tDataClass->connect();
-    
+
     $tUser = new tUser();
-    
+
     $q = $tData->query("SELECT * FROM `".$tDataClass->get_system_prefix()."_links` WHERE `location`='$loc' AND `child_of`='$child_of'");
     while ($link = $q->fetch_assoc()) {
         $in = array();
@@ -175,7 +175,7 @@ function show_page_navigation($loc = "main", $child_of = 0) {
 /**
  * Shows navigation that is made for the html-nav layout.  As defined by
  *  static pages or features
- * 
+ *
  * @param string $navigation
  * @return string $nav|boolean
  */
@@ -201,11 +201,14 @@ function extra_page_navigation($navigation) {
 
 /**
  * Prints out an array wrapped in <pre> tags.  Super helpful
- * 
+ *
  * @param array $array
  */
-function Pre($array) {
-    echo "<pre>";
-    print_r($array);
-    echo "</pre>";
+function Pre($array, $return = false) {
+    $ret[] = "<pre>";
+    $ret[] = print_r($array, true);
+    $ret[] = "</pre>";
+
+    if ($return == true) return implode("", $ret);
+    else echo implode("", $ret);
 }

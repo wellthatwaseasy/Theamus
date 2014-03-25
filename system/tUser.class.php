@@ -88,13 +88,8 @@ class tUser {
      * If the cookie doesn't exist or match, they can't do anything.
      */
     public function set_420hash() {
-        // Define the hash variables
-        $user_ip = $_SERVER['REMOTE_ADDR'];
-        $date = date("Y-d-m");
-        $server_ip = $_SERVER['SERVER_ADDR'];
-
         // Define the hash
-        $hash = md5($user_ip.$date.$server_ip);
+        $hash = $this->tDataClass->get_hash(true);
 
         // Set the hash cookie
         $cookie_hash = isset($_COOKIE['420hash']) ? $_COOKIE['420hash'] : false;
