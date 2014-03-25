@@ -150,6 +150,22 @@ class tCall {
 
 
     /**
+     * Holds the bool that says if it's an API call or not
+     *
+     * @var bool api
+     */
+    private $api = false;
+
+
+    /**
+     * Defines where the api call is coming from
+     *
+     * @var boolean $api_from
+     */
+    private $api_from = false;
+
+
+    /**
      * Initiates the class and defines the class variables
      *
      * @param string $params
@@ -343,10 +359,25 @@ class tCall {
      * Checks the AJAX request hash
      */
     private function check_ajax_hash() {
-        $hash = json_decode(urldecode(filter_input(INPUT_POST, "ajax-hash-data")), true);
-        if (!isset($_COOKIE['420hash'])) die("No 420hash defined.");
+        // Hash for API
+        if ($this->api == true && $this->api_from == false) {
+            $post_hash = filter_input(INPUT_POST, "api-key");
+            $get_hash = filter_input(INPUT_GET, "api-key");
+        } else {
+            // Define the 420hash
+            $post_hash = filter_input(INPUT_POST, "ajax-hash-data");
+            $get_hash = filter_input(INPUT_GET, "ajax-hash-data");
+        }
+        $request_hash = $post_hash == "" ? $get_hash : $post_hash;
+
+        $hash = json_decode(urldecode($request_hash), true);
+
+        $hash_cookie = isset($_COOKIE['420hash']) ? $_COOKIE['420hash'] : false;
+
+        if ($hash_cookie == false && $this->api == false) die("No 420hash defined.");
         if ($hash == "") die("No hash defined.");
-        if ($_COOKIE['420hash'] != $hash['key']) die("Hashfail.");
+        if ($hash_cookie != $hash['key'] && $this->api == false) die("Hashfail please refresh.");
+        if ($hash['key'] != $this->tDataClass->get_hash() && $this->api == true && $this->api_from == false) die("Invalid API key.");
     }
 
 
@@ -367,12 +398,12 @@ class tCall {
             $ret['look_folder'] = $installed ? "view" : false;
             $ret['do_call'] = $installed ? "show_page" : false;
         } else {
-            $this->check_ajax_hash();
-            $ajax = false;
+            $ajax = $api_from = false;
             if (isset($post['ajax'])) $ajax = $post['ajax'];
             if (isset($get['ajax']) && $ajax == false) $ajax = $get['ajax'];
             if ($ajax == false) die("AJAX type cannot be found.");
-            switch ($post['ajax']) {
+
+            switch ($ajax) {
                 case "script":
                     $ret['type'] = "script";
                     $ret['look_folder'] = "script";
@@ -388,8 +419,21 @@ class tCall {
                     $ret['look_folder'] = "";
                     $ret['do_call'] = "include_system_page";
                     break;
+                case "api":
+                    $ret['type'] = "api";
+                    $ret['look_folder'] = "";
+                    $ret['do_call'] = "run_api";
+                    $this->api = true;
+
+                    if (isset($post['api-from'])) $api_from = $post['api-from'];
+                    if (isset($get['api-from']) && $api_from == false) $api_from = $get['api-from'];
+
+                    break;
                 default: false;
             }
+
+            $this->api_from = $api_from;
+            $this->check_ajax_hash();
         }
         return $ret;
     }
@@ -586,7 +630,10 @@ class tCall {
             $message = 404;
         }
 
-        if ($message != false) die($this->error_page($message));
+        if ($message != false) {
+            if ($this->api == true) die($this->run_api());
+            else die($this->error_page($message));
+        }
         return true;
     }
 
@@ -638,7 +685,7 @@ class tCall {
             $init_class = $this->init_class;
             ${$init_class} = new $init_class;
         }
-        
+
         $this->tUser->set_420hash();
         $ajax_hash_cookie = isset($_COOKIE['420hash']) ? $_COOKIE['420hash'] : "";
 
@@ -774,7 +821,9 @@ class tCall {
         $folders = explode("/", $this->feature_path_folders);
         $file = $this->feature_path_folders.$this->feature_file;
         $location = urldecode(filter_input(INPUT_POST, "location"));
-        $ajax = filter_input(INPUT_POST, "ajax") != "" ? filter_input(INPUT_POST, "ajax") : false;
+        $post_ajax = filter_input(INPUT_POST, "ajax");
+        $get_ajax = filter_input(INPUT_GET, "ajax");
+        $ajax = $post_ajax == "" ? $get_ajax : $post_ajax;
 
         $file_info = array();
         if (file_exists($feature_path."files.info.php")) {
@@ -1270,7 +1319,7 @@ class tCall {
         return false;
     }
 
-	
+
     /**
      * Takes the variables given from the POST and GET requests and strips
      *  anything that isn't relevant to the user
@@ -1280,14 +1329,20 @@ class tCall {
      */
     private function define_api_variables($input) {
         $ret = array();
-        $ignore = array("method_class", "method", "params", "ajax");
+        $ignore = array("method_class", "method", "params", "ajax", "ajax-hash-data", "type", "url", "api-key", "api-from");
         foreach ($input as $key => $value) {
-            if (!in_array($key, $ignore)) $ret[$key] = $value;
+            if (!in_array($key, $ignore)) {
+                if ($this->tDataClass->string_is_json(urldecode($value))) {
+                    $ret[$key] = json_decode(urldecode($value), true);
+                } else {
+                    $ret[$key] = urldecode($value);
+                }
+            }
         }
         return $ret;
     }
- 
- 
+
+
     /**
      * Runs an API request from a front end somewhere
      */
@@ -1295,17 +1350,19 @@ class tCall {
         // Define both of the inputs
         $post = filter_input_array(INPUT_POST);
         $get = filter_input_array(INPUT_GET);
- 
+
         // Determine which inputs to use
         $inp = false;
         if (is_array($post)) $inp = $post;
         if (is_array($get) && $inp == false) $inp = $get;
- 
+
         // Define the return array, which will be shown as JSON and the error
         $return = array();
-        $error = $response = "";
+        $error = false;
+        $response = "";
         $function_variables = $this->define_api_variables($inp);
- 
+        if (array_key_exists("data", $function_variables)) $function_variables = $function_variables['data'];
+
         // Determine the method and class (if applicable)
         if (isset($inp['method_class']) && $inp['method_class'] != "") {
             if (isset($this->feature['config']['api']['class_file'])) {
@@ -1326,12 +1383,13 @@ class tCall {
                 $response = call_user_func($inp['method'], $function_variables);
             } else $error = "The method being requested does not exist and therefore cannot run.";
         } else $error = "No method was defined.";
- 
-        $return['response'] = $response;
-        $return['error']['message'] = $error;
+
+        $return['response']['data'] = $response;
+        $return['error']['message'] = $error != false ? $error : "";
+        $return['error']['status'] = $error != false ? 1 : 0;
         echo json_encode($return);
     }
-	
+
 
     /**
      * Cleans all of the request variables that are sent through POST and GET
