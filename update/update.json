@@ -2,7 +2,7 @@
     "version": "0.9",
     "changes": {
         "database": [
-            
+
         ],
         "files": [
             ["removed", "features/features/php/upload.php"],
@@ -17,9 +17,15 @@
             ["modified", "features/features/php/save.php"],
             ["modified", "features/features/views/edit.php"],
             ["modified", "features/features/config.php"],
-            ["modified", "features/features/files.info.php"]
+            ["modified", "features/features/files.info.php"],
+            ["modified", "system/js/ajax.js"],
+            ["modified", "system/tCall.class.php"],
+            ["modified", "system/tData.class.php"],
+            ["modified", "system/tUser.class.php"],
+            ["modified", "features/accounts/files.info.php"]
         ],
         "bugs": [
+            "Added an API option, so any Theamus system can support outside front-ends!",
             "Install, update, and remove features with custom scripts and more information"
         ]
     },
