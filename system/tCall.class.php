@@ -3,7 +3,7 @@
 /**
  * tCall - Theamus content control class
  * PHP Version 5.5.3
- * Version 1.0
+ * Version 1.1
  * @package Theamus
  * @link http://www.theamus.com/
  * @author Matthew Tempinski (Eyraahh) <matt.tempinski@theamus.com>
@@ -150,6 +150,14 @@ class tCall {
 
 
     /**
+     * Holds the value of whether or not the call is of an AJAX/outside origin
+     *
+     * @var boolean $ajax
+     */
+    private $ajax = false;
+
+
+    /**
      * Holds the bool that says if it's an API call or not
      *
      * @var bool api
@@ -163,6 +171,14 @@ class tCall {
      * @var boolean $api_from
      */
     private $api_from = false;
+
+
+    /**
+     * Defines the status of the api's success
+     *
+     * @var boolean
+     */
+    private $api_fail = false;
 
 
     /**
@@ -199,8 +215,9 @@ class tCall {
 
         $this->show_page_info(array("call" => $call));
 
-        if (($path == true && $call['do_call'] != false) || $call['type'] == "system")
+        if (($path == true && $call['do_call'] != false) || $call['type'] == "system") {
             $this->$call['do_call']();
+        }
         return true;
     }
 
@@ -358,11 +375,17 @@ class tCall {
     /**
      * Checks the AJAX request hash
      */
-    private function check_ajax_hash() {
-        // Hash for API
+    private function check_ajax_hash($feature = array()) {
+        // Check the hash
+        $feature_key = false;
         if ($this->api == true && $this->api_from == false) {
             $post_hash = filter_input(INPUT_POST, "api-key");
             $get_hash = filter_input(INPUT_GET, "api-key");
+
+            // Check if a feature key is something we should look at
+            if (isset($feature['api']['key'])) {
+                $feature_key = true;
+            }
         } else {
             // Define the 420hash
             $post_hash = filter_input(INPUT_POST, "ajax-hash-data");
@@ -374,10 +397,31 @@ class tCall {
 
         $hash_cookie = isset($_COOKIE['420hash']) ? $_COOKIE['420hash'] : false;
 
-        if ($hash_cookie == false && $this->api == false) die("No 420hash defined.");
-        if ($hash == "") die("No hash defined.");
-        if ($hash_cookie != $hash['key'] && $this->api == false) die("Hashfail please refresh.");
-        if ($hash['key'] != $this->tDataClass->get_hash() && $this->api == true && $this->api_from == false) die("Invalid API key.");
+        // Die if the 420hash cookie doesn't exist
+        if ($hash_cookie == false && $this->api == false) {
+            die("No 420hash defined.");
+        }
+
+        // Throw an error if the hash is blank
+        if ($hash == "") {
+            $this->api == false ? die("No hash defined.") : $this->api_fail = "No hash defined.";
+        }
+
+        // Check the hash cookie
+        if ($hash_cookie != $hash['key'] && $this->api == false) {
+            die("Hashfail please refresh.");
+        }
+
+        // Perform checks based on a feature key or not
+        if ($feature_key == true) {
+            if ($hash['key'] != $feature['api']['key'] && $this->api == true  && $this->api_from == false) {
+                $this->api_fail = "Invalid API key.";
+            }
+        } else {
+            if ($hash['key'] != $this->tDataClass->get_hash() && $this->api == true && $this->api_from == false) {
+                $this->api_fail = "Invalid API key.";
+            }
+        }
     }
 
 
@@ -398,6 +442,7 @@ class tCall {
             $ret['look_folder'] = $installed ? "view" : false;
             $ret['do_call'] = $installed ? "show_page" : false;
         } else {
+            $this->ajax = true;
             $ajax = $api_from = false;
             if (isset($post['ajax'])) $ajax = $post['ajax'];
             if (isset($get['ajax']) && $ajax == false) $ajax = $get['ajax'];
@@ -433,7 +478,6 @@ class tCall {
             }
 
             $this->api_from = $api_from;
-            $this->check_ajax_hash();
         }
         return $ret;
     }
@@ -574,6 +618,7 @@ class tCall {
                 }
             }
         }
+
         return $folders;
     }
 
@@ -787,6 +832,10 @@ class tCall {
             }
         }
 
+        // Check the hash
+        if ($this->ajax == true) {
+            $this->check_ajax_hash($ret);
+        }
         return $ret;
     }
 
@@ -1366,27 +1415,53 @@ class tCall {
         // Determine the method and class (if applicable)
         if (isset($inp['method_class']) && $inp['method_class'] != "") {
             if (isset($this->feature['config']['api']['class_file'])) {
-                $class_file = $this->feature['config']['api']['class_file'];
-                $class_file_path = path(ROOT."/features/".$this->feature_folder."/".$class_file);
-                if (file_exists($class_file_path)) {
-                    include_once $class_file_path;
-                    if (class_exists($inp['method_class'])) {
-                        if (method_exists($inp['method_class'], $inp['method'])) {
-                            $class = ${$inp['method_class']} = new $inp['method_class'];
-                            $response = call_user_func(array($class, $inp['method']), $function_variables);
-                        } else $error = "The method requested doen't exist in the class requested.";
-                    } else $error = "The class requested doesn't exist.";
-                } else $error = "The API class file doesn't exist.";
-            } else $error = "The API class file could not be found.";
+                // If the class file isn't already an array, make it one
+                $feature_class_files = $this->feature['config']['api']['class_file'];
+                if (!is_array($feature_class_files)) {
+                    $class_files = array($feature_class_files);
+                } else {
+                    $class_files = $feature_class_files;
+                }
+
+                // Loop through all of the class files, including them
+                foreach ($class_files as $cf) {
+                    $class_file_path = path(ROOT."/features/".$this->feature_folder."/".$cf);
+                    if (file_exists($class_file_path)) {
+                        include_once $class_file_path;
+                    } else {
+                        $error = "The API class file based on the requested URL doesn't exist or could not be found.";
+                    }
+                }
+
+                if (class_exists($inp['method_class']) && method_exists($inp['method_class'], $inp['method'])) {
+                    $class = ${$inp['method_class']} = new $inp['method_class'];
+                    $response = call_user_func(array($class, $inp['method']), $function_variables);
+                } else {
+                    $error = "The class or method requested doesn't exist or couldn't be found.";
+                }
+            } else {
+                $error = "There is no API class file defined for the requested URL.";
+            }
         } elseif (isset($inp['method'])) {
             if (function_exists($inp['method'])) {
                 $response = call_user_func($inp['method'], $function_variables);
-            } else $error = "The method being requested does not exist and therefore cannot run.";
-        } else $error = "No method was defined.";
+            } else {
+                $error = "The method being requested does not exist and therefore cannot run.";
+            }
+        } else {
+            $error = "No method was defined.";
+        }
 
-        $return['response']['data'] = $response;
-        $return['error']['message'] = $error != false ? $error : "";
-        $return['error']['status'] = $error != false ? 1 : 0;
+        // Define the response data and echo out the results
+        $return['response']['data'] = "";
+        $return['response']['status'] = 200;
+        if ($error != false || $this->api_fail != false) {
+            $return['error']['message'] = $this->api_fail == false ? $error : $this->api_fail;
+        } else {
+            $return['response']['data'] = $response;
+            $return['error']['message'] = "";
+        }
+        $return['error']['status'] = $error != false || $this->api_fail != false ? 1 : 0;
         echo json_encode($return);
     }
 

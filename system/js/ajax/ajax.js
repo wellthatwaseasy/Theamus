@@ -235,12 +235,10 @@ var ajax = new function() {
             return form_data;
         }
     };
-    
+
     this.format_bytes = function(bytes) {
-        var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-        if (bytes === 0) return '0 Bytes';
-        var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
-        return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
+        var i = Math.floor(Math.log(bytes) / Math.log(1024));
+        return (bytes / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
     };
 
     this.get_ajax_hash = function(form_data) {
@@ -336,18 +334,18 @@ var ajax = new function() {
                 this.hideable = true;
                 this.stop = stop;
             }
-            
+
             return percent_completed;
         }
     };
-    
+
     this.get_upload_data = function(event) {
         var percent_completed = 0;
 
         if (event.lengthComputable) {
             percent_completed = Math.floor((event.loaded / event.total) * 100);
         }
-        
+
         var ret = {
             percent_completed:      percent_completed,
             percentage:             percent_completed+"%",
@@ -358,7 +356,7 @@ var ajax = new function() {
             time_micro:             event.timeStamp,
             time_formatted:         new Date(event.timeStamp)
         }
-        
+
         return ret;
     };
 
@@ -447,7 +445,7 @@ var ajax = new function() {
 
     // Theamus AJAX API --------------------------------------------------------
     this.api = function(args) {
-        this.api_fail = false;
+        this.api_fail = false; // By default, we are good to go
 
         // Check the arguments and for a failure
         var api_vars = this.check_api_args(args);
@@ -462,8 +460,13 @@ var ajax = new function() {
 
         // Check for any errors
         if (this.api_fail !== false) {
-            if (typeof api_vars.success !== "function") console.log("Theamus API error: "+this.api_fail.error.message);
-            else api_vars.success(this.api_fail);
+            // Show error in the console if the given success variable isn't valid
+            if (typeof api_vars.success !== "function") {
+                console.log("Theamus API error: "+this.api_fail.error.message);
+            } else {
+                // Run the success function, with the failure data
+                api_vars.success(this.api_fail);
+            }
         }
 
         // Run the AJAX to call the API
@@ -477,14 +480,14 @@ var ajax = new function() {
                 xhr: function() {
                     var xhr = new XMLHttpRequest();
 
+                    // Listen to the upload progress, if applicable
                     if (window.FormData !== undefined) {
                         xhr.upload.addEventListener("progress", function(event) {
-                            ajax.show_upload(event, args);
-                            if ("upload" in args) {
-                                if ("during" in args.upload) {
-                                    if (typeof args.upload.during === "function") {
-                                        args.upload.during(ajax.get_upload_data(event));
-                                    }
+                            // Return data to the "upload.during()" function, if applicable
+                            if ("upload" in args && "during" in args.upload) {
+                                // The upload.during variable must be a function to proceed
+                                if (typeof args.upload.during === "function") {
+                                    args.upload.during(ajax.get_upload_data(event));
                                 }
                             }
                         }, false);
@@ -493,47 +496,58 @@ var ajax = new function() {
                     return xhr;
                 },
                 success: function (data, text, xhr) {
-                    ajax.hide_upload(args);
+                    // Try to decode the returned data, or do nothing
                     try {
                         var data = JSON.parse(data);
 
                         data.response.headers = xhr.getAllResponseHeaders();
                         data.response.text = text;
                         data.response.status = xhr.status;
-                    } catch (e) {
-                        ;
-                    }
+                    } catch (e) {}
 
+                    // Run the defined success function with the data
                     api_vars.success(data);
                 }
             });
         }
     };
 
+
     this.check_api_args = function(args) {
-        var ret = {};
+        // Define the defaults
+        var ret = {ajax: "api", "hash": this.get_ajax_hash()};
 
         // Check for args
         if (typeof args !== "object") {
+            // Fail, define default arguments and return
             this.api_fail = "API arguments are not valid.";
-            args = {};
-            args.url = "";
-            args.method = "";
+            args = {url: "", method: ""};
             return args;
         }
 
-        // Define defaults
-        ret.ajax = "api";
-        ret.hash = this.get_ajax_hash();
-
-        // Check the type and URL
+        // Check the type
         if ("type" in args && typeof args.type === "string") {
-            if (args.type !== "post" && args.type !== "get") this.api_fail = "API request type must be 'post' or 'get'.";
-            else ret.type = args.type.toLowerCase();
+            // Check the type for 'post' or 'get', as they are the only types allowed
+            if (args.type !== "post" && args.type !== "get") {
+                this.api_fail = "API request type must be 'post' or 'get'.";
+            } else {
+                ret.type = args.type.toLowerCase();
+            }
 
-            if (args.type === "get") this.allow_file_upload = false;
-        } else this.api_fail = "Invalid API request type.";
-        "url" in args && typeof args.url === "string" ? ret.url = args.url : this.api_fail = "Invalid API url.";
+            // If the type is get, we can't allow file uploads
+            if (args.type === "get") {
+                this.allow_file_upload = false;
+            }
+        } else {
+            this.api_fail = "Invalid API request type.";
+        }
+
+        // Check the URL
+        if ("url" in args && typeof args.url === "string") {
+            ret.url = args.url;
+        } else {
+            this.api_fail = "Invalid API url.";
+        }
 
         // Check the method
         if ("method" in args) {
@@ -541,54 +555,90 @@ var ajax = new function() {
             if (typeof args.method === "string") {
                 ret.method = args.method;
             } else if (typeof args.method === "object") {
-                args.method.length >= 1 ? ret.method_class = args.method[0] : this.api_fail = "Undefined API method.";
-                args.method.length >= 2 ? ret.method = args.method[1] : this.api_fail = "Undefined API method after finding class.";
-            } else this.api_fail = "Invalid API method defined.";
-        } else this.api_fail = "API method not defined.";
+                // Define the method class
+                if (args.method.length >= 1) {
+                    ret.method_class = args.method[0];
+                } else {
+                    this.api_fail = "Undefined API method.";
+                }
+
+                // Define the method
+                if (args.method.length >= 2) {
+                    ret.method = args.method[1];
+                } else {
+                    this.api_fail = "Undefined API method after finding class.";
+                }
+            } else {
+                this.api_fail = "Invalid API method defined.";
+            }
+        } else {
+            this.api_fail = "API method not defined.";
+        }
 
         // Check the data
         if ("data" in args) {
+            // Define the form information
             if ("form" in args.data) {
-                typeof args.data.form === "object" ? ret.data_form = args.data.form : this.api_fail = "Invalid API form selector.";
+                // The form must be defined already, as an object containing the element
+                if (typeof args.data.form === "object") {
+                    ret.data_form = args.data.form;
+                } else {
+                    this.api_fail = "Invalid API form selector.";
+                }
             }
 
+            // Define the custom information
             if ("custom" in args.data) {
-                typeof args.data.custom === "object" ? ret.data_custom = args.data.custom : this.api_fail = "Invalid API custom data type.";
+                // The custom information must be a JSON object
+                if (typeof args.data.custom === "object") {
+                    ret.data_custom = args.data.custom;
+                } else {
+                    this.api_fail = "Invalid API custom data type.";
+                }
             }
 
+            // Define any elements
             if ("elements" in args.data) {
-                typeof args.data.elements === "object" ? ret.data_elements = args.data.elements : this.api_fail = "Invalid API elements data type.";
+                // The elements must be an array of objects that define the elements holding values
+                if (typeof args.data.elements === "object") {
+                    ret.data_elements = args.data.elements;
+                } else {
+                    this.api_fail = "Invalid API elements data type.";
+                }
             }
         }
 
-        // Check the success
+        // Check the success function
         if ("success" in args) {
-            typeof args.success === "function" ? ret.success = args.success : this.api_fail = "API success must be a function.";
-        } else this.api_fail = "Undefined 'success' function to run.";
+            if (typeof args.success === "function") {
+                ret.success = args.success;
+            } else {
+                this.api_fail = "API success must be a function.";
+            }
+        } else {
+            this.api_fail = "Undefined 'success' function to run.";
+        }
 
         // Return the argument data
         return ret;
     };
 
+
     this.api_fail_response = function() {
+        // Check for a failure during the API setup
         if (this.api_fail !== false) {
-            var data = {
-                error: {
-                    status: 1,
-                    message: this.api_fail
-                },
-                response: {
-                    status: 0,
-                    data: "",
-                    text: ""
-                }
+            // Define and the return data
+            return {
+                error: {status: 1, message: this.api_fail},
+                response: {status: 0, data: "", text: ""}
             };
-            return data;
         }
         return false;
     };
 
+
     this.make_api_data = function(args) {
+        // Define the defaults
         var data = {
             method_class: args.method_class,
             method: args.method,
@@ -607,7 +657,9 @@ var ajax = new function() {
             if (data[key] !== undefined) {
                 this.api_fail = "Multiple data key detected. Conflicted key = '"+key+"'.";
                 break;
-            } else data[key] = args.data_custom[key];
+            } else {
+                data[key] = args.data_custom[key];
+            }
         }
 
         // Define the elements
@@ -619,18 +671,34 @@ var ajax = new function() {
                 } else {
                     var element = $(args.data_elements[i]),
                         key = "";
-                    if (element.attr("id") !== undefined) key = element.attr("id");
-                    if (key === "" && element.attr("name") !== undefined) key = element.attr("name");
+
+                    // Define the key based on the ID
+                    if (element.attr("id") !== undefined) {
+                        key = element.attr("id");
+                    }
+
+                    // Define the key based on the element name, if the key isn't alredy defined
+                    if (key === "" && element.attr("name") !== undefined) {
+                        key = element.attr("name");
+                    }
+
+                    // If there is no key after the two tries above, fail
                     if (key === "") {
                         this.api_fail = "Element has no identifiable name or id.";
                         break;
+
+                    // If the key already exists in the data array, fail
                     } else if (data[key] !== undefined) {
                         this.api_fail = "Multiple data key detected.  Conflicted key = '"+key+"'.";
-                    } else data[key] = this.get_element_values(args.data_elements[i], true)[0];
+
+                    // Get the value of the key and define it in the data array
+                    } else {
+                        data[key] = this.get_element_values(args.data_elements[i], true)[0];
+                    }
                 }
             }
         }
 
-        return data;
+        return data; // Return the data
 	};
 };
