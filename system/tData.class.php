@@ -247,16 +247,25 @@ class tData {
 
         // Define defaults
         $return['ajax'] = "api";
+        
+        // Define the custom variable
+        if (isset($args['custom'])) {
+            $return['custom'] = $args['custom'] == true ? true : false;
+        } else $return['custom'] = false;
 
         // Define the type and the url
         if (isset($args['type']) && gettype($args['type']) == "string") {
             if ($args['type'] != "get" && $args['type'] != "post") $this->api_fail = "API request type must be 'post' or 'get'.";
             else $return['type'] = $args['type'];
-        } else $this->api_fail = "Invalid API request type.";
-        isset($args['url']) && gettype($args['url']) == "string" ? $return['url'] = urldecode($args['url']) : $this->api_fail = "Invalid API url.";
+        } else $this->api_fail = "Invalid or missing API request type.";
+        if (isset($args['url']) && gettype($args['url']) == "string") {
+            $return['url'] = $this->define_api_url(urldecode($args['url']));
+        } else {
+            $this->api_fail = "Invalid API url.";
+        }
 
         // Define the method
-        if (isset($args['method'])) {
+        if (isset($args['method']) && $return['custom'] == false) {
             $return['method_class'] = "";
             if (gettype($args['method']) == "array") {
                 count($args['method']) >= 1 ? $return['method_class'] = $args['method'][0] : $this->api_fail = "Undefined API method.";
@@ -264,7 +273,9 @@ class tData {
             } elseif (gettype($args['method'] == "string")) {
                 $return['method'] = $args['method'];
             } else $this->api_fail = "Invalid API method defined.";
-        } else $this->api_fail = "API method not defined.";
+        } else {
+            if ($return['custom'] == false) $this->api_fail = "API method not defined.";
+        }
 
         // Define the data
         if (isset($args['data'])) {
@@ -280,7 +291,12 @@ class tData {
             if (gettype($args['key']) == "string") {
                 json_encode(array("key"=>$args['key']));
             } else $this->api_fail = "Invalid API key type.";
-        } else $return['api-key'] = json_encode(array("key"=>$this->get_hash()));
+        } else $return['api-key'] = urlencode(json_encode(array("key"=>$this->get_hash())));
+        
+        // Remove anything that is normally pre-set but because it's a custom call
+        if ($return['custom'] == true) {
+            unset($return['api-key'], $return['ajax']);
+        }
 
         return $return;
     }
@@ -292,27 +308,72 @@ class tData {
     }
 
 
-    private function define_api_variables($args) {
+    private function define_api_variables($args, $get = false) {
         $return = array();
+        $ignore = array("url", "type", "custom");
         foreach ($args as $key => $value) {
-            if (is_array($value)) $value = json_encode($value);
-            $return[] = "$key=$value";
+            if (in_array($key, $ignore)) continue;
+            if ($args['custom'] == false) {
+                if (is_array($value)) $value = urlencode(json_encode($value));
+                $return[] = $get == true ? urlencode("$key=$value") : "$key=$value";
+            } else {
+                foreach ($value as $k => $v) $return[] = "$k=$v";
+            }
         }
-        return implode("&", $return);
+        
+        return count($return) >= 1 ? implode("&", $return) : "";
+    }
+    
+    
+    private function define_api_url($url) {
+        // Check if the url is expected to be an absolute path
+        if (strpos($url, "http") !== false) {
+            $new_url = $url;
+        } else {
+            // We will be assuming the host address or the predefined base url
+            $new_url = base_url.$url;
+        }
+        
+        // Check for url validation and return or throw error
+        if (filter_var($new_url, FILTER_VALIDATE_URL)) {
+            return $new_url;
+        } else {
+            // Define an error has happened and return blank
+            $this->api_fail = "Invalid URL given.";
+            return "";
+        }
     }
 
 
     private function send_api($args) {
-        // Open the connection
+        // Define options based on the call type
+        if ($args['type'] == "post") {
+            $options = array(
+                CURLOPT_POST                => 1,
+                CURLOPT_HEADER              => 0,
+                CURLOPT_URL                 => $args['url'],
+                CURLOPT_FRESH_CONNECT       => 1,
+                CURLOPT_RETURNTRANSFER      => 1,
+                CURLOPT_FORBID_REUSE        => 1,
+                CURLOPT_TIMEOUT             => 4,
+                CURLOPT_POSTFIELDS          => $this->define_api_variables($args)
+            );
+        } elseif ($args['type'] == "get") {
+            $api_variables = $this->define_api_variables($args, true);
+            $var_starter = "";
+            if ($args['custom'] == false && $api_variables != "") $var_starter = "&";
+            if ($args['custom'] == true && $api_variables != "") $var_starter = "?";
+            $options = array(
+                CURLOPT_URL                 => $args['url'].$var_starter.$api_variables,
+                CURLOPT_HEADER              => 0,
+                CURLOPT_RETURNTRANSFER      => 1,
+                CURLOPT_TIMEOUT             => 4
+            );
+        }
+        
+        // Open the connection and set the options
         $ch = curl_init();
-
-        // Define options
-        curl_setopt($ch, CURLOPT_URL, "http://localhost/Theamus-Development/default/");
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $this->define_api_variables($args));
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt_array($ch, $options);
 
         // Execute and return
         $result = curl_exec($ch);
@@ -334,6 +395,6 @@ class tData {
 
         // Throw errors or return
         if ($this->api_fail != false) $return = $this->api_error($this->api_fail);
-        return json_decode($return, true);
+        return (!is_array($return)) ? json_decode($return, true) : $return;
     }
 }

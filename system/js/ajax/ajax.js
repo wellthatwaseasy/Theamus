@@ -124,7 +124,7 @@ var ajax = new function() {
     this.get_element_values = function(elements, values_only) {
         var elements_values, element, value;
         elements_values = new Array();
- 
+
         if (values_only === undefined || values_only === null) values_only = false;
 
         for (var i = 0; i < elements.length; i++) {
@@ -183,7 +183,7 @@ var ajax = new function() {
             }
 
             if (values_only === false) {
- 
+
                 if (element.name === undefined) {
                     elements_values[element.id] = value;
                 } else {
@@ -235,15 +235,30 @@ var ajax = new function() {
             return form_data;
         }
     };
+    
+    this.format_bytes = function(bytes) {
+        var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+        if (bytes === 0) return '0 Bytes';
+        var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+        return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
+    };
 
     this.get_ajax_hash = function(form_data) {
+        var api = false;
+        if (form_data === undefined) api = true;
+
         var hash_data = document.getElementById("ajax-hash-data");
 
         if (hash_data === undefined) {
-            this.fail = "Unable to make AJAX request.";
+            if (api === true) this.api_fail = "Unable to make AJAX request.";
+
+            else this.fail = "Unable to make AJAX request.";
         } else {
-            form_data = this.form_data_append(form_data, "ajax-hash-data", hash_data.value);
-            return form_data;
+            if (api === true) return hash_data.value;
+            else {
+                form_data = this.form_data_append(form_data, "ajax-hash-data", hash_data.value);
+                return form_data;
+            }
         }
     };
 
@@ -290,8 +305,8 @@ var ajax = new function() {
 
     this.show_upload = function(event, info) {
         var percent_completed, show_number;
-        var percent_growbar = "percent_growbar";
-        var percent_number = "percent_number";
+        var percent_growbar = "upload-progress";
+        var percent_number = "upload-percentage";
         var stop = 5;
         var show = true;
 
@@ -312,7 +327,8 @@ var ajax = new function() {
                 }
             }
 
-            percent_completed = Math.floor((event.loaded / event.total) * 100);
+            var upload_data = ajax.get_upload_data(event);
+            percent_completed = upload_data.completed;
             if (show === true && this.has_file !== false) {
                 $("#" + percent_growbar).show();
                 $("#" + percent_growbar)[0].style.width = percent_completed * stop + "px";
@@ -320,7 +336,30 @@ var ajax = new function() {
                 this.hideable = true;
                 this.stop = stop;
             }
+            
+            return percent_completed;
         }
+    };
+    
+    this.get_upload_data = function(event) {
+        var percent_completed = 0;
+
+        if (event.lengthComputable) {
+            percent_completed = Math.floor((event.loaded / event.total) * 100);
+        }
+        
+        var ret = {
+            percent_completed:      percent_completed,
+            percentage:             percent_completed+"%",
+            loaded:                 event.loaded,
+            loaded_formatted:       this.format_bytes(event.loaded),
+            total_bytes:            event.totalSize,
+            total_bytes_formatted:  this.format_bytes(event.totalSize),
+            time_micro:             event.timeStamp,
+            time_formatted:         new Date(event.timeStamp)
+        }
+        
+        return ret;
     };
 
     this.hide_upload = function(info) {
@@ -329,8 +368,8 @@ var ajax = new function() {
                 var hide = "hide" in info.upload ? info.upload.hide : true;
                 var hide_time = "hide_time" in info.upload ? info.upload.hide_time : 3;
                 hide_time = hide_time * 1000;
-                var percent_growbar = "growbar" in info.upload ? info.upload.growbar : "percent_growbar";
-                var percent_number = "percentage" in info.upload ? info.upload.percentage : "percent_number";
+                var percent_growbar = "growbar" in info.upload ? info.upload.growbar : "upload-progress";
+                var percent_number = "percentage" in info.upload ? info.upload.percentage : "upload-percentage";
 
                 $("#" + percent_growbar)[0].style.width = (100 * this.stop) + "px";
                 $("#" + percent_number).html("100%");
@@ -404,30 +443,29 @@ var ajax = new function() {
 
         return form_data;
 	};
- 
- 
+
+
     // Theamus AJAX API --------------------------------------------------------
     this.api = function(args) {
         this.api_fail = false;
- 
+
         // Check the arguments and for a failure
         var api_vars = this.check_api_args(args);
         api_vars.url = this.sanitize_url(api_vars);
- 
+
         // Set up the type data (GET or POST)
         api_vars.data = this.make_api_data(api_vars);
         api_vars.form_data = api_vars.type === "post" ? this.make_form_data(api_vars.data) : api_vars.data;
- 
+
         // Define the api_fail json response
         this.api_fail = this.api_fail_response();
- 
-        // TESTING
-        //console.log(this.has_file);
-        //this.api_fail = {success: 0, message: "Testing"};
- 
+
         // Check for any errors
-        if (this.api_fail.success === 0) console.log("Theamus API failure: "+this.api_fail.message);
- 
+        if (this.api_fail !== false) {
+            if (typeof api_vars.success !== "function") console.log("Theamus API error: "+this.api_fail.error.message);
+            else api_vars.success(this.api_fail);
+        }
+
         // Run the AJAX to call the API
         if (this.api_fail === false) {
             $.ajax({
@@ -436,35 +474,67 @@ var ajax = new function() {
                 data: api_vars.form_data,
                 processData: this.processData,
                 contentType: this.contentType,
+                xhr: function() {
+                    var xhr = new XMLHttpRequest();
+
+                    if (window.FormData !== undefined) {
+                        xhr.upload.addEventListener("progress", function(event) {
+                            ajax.show_upload(event, args);
+                            if ("upload" in args) {
+                                if ("during" in args.upload) {
+                                    if (typeof args.upload.during === "function") {
+                                        args.upload.during(ajax.get_upload_data(event));
+                                    }
+                                }
+                            }
+                        }, false);
+                    }
+
+                    return xhr;
+                },
                 success: function (data, text, xhr) {
-                    var data = $.parseJSON(data);
- 
-                    data.ajax_response = {};
-                    data.ajax_response.headers = xhr.getAllResponseHeaders();
-                    data.ajax_response.text = text;
-                    data.ajax_response.status = xhr.status;
- 
+                    ajax.hide_upload(args);
+                    try {
+                        var data = JSON.parse(data);
+
+                        data.response.headers = xhr.getAllResponseHeaders();
+                        data.response.text = text;
+                        data.response.status = xhr.status;
+                    } catch (e) {
+                        ;
+                    }
+
                     api_vars.success(data);
                 }
             });
         }
     };
- 
+
     this.check_api_args = function(args) {
         var ret = {};
- 
+
+        // Check for args
+        if (typeof args !== "object") {
+            this.api_fail = "API arguments are not valid.";
+            args = {};
+            args.url = "";
+            args.method = "";
+            return args;
+        }
+
         // Define defaults
         ret.ajax = "api";
- 
+        ret.hash = this.get_ajax_hash();
+
         // Check the type and URL
         if ("type" in args && typeof args.type === "string") {
             if (args.type !== "post" && args.type !== "get") this.api_fail = "API request type must be 'post' or 'get'.";
             else ret.type = args.type.toLowerCase();
- 
+
             if (args.type === "get") this.allow_file_upload = false;
         } else this.api_fail = "Invalid API request type.";
         "url" in args && typeof args.url === "string" ? ret.url = args.url : this.api_fail = "Invalid API url.";
- 
+
         // Check the method
         if ("method" in args) {
             ret.method_class = "";
@@ -475,54 +545,63 @@ var ajax = new function() {
                 args.method.length >= 2 ? ret.method = args.method[1] : this.api_fail = "Undefined API method after finding class.";
             } else this.api_fail = "Invalid API method defined.";
         } else this.api_fail = "API method not defined.";
- 
+
         // Check the data
         if ("data" in args) {
             if ("form" in args.data) {
                 typeof args.data.form === "object" ? ret.data_form = args.data.form : this.api_fail = "Invalid API form selector.";
             }
- 
+
             if ("custom" in args.data) {
                 typeof args.data.custom === "object" ? ret.data_custom = args.data.custom : this.api_fail = "Invalid API custom data type.";
             }
- 
+
             if ("elements" in args.data) {
                 typeof args.data.elements === "object" ? ret.data_elements = args.data.elements : this.api_fail = "Invalid API elements data type.";
             }
         }
- 
+
         // Check the success
         if ("success" in args) {
             typeof args.success === "function" ? ret.success = args.success : this.api_fail = "API success must be a function.";
         } else this.api_fail = "Undefined 'success' function to run.";
- 
+
         // Return the argument data
         return ret;
     };
- 
+
     this.api_fail_response = function() {
         if (this.api_fail !== false) {
             var data = {
-                success: 0,
-                message: this.api_fail
+                error: {
+                    status: 1,
+                    message: this.api_fail
+                },
+                response: {
+                    status: 0,
+                    data: "",
+                    text: ""
+                }
             };
             return data;
         }
         return false;
     };
- 
+
     this.make_api_data = function(args) {
         var data = {
             method_class: args.method_class,
             method: args.method,
-            ajax: args.ajax
+            ajax: args.ajax,
+            "ajax-hash-data": args.hash,
+            "api-from": "javascript"
         };
- 
+
         // Define the form elements/objects
         var form_elements = this.get_form_elements(args.data_form),
             form_values = this.get_element_values(form_elements);
         for (var key in form_values) data[key] = form_values[key];
- 
+
         // Define the custom data
         for (var key in args.data_custom) {
             if (data[key] !== undefined) {
@@ -530,7 +609,7 @@ var ajax = new function() {
                 break;
             } else data[key] = args.data_custom[key];
         }
- 
+
         // Define the elements
         if (args.data_elements !== undefined) {
             for (var i = 0; i < args.data_elements.length; i++) {
@@ -551,7 +630,7 @@ var ajax = new function() {
                 }
             }
         }
- 
+
         return data;
 	};
 };
