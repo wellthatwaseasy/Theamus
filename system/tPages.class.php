@@ -292,12 +292,11 @@ class tPages {
     /**
      * Prints the header to the list
      *
-     * @return boolean
+     * @return string
      */
     private function print_list_header() {
         $this->check_count();
-        echo $this->template_header;
-        return true;
+        return $this->template_header;
     }
 
 
@@ -306,13 +305,14 @@ class tPages {
      *
      * @return boolean|die
      */
-    public function print_list() {
+    public function print_list($return = false) {
         $this->data = $this->sql == false && !empty($this->defined_data) ? $this->get_data() : $this->query_db();
         if ($this->query_db() != false || !empty($this->defined_data)) {
-            $this->print_list_header();
+            $template_header = $this->print_list_header();
             $ret = "";
             foreach ($this->data as $data) $ret .= $this->populate_list_template($data);
-            echo $ret;
+            if ($return != false) return $template_header.$ret;
+            echo $template_header.$ret;
             return true;
         } die(notify("admin", "info", "There are no results matching your criteria."));
     }
@@ -350,8 +350,7 @@ class tPages {
      * @return boolean
      */
     private function print_current() {
-        echo "<input type='hidden' id='current_page' value='$this->current' />";
-        return true;
+        return "<input type='hidden' id='current_page' value='$this->current' />";
     }
 
 
@@ -362,12 +361,13 @@ class tPages {
      * @param string $function
      * @return boolean
      */
-    public function print_pagination($function="next_page") {
+    public function print_pagination($function="next_page", $return = false) {
         $end = $this->get_pagination_stop();
         $links = "<div class='pagination'>";
-        $this->print_current();
+        $links .= $this->print_current();
         for ($i = 1; $i <= $end; $i++) $links .= $this->make_pagination($i, $function);
         $links .= "</div>";
+        if ($return != false) return $links;
         echo $links;
         return true;
     }
