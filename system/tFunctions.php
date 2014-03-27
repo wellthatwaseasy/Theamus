@@ -9,11 +9,15 @@
  * @param string $extras
  * @return boolean
  */
-function notify($for, $type, $message, $extras = "") {
+function notify($for, $type, $message, $extras = "", $return = false) {
     $ret = "<div class='" . $for . "-notify" . $type . "' id='notify' " . $extras . ">";
     $ret .= $message;
     $ret .= "</div>";
-    echo $ret;
+    if ($return == false) {
+        echo $ret;
+    } else {
+        return $ret;
+    }
 }
 
 
