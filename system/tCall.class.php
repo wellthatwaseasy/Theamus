@@ -832,10 +832,6 @@ class tCall {
             }
         }
 
-        // Check the hash
-        if ($this->ajax == true) {
-            $this->check_ajax_hash($ret);
-        }
         return $ret;
     }
 
@@ -882,6 +878,10 @@ class tCall {
 
         $ret = !empty($this->feature['files']) ? array_merge($file_info, $this->feature['files']) : $file_info;
 
+        // Check the hash
+        if ($this->ajax == true) {
+            $this->check_ajax_hash($ret);
+        }
         return $ret;
     }
 
