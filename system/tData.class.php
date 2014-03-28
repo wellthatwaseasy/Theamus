@@ -391,12 +391,12 @@ class tData {
         // Define the API key
         if (isset($args['key'])) {
             if (gettype($args['key']) == "string") {
-                $return['api-key'] = urlencode(json_encode(array("key"=>$args['key'])));
+                $return['ajax-hash-data'] = urlencode(json_encode(array("key"=>$args['key'])));
             } else {
                 $this->api_fail = "Invalid API key type.";
             }
         } else {
-            $return['api-key'] = urlencode(json_encode(array("key"=>$this->get_hash())));
+            $return['ajax-hash-data'] = urlencode(json_encode(array("key"=>$this->get_hash())));
         }
 
         // Remove anything that is normally pre-set but because it's a custom call
