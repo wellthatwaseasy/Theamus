@@ -1,26 +1,37 @@
 <?php
 
 class Settings {
+    protected $update_server = "http://localhost/theamus/release-manager/";
+    protected $update_server_path = "http://localhost/theamus/features/release-manager/packages/";
+
+    protected $return = array(
+        "error" => array("status" => 0, "message" => ""),
+        "response" => array("data" => "")
+    );
+
+    protected $tData;
+    protected $tFiles;
+
     public function __construct() {
         $this->initialize();
         return;
     }
 
     public function __destruct() {
-        $this->tDataClass->disconnect();
+        $this->tData->disconnect();
         return;
     }
 
     private function initialize() {
-        $this->tDataClass = new tData();
-        $this->tData = $this->tDataClass->connect();
-        $this->tDataClass->prefix = $this->tDataClass->get_system_prefix();
+        $this->tData = new tData();
+        $this->tData->db = $this->tData->connect();
+        $this->tData->prefix = $this->tData->get_system_prefix();
         $this->tFiles = new tFiles();
         return;
     }
 
     private function get_system_home() {
-        $q = $this->tData->query("SELECT `home` FROM `".$this->tDataClass->prefix."_settings`");
+        $q = $this->tData->db->query("SELECT `home` FROM `".$this->tData->prefix."_settings`");
         if (!$q) throw new Exception("Cannot find the home page in the settings table.");
         if ($q->num_rows == 0) throw new Exception("There is no home page column in the settings table.");
         $r = $q->fetch_assoc();
@@ -28,22 +39,22 @@ class Settings {
     }
 
     private function decode_home() {
-        $d = $this->tDataClass->t_decode($this->get_system_home());
+        $d = $this->tData->t_decode($this->get_system_home());
         if ($d[0] != "homepage") throw new Exception("Invalid home page information.");
         else return $d;
     }
 
     private function get_db_rows($w, $id = false) {
         $where = $id == false ? "" : "WHERE `id`='$id'";
-        $q = $this->tData->query("SELECT * FROM `".$this->tDataClass->prefix."_$w` $where");
+        $q = $this->tData->db->query("SELECT * FROM `".$this->tData->prefix."_$w` $where");
         if (!$q) throw new Exception("Error querying database for $w.");
         if ($q->num_rows == 0) throw new Exception("There are no $w to show.");
         while ($row = $q->fetch_assoc()) $ret[] = $row;
         return $ret;
     }
 
-    private function get_system_info() {
-        $q = $this->tData->query("SELECT * FROM `".$this->tDataClass->prefix."_settings`");
+    protected function get_system_info() {
+        $q = $this->tData->db->query("SELECT * FROM `".$this->tData->prefix."_settings`");
         if (!$q) throw new Exception("There was an issue querying the database for the custom settings");
         return $q->fetch_assoc();
     }
@@ -119,12 +130,12 @@ class Settings {
         $post = filter_input_array(INPUT_POST);
 
         if (!isset($post['name']) || $post['name'] == "") throw new Exception("Please fill out the 'Site Name' field.");
-        else $name = $this->tData->real_escape_string(urldecode($post['name']));
+        else $name = $this->tData->db->real_escape_string(urldecode($post['name']));
 
         if (!isset($post['home-page']) || $post['home-page'] == "") throw new Exception("Please choose a home page.");
-        else $home = $this->tData->real_escape_string(urldecode($post['home-page']));
+        else $home = $this->tData->db->real_escape_string(urldecode($post['home-page']));
 
-        $q = $this->tData->query("UPDATE `".$this->tDataClass->prefix."_settings` SET `name`='$name', `home`='$home'");
+        $q = $this->tData->db->query("UPDATE `".$this->tData->prefix."_settings` SET `name`='$name', `home`='$home'");
         if (!$q) throw new Exception("There was an error updating the settings database.");
         else return true;
     }
@@ -145,53 +156,63 @@ class Settings {
     }
 
 
-    /**
-     * Takes a URL, gets headers from it, and returns based on the HTTP response
-     *
-     * @param string $url
-     * @return boolean
-     */
-    private function ping_release_server($url = false) {
-        // Check the given url argument for a valid url
-        if ($url == false || filter_var($url, FILTER_VALIDATE_URL)) return false;
-
-        // Get the headers from the URL
-        $server_headers = get_headers($url);
-        $http_response_array = explode(" ", $server_headers[0]);
-        $http_response = $http_response_array[1];
-
-        // Return based on the response in the headers
-        if ($http_response == "404") return false;
-        if ($http_response == "200") return true;
-        return false;
+    protected function response_error($message) {
+        $this->return['error'] = array("status" => 1, "message" => notify("admin", "failure", $message, "", true));
     }
 
 
-    /**
-     * Checks the release server for updates and whether or not updates are available
-     *  to this system
-     *
-     * @throws Exception
-     */
-    public function check_for_updates() {
-        $release_server = "http://theamus.com/releases/update/";
+    protected function get_update_info() {
+        // Get the update information from the update server
+        $info = $this->tData->api(array(
+            "type"  => "get",
+            "url"   => $this->update_server."update-info",
+            "method"=> array("Releases", "get_update_info"),
+            "key"   => "dQPlembXjBfGvmCqH0Cot9uMeKAbRkTdr6ysWK1V50U="
+        ));
 
-        // Ping the release server to check that it's up and running
-        if (!$this->ping_release_server($release_server)) {
-            throw new Exception("Cannot connect to the update server. - ".
-                "Have the files? <a href='#' onclick=\"return admin_go('settings', 'settings/update-manually/');\">Update Manually</a>");
-        } else {
-            // Define the current system's information and the update information
-            $system_info = $this->get_system_info();
-            $update_info = file_get_contents($release_server);
+        return $info;
+    }
 
-            // Check for a new version
-            if (!empty($update_info) && in_array($system_info['version'], $update_info['old_versions'])) {
-                echo "There's a new update available for your system.";
-                run_after_ajax("prepare_update");
-            } else {
-                throw new Exception("There are no new updates at this time.");
+
+    protected function download_update() {
+        // Define the temp directory and a temporary filename
+        $temp_directory = ROOT."/features/settings/temp/";
+        $temp_filename = md5(time());
+
+        // Get the update information
+        $info = $this->get_update_info();
+
+        // Define the options for cURL
+        $ch_options = array(
+            CURLOPT_URL             => $this->update_server_path.$info['response']['data']['file'],
+            CURLOPT_RETURNTRANSFER  => 1,
+            CURLOPT_SSL_VERIFYHOST  => false,
+            CURLOPT_SSL_VERIFYPEER  => false,
+            CURLOPT_FOLLOWLOCATION  => true
+        );
+
+        // Download the file
+        $ch = curl_init();
+        curl_setopt_array($ch, $ch_options);
+        $data = curl_exec($ch);
+
+        // Get the http status
+        $ch_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        // Check the return status and return as necessary
+        if ($ch_status == "200") {
+            // Create the file
+            $file = fopen(path($temp_directory.$temp_filename.".zip"), 'w+');
+            fputs($file, $data);
+            fclose($file);
+            chmod(path($temp_directory.$temp_filename.".zip"), 0777);
+
+            // Check if the newly created file exists and return
+            if (!file_exists(path($temp_directory.$temp_filename.".zip"))) {
+                throw new Exception("Something went wrong creating the downloaded temp file.");
             }
+        } else {
+            throw new Exception("There was an error downloading the master repo.");
         }
     }
 
@@ -404,7 +425,7 @@ class Settings {
         // Get the update information
         $filename = filter_input(INPUT_POST, "filename");
         $update_information = $this->get_update_information($filename);
-        
+
         // Get the system info
         $system_info = $this->get_system_info();
 

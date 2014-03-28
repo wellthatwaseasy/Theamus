@@ -1,4 +1,5 @@
-var update_button = $("#update");
+var update_button = $("#update"),
+    update_result = $("#update-result");
 
 function prepare_update() {
     this.update_button.val("Update");
@@ -49,32 +50,56 @@ function add_manual_listeners() {
 }
 
 $(document).ready(function() {
-    $('#update').click(function() {
-        if ($(this)[0].value == 'Update!') {
-            $(this)[0].value = 'Updating...';
-            $(this)[0].setAttribute('disabled', 'disabled');
+    update_button.click(function() {
+        if ($(this).val() === 'Update') {
+            $(this).val("Updating...");
+            $(this).attr('disabled', true);
             $('#update-result').html(
-                '<img src="themes/admin/img/loading.gif" align="middle" ' +
-                    'style="margin-top:-10px; height:24px" />' +
-                '<span style="padding-left:10px;">Please wait while your system updates...</span>'
+                    notify("admin", "info", '<img src="themes/admin/img/loading.gif" align="middle" ' +
+                    'style="margin-top:-10px; height:22px" />' +
+                '<span style="padding-left:10px;">Please wait while your system updates...</span>')
             );
 
-            setTimeout(function() {
-                theamus.ajax.run({
-                   url: 'settings/update/',
-                   result : 'update-result'
+                // Run the check for updates
+                theamus.ajax.api({
+                    type:   "get",
+                    url:    "settings/auto-update/",
+                    method: ["SettingsApi", "auto_update"],
+                    success:function(data) {
+                        console.log(data);
+                    }
                 });
-            }, 1000);
         } else {
             $(this)[0].value = "Checking..."; // Update the button text
 
             // Run the check for updates
-            setTimeout(function() {
-                theamus.ajax.run({
-                    url:        "settings/check-update/",
-                    result :    "update-result"
-                });
-            }, 1000);
+            theamus.ajax.api({
+                type:   "get",
+                url:    "settings/update-check/",
+                method: ["SettingsApi", "update_check"],
+                success:function(data) {
+                    var error = true;
+                    if (typeof data === "object") {
+                        if (data.error.status === 1) {
+                            update_result.html(notify("admin", "failure", "There was an error checking for updates."));
+                        } else {
+                            if (data.response.data === true) {
+                                update_result.html(notify("admin", "success", "There is an update available for your website!"));
+                                prepare_update();
+                                error = false;
+                            } else {
+                                update_result.html(notify("admin", "info", "There are no updates available at this time."));
+                            }
+                        }
+                    } else {
+                        update_result.html(notify("admin", "failure", "There was an error checking for updates."));
+                    }
+
+                    if (error === true) {
+                        back_to_check();
+                    }
+                }
+            });
         }
     });
 });
