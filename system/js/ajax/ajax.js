@@ -454,6 +454,12 @@ var ajax = new function() {
         // Set up the type data (GET or POST)
         api_vars.data = this.make_api_data(api_vars);
         api_vars.form_data = api_vars.type === "post" ? this.make_form_data(api_vars.data) : api_vars.data;
+        
+        // Define the processData and contentType for GET requests
+        if (api_vars.type === "get") {
+            this.processData = true;
+            this.contentType = "application/x-www-form-urlencoded; charset=UTF-8";
+        }
 
         // Define the api_fail json response
         this.api_fail = this.api_fail_response();
