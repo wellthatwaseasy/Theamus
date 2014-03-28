@@ -273,8 +273,8 @@ class tData {
      */
     public function string_is_json($string = "") {
         if ($string == "") return false;
-        json_decode($string);
-        return (json_last_error() == JSON_ERROR_NONE);
+        $json = json_decode($string);
+        return $json == null ? false : true;
     }
 
 
