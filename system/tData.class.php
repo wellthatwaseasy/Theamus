@@ -424,7 +424,7 @@ class tData {
      *
      * @return boolean
      */
-    private function check_curl() {
+    public function check_curl() {
         if (function_exists("curl_version")) return true;
         return false;
     }
