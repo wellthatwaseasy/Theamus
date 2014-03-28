@@ -26,13 +26,13 @@ theamus = {
 function add_js_file(source) {
     // Define the source without the time variable
     var new_source = source.split("?")[0];
-    
+
     // Loop through all of the scripts in the header
     for (var i = 0; i < $("script").length; i++) {
         // Ignore any undefined scripts
         if ($($("script")[i]).attr("src") === undefined) continue;
-        
-        // Define the script source for the loop and check it against the desired 
+
+        // Define the script source for the loop and check it against the desired
         var script_source = $($("script")[i]).attr("src").split("?")[0];
         if (script_source === new_source) ($("script")[i]).remove();
     }
@@ -45,18 +45,18 @@ function check_js_file(source) {
     // Define the temp variable and source without the time variable
     var temp = new Array(),
         new_source = source.split("?")[0];
-    
+
     // Loop through all of the scripts in the header
     for (var i = 0; i < $("script").length; i++) {
         // Define the script element and check to see if it has a valid source
         var script = $($("script")[i]);
         if (script.attr("src") === undefined) continue;
-        
+
         // Define the script source, before the time variable and check to see if it exists already
         var script_src = script.attr("src").split("?")[0];
         temp.push(script_src === new_source ? true : false);
     }
-    
+
     // Check the temp array for the scripts existance in the header
     return temp.indexOf(true) === -1 ? true : false;
 }
@@ -239,4 +239,8 @@ function working() {
     div.append("<img src='themes/default/img/loading.gif' height='16px' align='left' />");
     div.append("<span style='margin-left:20px'>Working...</span>");
     return div;
+}
+
+function notify(location, type, message) {
+    return "<div class='"+location+"-notify"+type+"'>"+message+"</div>";
 }
