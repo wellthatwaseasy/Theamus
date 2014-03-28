@@ -329,6 +329,7 @@ class tData {
 
         // Define defaults
         $return['ajax'] = "api";
+        $return['api-from'] = "php";
 
         // Define the custom variable
         if (isset($args['custom'])) {

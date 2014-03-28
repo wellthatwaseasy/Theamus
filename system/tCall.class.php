@@ -376,54 +376,49 @@ class tCall {
      * Checks the AJAX request hash
      */
     private function check_ajax_hash($feature = array()) {
-        // Check the hash
-        $feature_key = false;
-        if ($this->api == true && $this->api_from == false) {
-            $post_hash = filter_input(INPUT_POST, "api-key");
-            $get_hash = filter_input(INPUT_GET, "api-key");
+           // Define the 420hash
+           $post_hash = filter_input(INPUT_POST, "ajax-hash-data");
+           $get_hash = filter_input(INPUT_GET, "ajax-hash-data");
 
-            // Check if a feature key is something we should look at
-            if (isset($feature['api']['key'])) {
-                $feature_key = true;
-            }
-        } else {
-            // Define the 420hash
-            $post_hash = filter_input(INPUT_POST, "ajax-hash-data");
-            $get_hash = filter_input(INPUT_GET, "ajax-hash-data");
-        }
-        $request_hash = $post_hash == "" ? $get_hash : $post_hash;
+           // Check if a feature key is something we should look at
+           $feature_key = false;
+           if (isset($feature['api']['key'])) {
+               $feature_key = true;
+           }
 
-        $hash = json_decode(urldecode($request_hash), true);
+           // Define the hash
+           $request_hash = $post_hash == "" ? $get_hash : $post_hash;
+           $hash = json_decode(urldecode($request_hash), true);
 
-        $hash_cookie = isset($_COOKIE['420hash']) ? $_COOKIE['420hash'] : false;
+           // Define the hash cookie
+           $hash_cookie = isset($_COOKIE['420hash']) ? $_COOKIE['420hash'] : false;
 
-        // Die if the 420hash cookie doesn't exist
-        if ($hash_cookie == false && $this->api == false) {
-            die("No 420hash defined.");
-        }
+           // Die if the 420hash cookie doesn't exist
+           if ($hash_cookie == false && $this->api == false) {
+               die("No 420hash defined.");
+           }
 
-        // Throw an error if the hash is blank
-        if ($hash == "") {
-            $this->api == false ? die("No hash defined.") : $this->api_fail = "No hash defined.";
-        }
+           // Throw an error if the hash is blank
+           if ($hash == "") {
+               $this->api == false ? die("No hash defined.") : $this->api_fail = "No hash defined.";
+           }
 
-        // Check the hash cookie
-        if ($hash_cookie != $hash['key'] && $this->api == false) {
-            die("Hashfail please refresh.");
-        }
+           // Check the hash cookie
+           if ($hash_cookie != $hash['key'] && $this->api == false) {
+               die("Hashfail please refresh.");
+           }
 
-        // Perform checks based on a feature key or not
-        if ($feature_key == true) {
-            if ($hash['key'] != $feature['api']['key'] && $this->api == true  && $this->api_from == false) {
-                $this->api_fail = "Invalid API key.";
-            }
-        } else {
-            if ($hash['key'] != $this->tDataClass->get_hash() && $this->api == true && $this->api_from == false) {
-                $this->api_fail = "Invalid API key.";
-            }
-        }
-    }
-
+           // Perform checks based on a feature key or not
+           if ($feature_key == true) {
+               if (($hash['key'] != $feature['api']['key'] && $this->api == true) || $this->api_from != "php") {
+                   $this->api_fail = "Invalid API key.";
+               }
+           } else {
+               if ($hash['key'] != $this->tDataClass->get_hash() && $this->api == true && $this->api_from == false) {
+                   $this->api_fail = "Invalid API key.";
+               }
+           }
+       }
 
     /**
      * Defines where to look and what to call for every page call
