@@ -239,7 +239,7 @@ class tTheme {
      * @throws Exception
      */
     private function get_template_contents() {
-        $template_path = path($this->data['theme']."/".$this->template);
+        $template_path = path($this->data['theme'].$this->template);
         if (file_exists($template_path)) {
             return file_get_contents($template_path);
         }
