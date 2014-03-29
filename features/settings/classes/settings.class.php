@@ -144,7 +144,7 @@ class Settings {
     /**
      * Cleans all of the contents out of the temp directory
      */
-    private function clean_temp_folder() {
+    protected function clean_temp_folder() {
         // Define the path to the temp directory and get the files/folders from it
         $temp_directory = ROOT."/features/settings/temp";
         $temp_files     = $this->tFiles->scan_folder($temp_directory);
@@ -210,6 +210,8 @@ class Settings {
             // Check if the newly created file exists and return
             if (!file_exists(path($temp_directory.$temp_filename.".zip"))) {
                 throw new Exception("Something went wrong creating the downloaded temp file.");
+            } else {
+                return $temp_filename;
             }
         } else {
             throw new Exception("There was an error downloading the master repo.");
@@ -267,7 +269,7 @@ class Settings {
      * @return boolean
      * @throws Exception
      */
-    private function extract_update($filename = "", $type = "temp") {
+    protected function extract_update($filename = "", $type = "temp") {
         // Check the filename and define the extraction directory
         if ($filename == "") throw new Exception("The zip file cannot be extracted.  The filename is incorrect.");
         $temp_directory = ROOT."/features/settings/temp/";
@@ -287,7 +289,7 @@ class Settings {
      * @return array
      * @throws Exception
      */
-    private function get_update_information($filename = "") {
+    protected function get_update_information($filename = "") {
         // Define the update information file
         $temp_directory = ROOT."/features/settings/temp/$filename/";
         $information_file = path($temp_directory."update/update.json");
@@ -333,7 +335,7 @@ class Settings {
      * @return boolean
      * @throws Exception
      */
-    private function check_update_information($update_information = "") {
+    protected function check_update_information($update_information = "") {
         // Check for valid update information
         if ($update_information == "" || !is_array($update_information)) {
             throw new Exception("The provided update information is invalid; aborting the update.");
@@ -367,7 +369,7 @@ class Settings {
      * @param array $update_information
      * @return array $return
      */
-    private function define_update_information($update_information, $filename) {
+    protected function define_update_information($update_information, $filename) {
         // Define all of the information that will be shown during preliminary update
         $return['filename']             = $filename;
         $return['version']              = $update_information['version'];
@@ -405,7 +407,7 @@ class Settings {
      * @param string|array $files
      * @return boolean
      */
-    public function include_update_files($filename, $files = array()) {
+    protected function include_update_files($filename, $files = array()) {
         // Check the files argument and define the temp folder
         if ((is_array($files) && empty($files)) || $files == "") return false;
         $temp_directory = ROOT."/features/settings/temp/$filename/update/";

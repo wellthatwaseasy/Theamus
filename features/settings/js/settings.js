@@ -67,6 +67,19 @@ $(document).ready(function() {
                     method: ["SettingsApi", "auto_update"],
                     success:function(data) {
                         console.log(data);
+                        if (typeof data === "object") {
+                            if (data.error.status === 1) {
+                                update_result.html(notify("admin", "failure", "There was an error updating the system."));
+                            } else {
+                                if (data.response.data.error.status === 1) {
+                                    update_result.html(data.response.data.error.message);
+                                } else {
+                                    update_result.html(data.response.data.response.data);
+                                }
+                            }
+                        } else {
+                            update_result.html(notify("admin", "failure", "There was an error updating the system."));
+                        }
                     }
                 });
         } else {

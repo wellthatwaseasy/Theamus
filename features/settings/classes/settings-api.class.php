@@ -29,7 +29,7 @@ class SettingsApi extends Settings {
 
     public function auto_update() {
         // Check if the user has cURL
-        if ($this->tData->check_curl()) {
+        if (!$this->tData->check_curl()) {
             $this->response_error("You must have the cURL extension available to your server.");
             return $this->return;
         }
@@ -38,7 +38,14 @@ class SettingsApi extends Settings {
         try {
             // Download the file from the update server and get the information about it
             $filename = $this->download_update();
+            
+            // Extract the file to the temp folder
+            $this->extract_update($filename);
+
+            // Perform checks to ensure this is a legit update
             $update_information = $this->get_update_information($filename);
+            $check_information = $this->check_update_information($update_information);
+            if ($check_information) $this->update_information = $this->define_update_information($update_information, $filename);
 
             // Get the system info
             $system_info = $this->get_system_info();
