@@ -34,7 +34,7 @@ function update_version() {
     $prefix = $tDataClass->get_system_prefix();
     
     // Update the version
-    $return[] = $tData->query("UPDATE `".$prefix."_settings` SET `version`='1.0'") ? true : false;
+    $return[] = $tData->query("UPDATE `".$prefix."_settings` SET `version`='1.01'") ? true : false;
     
     // Disconnect from the database and return
     $tDataClass->disconnect();
