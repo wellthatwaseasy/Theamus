@@ -1,5 +1,5 @@
 {
-    "version": "0.9",
+    "version": "1.0",
     "changes": {
         "database": [
 
@@ -18,13 +18,34 @@
             ["modified", "features/features/views/edit.php"],
             ["modified", "features/features/config.php"],
             ["modified", "features/features/files.info.php"],
+            ["created", "features/settings/classes/settings-api.class.php"],
+            ["modified", "features/settings/classes/settings.class.php"],
+            ["modified", "features/settings/files.info.php"],
+            ["modified", "features/settings/config.php"],
+            ["modified", "features/settings/js/settings.js"],
+            ["created", "features/settings/css/settings.css"],
+            ["modified", "features/default/home-apps/updatecheck/main.php"],
             ["modified", "system/js/ajax.js"],
+            ["modified", "system/js/main.js"],
             ["modified", "system/tCall.class.php"],
             ["modified", "system/tData.class.php"],
+            ["modified", "system/tTheme.class.php"],
+            ["modified", "system/tPages.class.php"],
             ["modified", "system/tUser.class.php"],
+            ["modified", "system/tFunctions.php"],
             ["modified", "features/accounts/files.info.php"]
         ],
         "bugs": [
+            "Allowance of file uploading via AJAX bug fixed",
+            "Returning true on error pages produced a '1'.  Not anymore, though",
+            "Pathing fix in tThemes",
+            "Update Theamus at the push of a button",
+            "Updated the 'Theamus Update Checker' home widget",
+            "Fixed an issue with the GET/POST API calls not working",
+            "Fixed an issue with the JSON string detector for older PHP versions",
+            "Added a returnable pagination option, for API calls",
+            "Added a returnable notify option",
+            "Added a notify option for JS",
             "Added an API option, so any Theamus system can support outside front-ends!",
             "Install, update, and remove features with custom scripts and more information"
         ]
