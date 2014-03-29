@@ -1244,8 +1244,7 @@ class tCall {
                 $tTheme->print_header();
             }
         }
-
-        return true;
+        return;
     }
 
 
