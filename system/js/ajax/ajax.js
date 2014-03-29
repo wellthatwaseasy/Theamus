@@ -5,6 +5,7 @@ var ajax = new function() {
     this.allow_file_upload = true;
 
     this.run = function(info) {
+        this.allow_file_upload = true;
         var form_data, url;
 
         form_data = this.get_form_data(info);
@@ -445,6 +446,7 @@ var ajax = new function() {
 
     // Theamus AJAX API --------------------------------------------------------
     this.api = function(args) {
+        this.allow_file_upload = true;
         this.api_fail = false; // By default, we are good to go
 
         // Check the arguments and for a failure
