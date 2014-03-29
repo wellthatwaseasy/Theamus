@@ -26,6 +26,14 @@ class SettingsApi extends Settings {
             }
         }
     }
+    
+    private function update_downloads() {
+        $this->tData->api(array(
+            "type"  => "post",
+            "method"=> array("Releases", "update_downloads"),
+            "url"   => $this->update_server."update-downloads/"
+        ));
+    }
 
     public function auto_update() {
         // Check if the user has cURL
@@ -66,6 +74,7 @@ class SettingsApi extends Settings {
 
             // Clean the temp folder and notify the user
             $this->clean_temp_folder();
+            $this->update_downloads();
             $this->return['response']['data'] = notify("admin", "success", "Everything went smoothly.  In order for things to take effect, you need to <a href='./'>refresh the page</a>.", "", true);
 
             // Return the data

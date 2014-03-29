@@ -11,8 +11,7 @@ if (!$settings_query) {
 }
 
 // Make the AJAX call to the update server
-//$server = "http://theamus.com/releases/update/";
-$server = "http://localhost/theamus/release-manager/update-info/";
+$server = "http://theamus.com/release-manager/update-info/";
 $info = $tDataClass->api(array(
     "type"  => "get",
     "url"   => $server,

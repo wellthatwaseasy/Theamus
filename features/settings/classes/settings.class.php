@@ -1,8 +1,8 @@
 <?php
 
 class Settings {
-    protected $update_server = "http://localhost/theamus/release-manager/";
-    protected $update_server_path = "http://localhost/theamus/features/release-manager/packages/";
+    protected $update_server = "http://theamus.com/release-manager/";
+    protected $update_server_path = "http://theamus.com/features/release-manager/packages/";
 
     protected $return = array(
         "error" => array("status" => 0, "message" => ""),
