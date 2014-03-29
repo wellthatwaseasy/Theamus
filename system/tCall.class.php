@@ -1407,43 +1407,46 @@ class tCall {
         if (array_key_exists("data", $function_variables)) $function_variables = $function_variables['data'];
 
         // Determine the method and class (if applicable)
-        if (isset($inp['method_class']) && $inp['method_class'] != "") {
-            if (isset($this->feature['config']['api']['class_file'])) {
-                // If the class file isn't already an array, make it one
-                $feature_class_files = $this->feature['config']['api']['class_file'];
-                if (!is_array($feature_class_files)) {
-                    $class_files = array($feature_class_files);
-                } else {
-                    $class_files = $feature_class_files;
-                }
-
-                // Loop through all of the class files, including them
-                foreach ($class_files as $cf) {
-                    $class_file_path = path(ROOT."/features/".$this->feature_folder."/".$cf);
-                    if (file_exists($class_file_path)) {
-                        include_once $class_file_path;
+        if ($this->api_fail == false) {
+            // Determine the method and class (if applicable)
+            if (isset($inp['method_class']) && $inp['method_class'] != "") {
+                if (isset($this->feature['config']['api']['class_file'])) {
+                    // If the class file isn't already an array, make it one
+                    $feature_class_files = $this->feature['config']['api']['class_file'];
+                    if (!is_array($feature_class_files)) {
+                        $class_files = array($feature_class_files);
                     } else {
-                        $error = "The API class file based on the requested URL doesn't exist or could not be found.";
+                        $class_files = $feature_class_files;
                     }
-                }
 
-                if (class_exists($inp['method_class']) && method_exists($inp['method_class'], $inp['method'])) {
-                    $class = ${$inp['method_class']} = new $inp['method_class'];
-                    $response = call_user_func(array($class, $inp['method']), $function_variables);
+                    // Loop through all of the class files, including them
+                    foreach ($class_files as $cf) {
+                        $class_file_path = path(ROOT."/features/".$this->feature_folder."/".$cf);
+                        if (file_exists($class_file_path)) {
+                            include_once $class_file_path;
+                        } else {
+                            $error = "The API class file based on the requested URL doesn't exist or could not be found.";
+                        }
+                    }
+
+                    if (class_exists($inp['method_class']) && method_exists($inp['method_class'], $inp['method'])) {
+                        $class = ${$inp['method_class']} = new $inp['method_class'];
+                        $response = call_user_func(array($class, $inp['method']), $function_variables);
+                    } else {
+                        $error = "The class or method requested doesn't exist or couldn't be found.";
+                    }
                 } else {
-                    $error = "The class or method requested doesn't exist or couldn't be found.";
+                    $error = "There is no API class file defined for the requested URL.";
+                }
+            } elseif (isset($inp['method'])) {
+                if (function_exists($inp['method'])) {
+                    $response = call_user_func($inp['method'], $function_variables);
+                } else {
+                    $error = "The method being requested does not exist and therefore cannot run.";
                 }
             } else {
-                $error = "There is no API class file defined for the requested URL.";
+                $error = "No method was defined.";
             }
-        } elseif (isset($inp['method'])) {
-            if (function_exists($inp['method'])) {
-                $response = call_user_func($inp['method'], $function_variables);
-            } else {
-                $error = "The method being requested does not exist and therefore cannot run.";
-            }
-        } else {
-            $error = "No method was defined.";
         }
 
         // Define the response data and echo out the results
