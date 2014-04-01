@@ -244,3 +244,13 @@ function working() {
 function notify(location, type, message) {
     return "<div class='"+location+"-notify"+type+"'>"+message+"</div>";
 }
+
+function alert_notify(type, message) {
+    var glyph = {
+        "success": "glyphicon-ok",
+        "danger": "glyphicon-remove",
+        "warning": "glyphicon-warning-sign",
+        "info": "glyphicon-info-sign"
+    };
+    return "<div class='alert alert-"+type+"'><span class='glyphicon "+glyph[type]+"'></span>"+message+"</div>";
+}
