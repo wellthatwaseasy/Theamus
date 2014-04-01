@@ -7,21 +7,21 @@
                     <!-- Company logo -->
                 </span>
                 <span class="site_header-company-text">
-                    {t:var="site_name":}
+                    <?php echo $tTheme->get_system_variable("name"); ?>
                 </span>
             </a>
         </div>
 
-        {t:!admin:}
+        <?php if (!$tUser->is_admin()): ?>
         <div class="site_header-user right">
-            {t:user:}
+            <?php if ($tUser->user != false): ?>
             <ul>
                 <li>
                     <div class="site_header-user-pic">
                         <img src="media/profiles/{t:user_var='picture':}" alt="" />
                     </div>
                     <div class="site_header-user-name">
-                        {t:user_var="firstname":} {t:user_var="lastname":}
+                        <?php echo $tUser->user['firstname']." ".$tUser->user['lastname']; ?>
                     </div>
                     <div class="site_header-user-arrow"></div>
                     <div class="clearfix"></div>
@@ -33,23 +33,21 @@
                     </ul>
                 </li>
             </ul>
-            {t:/user:}
-            
-            {t:!user:}
+            <?php else: ?>
             <span class="site_login-reg">
                 <a href="accounts/login/">Login</a>
                 <a href="accounts/register/">Register</a>
             </span>
-            {t:/!user:}
+            <?php endif; // End user not logged in ?>
         </div>
-        {t:/!admin:}
+        <?php endif; // End user !admin ?>
         <div class="clearfix"></div>
     </header>
 
     <nav class="site_nav">
         <ul>
             <li class="home"><a href="#">Home</a></li>
-            {t:nav="main":}
+            <?php echo $tTheme->get_page_navigation("main"); ?>
         </ul>
     </nav>
 </div>

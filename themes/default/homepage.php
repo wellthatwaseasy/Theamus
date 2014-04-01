@@ -1,13 +1,16 @@
 <!doctype html>
 <html>
 	<head>
-		<title>{t:var="title":}</title>
-		<link rel="stylesheet" href="{t:var='theme_path':}css/homepage.css" />
+        <?php echo $tTheme->get_page_variable("base"); ?>
+		<title><?php echo $tTheme->get_page_variable("title"); ?></title>
+        <?php echo $tTheme->get_page_variable("css"); ?>
+		<link rel="stylesheet" href="<?php echo $tTheme->get_page_variable("theme_path"); ?>/css/homepage.css" />
+        <?php echo $tTheme->get_page_variable("js"); ?>
 	</head>
 
 	<body>
-        {t:admin_panel:}
-		<div class="site_wrapper" {t:var="wrapper_top":}>
+        <?php echo $tTheme->get_page_area("admin"); ?>
+		<div class="site_wrapper">
 			<div class="homepage_wrapper">
 				<div class="clouds_wrapper">
 					<div class="cloud x1"></div>
@@ -17,9 +20,9 @@
 					<div class="cloud x5"></div>
 				</div>
 				<div class="content-wrapper">
-					<div class="homepage_header">{t:var="header":}</div>
+					<div class="homepage_header"><?php echo $tTheme->get_page_variable("header"); ?></div>
 					<div class="homepage_content">
-						{t:content:}
+						<?php echo $tTheme->content(); ?>
 					</div>
 				</div>
 			</div>

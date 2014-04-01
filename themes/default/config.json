@@ -3,41 +3,45 @@
         [
             {
                 "layout":"default",
-                "file":"index.html",
+                "file":"index.php",
                 "allow_nav":true
             },
             {
                 "layout":"error",
-                "file":"error.html",
+                "file":"error.php",
                 "allow_nav":false
             },
             {
                 "layout":"blank",
-                "file":"blank.html",
+                "file":"blank.php",
                 "allow_nav":false
             },
             {
                 "layout":"empty",
-                "file":"empty.html",
+                "file":"empty.php",
                 "allow_nav":false
             },
             {
                 "layout":"login",
-                "file":"login.html",
+                "file":"login.php",
                 "allow_nav":false
             },
             {
                 "layout":"homepage",
-                "file":"homepage.html",
+                "file":"homepage.php",
+                "allow_nav":false
+            },
+            {
+                "layout":"variables",
+                "file":"vartest.php",
                 "allow_nav":false
             }
         ],
     "areas":
         {
-            "header":"header.html",
-            "nav":"nav.html",
-            "body":"body.html",
-            "extra-nav":"extra-nav.html"
+            "header":"header.php",
+            "body":"body.php",
+            "extra-nav":"extra-nav.php"
         },
     "navigation": ["main"],
     "settings": false,

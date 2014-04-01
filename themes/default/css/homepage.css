@@ -4,6 +4,11 @@
     tutorial - http://thecodeplayer.com/walkthrough/pure-css3-animated-clouds-background
 --*/
 
+* {
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+}
 
 /*-- HTML, body --*/
 html, body  {
@@ -38,10 +43,11 @@ body {
 	border: 2px solid #AAA;
 	border-radius: 20px;
 	box-shadow: inset 0 0 10px #AAA;
-	margin: 0 auto;
+    display: inline-block;
+    left: 50%;
+    margin-left: -400px;
 	padding: 40px;
 	position: relative;
-	width: 800px;
 }
 
 /*-- Clouds --*/
@@ -128,6 +134,7 @@ body {
 .content-wrapper {
 	background-color: #FFF;
 	padding-bottom: 50px;
+    width: 800px;
 }
 .homepage_header {
 	font-size: 50pt;
