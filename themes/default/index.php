@@ -3,6 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         <?php echo $tTheme->get_page_variable("base"); ?>
         <title><?php echo $tTheme->get_page_variable("title"); ?></title>
         <?php echo $tTheme->get_page_variable("css"); ?>
@@ -10,10 +11,9 @@
         <?php echo $tTheme->get_page_variable("js"); ?>
     </head>
     <body>
-        <?php $tTheme->get_page_area("admin"); ?>
-        <div class="site_wrapper">
+        <div class="site-wrapper site-wrapper-full">
             <?php $tTheme->get_page_area("header"); ?>
-            <div class="site_content">
+            <div class="content-wrapper">
                 <?php
                 $tTheme->get_page_area("extra-nav");
                 $tTheme->get_page_area("body");

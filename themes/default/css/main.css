@@ -1,13 +1,3 @@
-/* Body */
-body {
-    background-color: #EEE;
-    color: #333;
-    font-family: Arial, sans-serif;
-    font-size: 10pt;
-    margin: 0;
-    padding: 0;
-}
-
 /* Floats */
 .left {
     float: left;
@@ -43,23 +33,10 @@ body {
 
 }
 
-/* Site Wrapper */
-.site_wrapper {
-    height: 100vh;
-    left: 0;
-    position: absolute;
-    right: 0;
-    top: 0;
-}
-
 /* Black Bar */
 .black_bar {
     background: #333;
-    height: 150px;
-    left: 0;
-    position: absolute;
-    right: 0;
-    top: 0;
+    width: 100%;
     z-index: 15;
 }
 
@@ -68,9 +45,10 @@ body {
     position: relative;
     z-index: 15;
     margin: 40px auto 20px;
-    max-width: 1200px;
-    min-width: 800px;
     padding: 0 10px;
+}
+.header-wrapper {
+    padding: 30px 0;
 }
 .site_header-company {
     color: #EEE;
@@ -95,6 +73,11 @@ body {
 .site_header-company-text {
     color: #EEE;
     text-decoration: none;
+}
+@media (max-width: 768px) {
+    .site_header-company {
+        font-size: 1.5em;
+    }
 }
 .site_header-user {
     position: relative;
@@ -195,86 +178,46 @@ body {
 }
 
 /* Navigation */
-.site_nav {
-    bottom: 0;
-    display: block;
-    height: 40px;
-    left: 0;
-    margin: 0;
-    //overflow: hidden;
-    position: absolute;
-    right: 0;
-    z-index:0;
-}
-.site_nav ul {
+.nav-inline {
     background-color: #444;
-    list-style: none;
-    margin: 0 auto;
-    max-width: 1200px;
-    min-width: 800px;
-    padding: 0;
+    border: 0;
+    border-radius: 0;
 }
-.site_nav ul > li {
-    display: inline-block;
-    margin: 0px 10px;
-    padding: 10px 25px;
-    transition: background-color .3s;
+.nav-inline > li:not(:first-child) {
+    border-left: 1px solid #666;
 }
-.site_nav ul > li:hover {
-    background-color: #555;
+.nav-inline > li:not(:last-child) {
+    border-right: 1px solid #333;
 }
-.site_nav ul > li.home {
-    background-color: #77D;
+.nav-inline li:first-child {
+    border-radius: 0;
 }
-.site_nav ul > li.home:hover {
-    background-color: #99F;
+.nav-inline li a {
+    color: #eee;
 }
-.site_nav ul > li > a {
-    color: #EEE;
-    display: block;
-    font-family: "Source Sans", sans-serif;
-    font-size: 12pt;
-    text-decoration: none;
-}
-.site_nav ul > li:hover > ul {
-    display: block;
-}
-.site_nav ul > li > ul {
-    background-color: #555;
-    display: none;
-    margin: 10px 0 0 -25px;
-    max-width: 200px;
-    min-width: 200px;
-    position: absolute;
-}
-.site_nav ul > li > ul > li {
-    display: block;
-    margin: 0;
-    position: relative;
-}
-.site_nav ul > li > ul > li:hover {
+.nav-inline li:hover {
     background-color: #666;
 }
-.site_nav ul > li > ul > li:hover > ul {
-    display: block;
+.nav-inline li:hover a {
+    color: #fff;
 }
-.site_nav ul > li > ul > li ul {
-    display: none;
-    left: 225px;
-    position: absolute;
-    top: -10px;
+.nav-inline li ul {
+    background-color: #666;
+}
+.nav-inline li ul li:hover {
+    background-color: #777;
+}
+.nav-inline li ul li ul {
+    background-color: #666;
+}
+#nav-response-btn {
+    margin: 20px 20px 0 0;
 }
 
 /* Content */
 .site_content {
     background-color: #FFF;
-    border-left: 1px solid #CCC;
-    border-right: 1px solid #CCC;
-    box-shadow: 0px 10px 10px #CCC;
-    min-height: calc(100% - 190px);
     margin: 150px auto 0;
-    max-width: 1200px;
-    min-width: 800px;
     padding-bottom: 40px;
     position: relative;
 }
@@ -284,7 +227,7 @@ body {
     font-family: "Source Sans", sans-serif;
     font-size: 24pt;
     margin: 0 0 10px;
-    padding: 15px 0 10px 30px;
+    padding: 15px 0 10px 0;
 }
 .site_content-main-header {
     border-bottom: 1px solid #EEE;
@@ -295,16 +238,14 @@ body {
     margin: 0 0 30px 200px;
     padding: 15px 0 10px 30px;
 }
+@media (max-width: 768px) {
+    .site_content-header {
+        font-size: 2.5em;
+        padding: 10px 10px;
+    }
+}
 .site_content-full {
     padding: 10px 30px;
-}
-.site_content-nav {
-    border-right: 1px solid #EEE;
-    bottom: 0;
-    float: left;
-    position: absolute;
-    top: 65px;
-    width: 200px;
 }
 .site_content-nav ul {
     list-style: none;
@@ -741,9 +682,6 @@ body {
 
 /* Scale */
 @media (max-width: 1200px) {
-    .site_content-nav {
-        width: 175px;
-    }
     .site_content-nav ul > li > a {
         font-size: 10pt;
     }
