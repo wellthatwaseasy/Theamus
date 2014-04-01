@@ -5,7 +5,7 @@ $user = $tUser->user;
 <div id="admin_panel">
     <script>add_js_file('themes/admin/js/admin.js');</script>
     <header class="admin_header">
-        <div class="left">
+        <div class="pull-left">
             <ul>
                 <li>
                     <span class="admin_header-icon admin_header-logo-icon"></span>
@@ -32,7 +32,7 @@ $user = $tUser->user;
                 </li>
             </ul>
         </div>
-        <div class="right">
+        <div class="pull-right">
             <ul class="admin_header-right">
                 <li>
                     <?php if ($user['picture'] != ""): ?>
