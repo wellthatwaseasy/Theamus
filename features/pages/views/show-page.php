@@ -4,7 +4,7 @@
 $table = $tDataClass->prefix."_pages";
 
 // SQL friendly variables
-$alias = $tData->real_escape_string($this->page_alias);
+$alias = $tData->real_escape_string($tTheme->get_page_variable("page_alias"));
 
 // Query the database for this page
 $sql = "SELECT * FROM `".$table."` WHERE `alias`='".$alias."'";
@@ -32,5 +32,3 @@ if (in_array("true", $ingroup)) {
     echo '<div class="content-header">Hah! Caught you.</div>';
 	echo "Here's your fun fact of the day: you don't belong here.";
 }
-
-?>
