@@ -18,11 +18,23 @@
             ["renamed", "themes/default/index.php"],
             ["renamed", "themes/default/login.php"],
             ["modified", "themes/default/config.json"],
-            ["modified", "themes/default/css/homepage.css"]
+            ["modified", "themes/default/css/homepage.css"],
+            ["created", "features/accounts/php/accounts-api.php"],
+            ["modified", "features/accounts/views/login.php"],
+            ["modified", "features/accounts/config.php"],
+            ["modified", "system/js/main.js"],
+            ["created", "system/styles/css/theme.css"],
+            ["created", "system/styles/fonts/glyphicons-halflings-regular.eot"],
+            ["created", "system/styles/fonts/glyphicons-halflings-regular.svg"],
+            ["created", "system/styles/fonts/glyphicons-halflings-regular.ttf"],
+            ["created", "system/styles/fonts/glyphicons-halflings-regular.woff"]
         ],
         "bugs": [
             "Updated the way themes are made/handled to be less retarded.",
-            "Fixed a few styling bugs in the default theme 'homepage' template"
+            "Fixed a few styling bugs in the default theme 'homepage' template",
+            "Added a base theme that will be required for all things related to Theamus. The purpose of this is to provide a structure on the style of forms/pages.  It's based on Bootstrap.",
+            "Updated the login form to be a part of the Theamus API.",
+            "Updated the default theme to be mobile-friendly! :)"
         ]
     },
     "authors": [
