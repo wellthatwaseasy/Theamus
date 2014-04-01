@@ -946,6 +946,7 @@ class tCall {
      */
     private function default_css() {
         $ret = array(
+            "<link rel='stylesheet' href='system/css/theme.css' />",
             "<link rel='stylesheet' href='system/external/prettify/prettify.css' />",
             "<link rel='stylesheet' href='themes/admin/css/main.css' />",
             "<link rel='stylesheet' href='system/editor/css/editor.css' />"
@@ -1016,6 +1017,7 @@ class tCall {
             "<script src='system/js/ajax/ajax.js'></script>",
             "<script src='system/editor/js/editor.js'></script>",
             "<script src='system/js/main.js'></script>",
+            "<script src='system/js/theme.js'></script>",
             "<script src='system/external/prettify/prettify.js'></script>",
             "<script src='system/external/rangy/rangy.js'></script>",
             "<script>theamus.info = ".$this->define_javascript_info()."</script>"
