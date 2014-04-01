@@ -946,9 +946,8 @@ class tCall {
      */
     private function default_css() {
         $ret = array(
-            "<link rel='stylesheet' href='system/css/theme.css' />",
+            "<link rel='stylesheet' href='system/styles/css/theme.css' />",
             "<link rel='stylesheet' href='system/external/prettify/prettify.css' />",
-            "<link rel='stylesheet' href='themes/admin/css/main.css' />",
             "<link rel='stylesheet' href='system/editor/css/editor.css' />"
         );
         return implode("", $ret);
