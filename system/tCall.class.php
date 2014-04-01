@@ -698,25 +698,15 @@ class tCall {
     /**
      * Shows content with the site's theme surrounding it
      *
-     * @return boolean
+     * @return
      */
     private function show_page() {
         $feature_info = $this->get_feature_information();
-
-        $tFiles = $this->tFiles;
-        $tUser = $this->tUser;
-        $tPages = $this->tPages;
-
-        $tDataClass = $this->tDataClass;
-        $tDataClass->prefix = $this->tDataClass->prefix;
-        $tData = $this->tData;
-
         foreach (explode(',', $feature_info['groups']) as $group) {
-            $in_group[] = $this->tUser->in_group($group) ? 'true' : 'false';
+            $in_group[] = $this->tUser->in_group($group) ? true : false;
         }
 
-        if (!in_array('true', $in_group)) die($this->error_page());
-
+        if (!in_array(true, $in_group)) die($this->error_page());
         if ($feature_info['enabled'] == 0) die($this->error_page());
 
         $url_params = $this->parameters;
@@ -727,26 +717,14 @@ class tCall {
         }
 
         $this->tUser->set_420hash();
-        $ajax_hash_cookie = isset($_COOKIE['420hash']) ? $_COOKIE['420hash'] : "";
 
-        $settings_table = $this->tDataClass->prefix . "_settings";
-        $q = $this->tData->query("SELECT * FROM `$settings_table`");
+        $q = $this->tData->query("SELECT * FROM `".$this->tDataClass->prefix."_settings`");
         $settings = $q->fetch_assoc();
 
         $data = $this->define_theme_data($settings['name']);
-
-        unset($settings_table, $settings, $q);
-
-        $tTheme = new tTheme($data);
-
-        $tTheme->print_header();
-        if ($this->tUser->is_admin() && $tTheme->admin == true) include $data['admin'];
-        $tTheme->print_body();
-        echo '<input type="hidden" id="ajax-hash-data" name="ajax-hash-data" value=\'{"key":"'.$ajax_hash_cookie.'"}\' />';
-        include $this->complete_file_path;
-        $tTheme->print_footer();
-
-        return true;
+        unset($settings, $q);
+        new tTheme($data);
+        return;
     }
 
 
@@ -768,6 +746,8 @@ class tCall {
         $data['admin']      = $this->tUser->user && $this->tUser->is_admin() ? $this->include_admin() : "";
         $data['theme']      = $this->define_theme_path();
         $data['template']   = isset($this->feature['files']['theme']) ? $this->feature['files']['theme'] : "default";
+        $data['file_path']  = $this->complete_file_path;
+        $data['page_alias'] = $this->page_alias;
 
         return $data;
     }

@@ -3,7 +3,7 @@
 /**
  * tTheme - Theamus theme parsing class
  * PHP Version 5.5.3
- * Version 1.0
+ * Version 1.1
  * @package Theamus
  * @link http://www.theamus.com/
  * @author Matthew Tempinski (Eyraahh) <matt.tempinski@theamus.com>
@@ -17,14 +17,6 @@ class tTheme {
      * @var object $tUser
      */
     private $tUser;
-
-
-    /**
-     * Class variable to handle data
-     *
-     * @var object $tDataClass
-     */
-    private $tDataClass;
 
 
     /**
@@ -68,44 +60,11 @@ class tTheme {
 
 
     /**
-     * The contents of the HTML markup in the header tags (<head></head>)
-     *
-     * @var string $header
-     */
-    private $header;
-
-
-    /**
      * True/False on whether or not the admin panel is accessible
      *
      * @var boolean $admin
      */
     public $admin;
-
-
-    /**
-     * The contents of the body HTML markup before the content
-     *
-     * @var string body
-     */
-    private $body;
-
-
-    /**
-     * The contents of the footer HTML markup after the content
-     *
-     * @var string $footer
-     */
-    private $footer;
-
-
-    /**
-     * Holds the value of whether or not this output has extra navigation associated
-     *  with it and needs to include the extra navigation class
-     *
-     * @var array $nav
-     */
-    private $nav;
 
 
     /**
@@ -117,44 +76,18 @@ class tTheme {
     public function __construct($data) {
         $this->data = $data;
         $this->tUser = new tUser();
-        $this->tDataClass = new tData();
-        $this->tData = $this->tDataClass->connect();
-        $this->tDataClass->prefix = $this->tDataClass->get_system_prefix();
+        $this->tData = new tData();
+        $this->tData->db = $this->tData->connect();
+        $this->tData->prefix = $this->tData->get_system_prefix();
 
         try {
             $this->nice_data = $this->clean_data();
             $this->config = $this->get_config();
             $this->template = $this->get_template();
-            $contents = $this->get_template_contents();
-            $contents = $this->parse_template_contents($contents);
-            $this->define_parts($contents);
+            $this->include_template();
         } catch (Exception $e) {
             die("<strong>Theamus Theme Error:</strong> ".$e->getMessage());
         }
-    }
-
-
-    /**
-     * Output the page header
-     */
-    public function print_header() {
-        echo $this->header;
-    }
-
-
-    /**
-     * Output the page body
-     */
-    public function print_body() {
-        echo $this->body;
-    }
-
-
-    /**
-     * Output the page footer
-     */
-    public function print_footer() {
-        echo $this->footer;
     }
 
 
@@ -177,7 +110,7 @@ class tTheme {
      * @throws Exception
      */
     private function get_settings() {
-        $q = $this->tData->query("SELECT * FROM `".$this->tDataClass->prefix."_settings`");
+        $q = $this->tData->db->query("SELECT * FROM `".$this->tData->prefix."_settings`");
         if (!$q) throw new Exception("Error getting system settings information from the database.");
         return $q->fetch_assoc();
     }
@@ -197,7 +130,134 @@ class tTheme {
         $ret['wrapper_top'] = $this->tUser->is_admin() ? "style='top:37px;'" : "";
         $ret['site_name'] = urldecode(stripslashes($settings['name']));
         $ret['error_type'] = isset($this->data['error_type']) ? $this->data['error_type'] : 0;
+        $ret['js'] = isset($this->data['js']) ? $this->data['js'] : "";
+        $ret['css'] = isset($this->data['css']) ? $this->data['css'] : "";
+        $ret['base'] = "<base href='".$this->data['base']."' />";
+        $ret['page_alias'] = isset($this->data['page_alias']) ? $this->data['page_alias'] : "";
+        $this->admin_panel = isset($this->data['admin']) ? $this->data['admin'] : "";
         return $ret;
+    }
+
+
+    /**
+     * Returns a variable value that is related to the page being loaded
+     *
+     * @param string $key
+     * @return string
+     */
+    public function get_page_variable($key = "") {
+        $variables = $this->clean_data();
+        if (isset($variables[$key])) {
+            return $variables[$key];
+        } else {
+            return "";
+        }
+    }
+
+
+    /**
+     * Includes an area file into the theme
+     *
+     * @param string $area
+     * @return string
+     */
+    public function get_page_area($area = "") {
+        // Include navigation
+        if ($area == "extra-nav" && (!isset($this->data['nav']) || $this->data['nav'] == "")) {
+            return;
+        }
+
+        // Include the admin panel
+        if ($this->tUser->is_admin() && $area == "admin") {
+            include $this->admin_panel;
+        }
+
+        // Include the template/area
+        if (property_exists($this->config->areas, $area)) {
+            $path = path($this->data['theme']."/".$this->config->areas->$area);
+            if (file_exists($path)) {
+                // Define classes to be used in the theme
+                $tTheme = $this;
+                $tUser = $this->tUser;
+                $tData = $this->tData;
+
+                // Include the file
+                include $path;
+                return;
+            }
+        }
+        return;
+    }
+
+
+    /**
+     * Gets a navigation list based on the location
+     *
+     * @param string $location
+     * @return string
+     */
+    public function get_page_navigation($location = "") {
+        if ($location == "main") {
+            return show_page_navigation();
+        } elseif ($location == "extra") {
+            if ($this->data['nav'] != "") return extra_page_navigation($this->data['nav']);
+            else return;
+        } else {
+            return show_page_navigation($location);
+        }
+    }
+
+
+    /**
+     * Includes the content into the theme
+     *
+     * @return
+     */
+    public function content() {
+        $tDataClass = $this->tData;
+        $tDataClass->prefix = $this->tData->prefix;
+        $tData = $this->tData->db;
+
+        $tFiles = new tFiles();
+        $tUser = $this->tUser;
+        $tPages = new tPages();
+        $tTheme = $this;
+
+        $ajax_hash_cookie = isset($_COOKIE['420hash']) ? $_COOKIE['420hash'] : "";
+        echo '<input type="hidden" id="ajax-hash-data" name="ajax-hash-data" value=\'{"key":"'.$ajax_hash_cookie.'"}\' />';
+        include $this->data['file_path'];
+        return;
+    }
+
+
+    /**
+     * Gets a value from the system database table to be used within a theme
+     *
+     * @param string $key
+     * @return string
+     */
+    public function get_system_variable($key = "") {
+        // Return nothing if we are given nothing
+        if ($key == "") return "";
+
+        // Sanitize the key and query the database
+        $safe_key = $this->tData->db->real_escape_string($key);
+        $query = $this->tData->db->query("SELECT `$safe_key` FROM `".$this->tData->prefix."_settings`");
+
+        // Check the query and gather the results
+        if (!$query) {
+            return "";
+        } else {
+            // Get the results
+            $row = $query->fetch_assoc();
+
+            // Check for the key's existance and return relatively
+            if (isset($row[$key])) {
+                return $row[$key];
+            } else {
+                return "";
+            }
+        }
     }
 
 
@@ -233,349 +293,68 @@ class tTheme {
 
 
     /**
-     * Gets the contents of the template index file
+     * Includes the template file into the page
      *
-     * @return string
      * @throws Exception
+     * @return
      */
-    private function get_template_contents() {
+    private function include_template() {
         $template_path = path($this->data['theme'].$this->template);
         if (file_exists($template_path)) {
-            return file_get_contents($template_path);
-        }
-        throw new Exception("Cannot find the template file in the directory structure.");
-    }
-
-
-    /**
-     * Parses all of the template file to include everything required and requested
-     *
-     * @param string $contents
-     * @return string $ret
-     */
-    private function parse_template_contents($contents = "") {
-        $this->get_areas($contents);
-        $ret = $this->set_variables($contents);
-        $ret = $this->add_header_data($ret);
-        $ret = $this->set_areas($ret);
-        $ret = $this->do_loops($ret);
-        $ret = $this->get_navigation($ret);
-        $ret = $this->set_user_areas($ret);
-        $ret = $this->set_user_variables($ret);
-        $ret = $this->set_variables($ret);
-        return $ret;
-    }
-
-
-    /**
-     * This function is used during preg_replace_callback() to replace old data with new data
-     *
-     * @param array $match
-     * @return string
-     */
-    private function preg_replace($match) {
-        return str_replace($match[0], $this->preg_replace_data[$match[1]], $match[0]);
-    }
-
-
-    /**
-     * Returns user information relative to the condition being called
-     *
-     * @param array $match
-     * @return string
-     */
-    private function preg_user_replace($match) {
-        if ($this->preg_replace_data) return str_replace($match[0], $match[1], $match[0]);
-        else return str_replace($match[0], "", $match[0]);
-    }
-
-
-    /**
-     * Performs a loop based on the preg_replace_callback()
-     *
-     * @param array $match
-     * @return string
-     * @throws Exception
-     */
-    private function preg_loop($match) {
-        $theme_data_table = $this->tDataClass->prefix."_themes-data";
-        $q = $this->tData->query("SELECT * FROM `$theme_data_table` WHERE `selector` LIKE '".trim($match[1], "\"")."-%' AND `theme`='".$this->get_theme_folder()."' ORDER BY `selector`");
-        if ($q) {
-            $vars = array();
-            while ($row = $q->fetch_assoc()) $vars[] = $row;
-            $clean_vars = $this->clean_theme_vars($vars);
-            return $this->set_loop_variables($match[2], $clean_vars);
-        } else throw new Exception("Invalid loop query.");
-    }
-
-
-    /**
-     * Adds header data to the page based on the preg_replace_callback()
-     *
-     * @param array $match
-     * @return string
-     */
-    private function preg_header_data($match) {
-        $base = "<base href='".$this->data['base']."' />";
-        $info = $base.$this->data['js'].$this->data['css'].$match[1];
-        return str_replace($match[1], $info, $match[0]);
-    }
-
-
-    /**
-     * Determines whether or not there is a navigation area on the page
-     *
-     * @param array $match
-     * @return
-     */
-    private function preg_nav_area($match) {
-        if ($match[1] == "extra-nav" && (!isset($this->data['nav']) || $this->data['nav'] == "")) $ret = "false";
-        else $ret = "true";
-        $this->nav[] = $ret;
-        return;
-    }
-
-
-    /**
-     * Gets the navigation for the area being called, then returns the links
-     *
-     * @param array $match
-     * @return string
-     */
-    private function preg_navigation($match) {
-        if ($match[1] == "main") {
-            return str_replace($match[0], show_page_navigation(), $match[0]);
-        } elseif ($match[1] == "extra") {
-            if ($this->data['nav'] != "") return str_replace($match[0], extra_page_navigation($this->data['nav']), $match[0]);
-            else return;
+            $tTheme = $this;
+            include $template_path;
+            return;
         } else {
-            return str_replace($match[0], show_page_navigation($match[1]), $match[0]);
+            throw new Exception("Cannof find the template file in the directory structure.");
         }
     }
 
-
     /**
-     * Finds any calls for variables in the theme contents and replaces them with actual
-     *  data/values
+     * Gets variables from the 'themes-data' database table
      *
-     * @param string $contents
-     * @return string $output
+     * @param string $selector
+     * @param string|boolean $key
+     * @return array|string
      */
-    private function set_variables($contents) {
-        $this->preg_replace_data = $this->nice_data;
-        $output = preg_replace_callback(array("/{t:var='(.*?)':}/s", "/{t:var=\"(.*?)\":}/s"), array($this, "preg_replace"), $contents);
-        return $output;
-    }
+    public function get_theme_variable($selector = "", $key = "") {
+        $return = array(); // Default = empty
 
-
-    /**
-     * Finds any calls for loops in the theme contents and executes them
-     *
-     * @param string $contents
-     * @return string $output
-     * @throws Exception
-     */
-    private function do_loops($contents) {
-        $output = preg_replace_callback("/{t:loop\((.*?)\):}(.*?){t:\/loop:}/s", array($this, "preg_loop"), $contents);
-        return $output;
-    }
-
-
-    /**
-     * In a loop, finds any variables being requested and replaces them with actual data
-     *
-     * @param string $template
-     * @param array $clean_vars
-     * @return string
-     */
-    private function set_loop_variables($template, $clean_vars) {
-        $return_template = "";
-        foreach ($clean_vars as $cv) {
-            $this->preg_replace_data = $cv;
-            $temp_template = preg_replace_callback(
-                array("/{t:loop_var='(.*?)':}/s", "/{t:loop_var=\"(.*?)\":}/s"),
-                array($this, "preg_replace"),
-                $template
-            );
-            $return_template .= $temp_template;
+        // Return nothing it the selector or key are empty
+        if ($selector == "" || ($key == "" && $key != false)) {
+            return "";
         }
-        return $return_template;
-    }
 
+        // Sanitize the variables
+        $selector   = $this->tData->db->real_escape_string($selector);
+        $key        = $this->tData->db->real_escape_string($key);
+        $theme      = $this->tData->db->real_escape_string($this->get_theme_folder());
 
-    /**
-     * Cleans variables for a theme
-     *
-     * @param array $vars
-     * @return array
-     */
-    private function clean_theme_vars($vars) {
-        $ret = array();
-        foreach ($vars as $v) {
-            $ret[$v['selector']][$v['key']] = $v['value'];
-            if (!array_key_exists("selector", $ret[$v['selector']])) $ret[$v['selector']]['selector'] = $v['selector'];
-        }
-        return $ret;
-    }
-
-
-    /**
-     * Adds the platform header data to the <head></head> tags
-     *
-     * @param string $contents
-     * @return string $output
-     */
-    private function add_header_data($contents) {
-        $output = preg_replace_callback("/<head>(.*?)<\/head>/s", array($this, "preg_header_data"), $contents);
-        return $output;
-    }
-
-
-    /**
-     * Finds all of the areas in the theme contents, mostly looking for navigation areas
-     *
-     * @param string $contents
-     * @return
-     */
-    private function get_areas($contents) {
-        $output = preg_replace_callback(array("/{t:area=\"(.*?)\":}/s", "/{t:area='(.*?)':}/s"), array($this, "preg_nav_area"), $contents);
-        if (is_array($this->nav)) {
-            $this->nice_data['nav'] = in_array("false", $this->nav) ? "" : "site_with-nav";
-        } else $this->nice_data['nav'] = "";
-    }
-
-
-    /**
-     * Finds all of the requested areas in the theme's file contents and replaces them with
-     *  their respective area files
-     *
-     * @param string $contents
-     * @return string $output
-     */
-    private function set_areas($contents) {
-        $output = preg_replace_callback(array("/{t:area=\"(.*?)\":}/s", "/{t:area='(.*?)':}/s"), array($this, "get_area_content"), $contents);
-        return $output;
-    }
-
-
-    /**
-     * Finds the area file from the configuration settings and returns the contents of the file
-     *  to be used
-     *
-     * @param string $area
-     * @return string
-     */
-    private function get_area_content($area) {
-        if ($area[1] == "extra-nav" && (!isset($this->data['nav']) || $this->data['nav'] == "")) return "";
-        if (property_exists($this->config->areas, $area[1])) {
-            $path = path($this->data['theme']."/".$this->config->areas->$area[1]);
-            if (file_exists($path)) return $this->set_variables(file_get_contents($path));
-        }
-        return "";
-    }
-
-
-    /**
-     * Finds all navigation areas and replaces them with the respective navigation
-     *
-     * @param string $contents
-     * @return string $output
-     */
-    private function get_navigation($contents) {
-        $output = preg_replace_callback(array("/{t:nav='(.*?)':}/s", "/{t:nav=\"(.*?)\":}/s"), array($this, "preg_navigation"), $contents);
-        return $output;
-    }
-
-
-    /**
-     * Defines all of the user areas that can be used in a theme
-     *
-     * @param string $contents
-     * @return string $output
-     */
-    private function set_user_areas($contents) {
-        $ret = $contents;
-        $types = array("admin", "noadmin", "useradmin", "user", "nouser");
-        foreach ($types as $type) $ret = $this->set_user_area($ret, $type);
-        return $ret;
-    }
-
-
-    /**
-     * Loops through all of the possible types of user areas and performs the relative
-     *  check in order to show content or not.
-     *
-     * @param string $contents
-     * @param string $type
-     * @return string $output
-     */
-    private function set_user_area($contents, $type) {
-        switch ($type) {
-            case "admin":
-                $regex = "/{t:admin:}(.*?){t:\/admin:}*/s";
-                $replace = $this->tUser->is_admin() ? true : false;
-                break;
-            case "noadmin":
-                $regex = "/{t:!admin:}(.*?){t:\/!admin:}/s";
-                $replace = !$this->tUser->is_admin() ? true : false;
-                break;
-            case "useradmin":
-                $regex = "/{t:user&admin:}(.*?){t:\/user&admin:}/s";
-                $replace = $this->tUser->user && $this->tUser->is_admin() ? true : false;
-                break;
-            case "user":
-                $regex = "/{t:user:}(.*){t:\/user:}/s";
-                $replace = $this->tUser->user ? true : false;
-                break;
-            case "nouser":
-                $regex = "/{t:!user:}(.*?){t:\/!user:}/s";
-                $replace = !$this->tUser->user ? true : false;
-                break;
-        }
-        $this->preg_replace_data = $replace;
-        $output = preg_replace_callback($regex, array($this, "preg_user_replace"), $contents);
-        return $output;
-    }
-
-
-    /**
-     * Finds any requests to get the currently logged in user's information and replaces it
-     *  with actual data
-     *
-     * @param string $contents
-     * @return string
-     */
-    private function set_user_variables($contents) {
-        $this->preg_replace_data = $this->tUser->user;
-        $output = preg_replace_callback(array("/{t:user_var='(.*?)':}/s", "/{t:user_var=\"(.*?)\":}/s"), array($this, "preg_replace"), $contents);
-        return $output;
-    }
-
-
-    /**
-     * Defines the parts of the page that are able to be shown
-     *
-     * @param string $contents
-     */
-    private function define_parts($contents) {
-        if (strpos($contents, "{t:admin_panel:}") !== false) {
-            $this->admin = true;
-            $header = explode("{t:admin_panel:}", $contents);
-            $content = explode("{t:content:}", $header[1]);
-            $this->header = $header[0];
-            $this->body = $content[0];
-            if (count($content) >= 2) $this->footer = $content[1];
-        } elseif (strpos($contents, "{t:content:}") !== false) {
-            $this->admin = false;
-            $content = explode("{t:content:}", $contents);
-            $this->header = $content[0];
-            $this->body = false;
-            $this->footer = $content[1];
+        // Define the sql query
+        if ($key == false) {
+            $sql = "SELECT * FROM `".$this->tData->prefix."_themes-data` WHERE `selector`='$selector' AND `theme`='$theme'";
         } else {
-            $this->admin = false;
-            $this->header = $contents;
-            $this->body = false;
-            $this->footer = false;
+            $sql = "SELECT * FROM `".$this->tData->prefix."_themes-data` WHERE `key`='$key' AND `selector`='$selector' AND `theme`='$theme'";
+        }
+
+        // Query the database
+        $query = $this->tData->db->query($sql);
+
+        // Check the query and return relevant results
+        if (!$query) {
+            return "";
+        } else {
+            // Loop throught all of the results
+            while ($row = $query->fetch_assoc()) {
+                // Define the information and return the value
+                $return[$row['key']] = urldecode(stripslashes($row['value']));
+            }
+
+            // Return the appropriate values
+            if (count($return) == 1) {
+                return $return[key($return)];
+            } else {
+                return $return;
+            }
         }
     }
 }
