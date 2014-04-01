@@ -135,6 +135,7 @@ class tTheme {
         $ret['base'] = "<base href='".$this->data['base']."' />";
         $ret['page_alias'] = isset($this->data['page_alias']) ? $this->data['page_alias'] : "";
         $this->admin_panel = isset($this->data['admin']) ? $this->data['admin'] : "";
+        $ret['has_admin'] = isset($this->data['admin']) ? true : false;
         return $ret;
     }
 

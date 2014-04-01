@@ -1,4 +1,5 @@
 function open_admin(home) {
+    add_css("themes/admin/css/main.css");
     $(".site_wrapper").hide();
     $("#admin-nav").addClass("admin_nav-open");
     $("#admin-content").addClass("admin_content-wrapper-open");

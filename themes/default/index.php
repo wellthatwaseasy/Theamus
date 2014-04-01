@@ -11,7 +11,8 @@
         <?php echo $tTheme->get_page_variable("js"); ?>
     </head>
     <body>
-        <div class="site-wrapper site-wrapper-full">
+        <?php $tTheme->get_page_area("admin"); ?>
+        <div class="site-wrapper site-wrapper-full" <?php if ($tTheme->get_page_variable("has_admin") == true) echo "style='margin-top:32px;'"; ?>>
             <?php $tTheme->get_page_area("header"); ?>
             <div class="content-wrapper">
                 <?php
