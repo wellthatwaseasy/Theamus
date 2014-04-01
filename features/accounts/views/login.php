@@ -1,37 +1,64 @@
 <div id="login-result"></div>
-<form class="site-form" id="login-form" onsubmit="return Login();">
-	<div class="site-formrow">
-		<div class="site-formlabel">Username</div>
-		<div class="site-forminput">
-			<input type="text" id="username" name="username" maxlength="25"
-				autocomplete="off" autocapitalize="off" autocorrect="off"
-				spellcheck="off" autofocus="autofocus" />
-		</div>
-	</div>
 
-	<div class="site-formrow" row="password">
-		<div class="site-formlabel">Password</div>
-		<div class="site-forminput">
-			<input type="password" id="password" name="password" maxlength="50" />
-		</div>
-	</div>
-
-    <div class="site-formrow sli">
-        <div class="site-formlabel sfl-float">Stay logged in</div>
-        <div class="site-forminput">
-            <div class="site-cboxwrapper">
-                <input type="checkbox" class="site-switchcbox" name="keep_session"
-                  id="ks" checked>
-                <label class="site-switchlabel yn" for="ks">
-                  <span class="site-switchinner"></span>
-                  <span class="site-switchswitch"></span>
-                </label>
-            </div>
-        </div>
-        <div class="clearfix"></div>
+<form class="form" id="login-form">
+    <!-- Username -->
+    <div class="form-group">
+        <label class="control-label" for="username">Username</label>
+        <input type="text" id="username" name="username" class="form-control">
     </div>
 
-	<div class="site-formsubmitrow">
-		<input type="submit" value="Login" />
+    <!-- Password -->
+    <div class="form-group">
+        <label class="control-label" for="password">Password</label>
+        <input type="password" id="password" name="password" class="form-control">
+    </div>
+
+    <hr class="form-split">
+
+    <!-- Session Preserve -->
+    <div class="form-group">
+        <label>
+            Stay logged in
+            <input type="checkbox" name="keep_session">
+        </label>
+    </div>
+
+	<div class="form-button-group">
+        <button type="submit" class="form-control btn btn-primary">Login</button>
 	</div>
 </form>
+
+<script type="text/javascript">
+    $(function() {
+        $("#login-form").submit(function(e) {
+            e.preventDefault();
+
+            var login_result = $("#login-result");
+
+            theamus.ajax.api({
+                type: "get",
+                url: "accounts/user-login/",
+                method: ["AccountsApi", "login"],
+                data: {
+                    form: $("#login-form")
+                },
+                success: function(data) {
+                    if (typeof data !== "object") {
+                        login_result.html(alert_notify("danger", "<b>Oh no.</b>There was an issue logging in."));
+                    } else {
+                        if (data.error.status === 1) {
+                            login_result.html(alert_notify("danger", "<b>Oh no.</b> "+data.error.message));
+                        } else {
+                            var response = data.response.data;
+                            if (response === true) {
+                                window.location = theamus.base_url;
+                            } else {
+                                login_result.html(alert_notify("danger", "<b>Oh no.</b> "+response.error.message));
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    });
+</script>
