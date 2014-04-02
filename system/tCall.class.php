@@ -1225,7 +1225,6 @@ class tCall {
                 $data['js'] = $data['css'] = "";
 
                 $tTheme = new tTheme($data);
-                $tTheme->print_header();
             }
         }
         return;
