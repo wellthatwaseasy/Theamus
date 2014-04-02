@@ -7,6 +7,8 @@
         "files": [
             ["modified", "system/tCall.class.php"],
             ["modified", "system/tTheme.class.php"],
+			["modified", "system/tFunctions.php"],
+			["modified", "system/tPages.class.php"],
             ["modified", "features/pages/views/show-page.php"],
             ["renamed", "themes/default/blank.php"],
             ["renamed", "themes/default/body.php"],
@@ -19,6 +21,8 @@
             ["renamed", "themes/default/login.php"],
             ["modified", "themes/default/config.json"],
             ["modified", "themes/default/css/homepage.css"],
+			["modified", "themes/default/css/login.css"],
+			["modified", "themes/default/css/main.css"],
             ["created", "features/accounts/php/accounts-api.php"],
             ["modified", "features/accounts/views/login.php"],
             ["modified", "features/accounts/config.php"],
@@ -30,7 +34,9 @@
             ["created", "system/styles/fonts/glyphicons-halflings-regular.woff"],
             ["created", "themes/admin/css/admin.css"],
             ["modified", "themes/admin/js/admin.js"],
-            ["modified", "themes/admin/css/main.css"]
+            ["modified", "themes/admin/css/main.css"],
+			["modified", "themes/admin/html.php"],
+			["", ""]
         ],
         "bugs": [
             "Updated the way themes are made/handled to be less retarded.",
@@ -38,7 +44,10 @@
             "Added a base theme that will be required for all things related to Theamus. The purpose of this is to provide a structure on the style of forms/pages.  It's based on Bootstrap.",
             "Updated the login form to be a part of the Theamus API.",
             "Updated the default theme to be mobile-friendly! :)",
-            "Fixed an issue with the admin panel styling"
+            "Fixed an issue with the admin panel styling",
+            "Made changes to the styling defaults",
+			"Fixed an issue in the pagination class where it would die, killing the rest of the page.",
+			"Added an option to define classes for extra navigation lists"
         ]
     },
     "authors": [
