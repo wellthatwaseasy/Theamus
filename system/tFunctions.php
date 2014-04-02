@@ -183,9 +183,10 @@ function show_page_navigation($loc = "main", $child_of = 0) {
  * @param string $navigation
  * @return string $nav|boolean
  */
-function extra_page_navigation($navigation) {
+function extra_page_navigation($navigation, $classes = "") {
     if (!empty($navigation)) {
-        $nav = "<ul>";
+        $class = ($classes != "") ? "class='$classes'" : "";
+        $nav = "<ul $class>";
         foreach ($navigation as $text => $path) {
             if ($text != "path") {
                 if ($text == "hr") $nav .= "<li><hr /></li>";
