@@ -215,12 +215,6 @@
 }
 
 /* Content */
-.site_content {
-    background-color: #FFF;
-    margin: 150px auto 0;
-    padding-bottom: 40px;
-    position: relative;
-}
 .site_content-header {
     border-bottom: 1px solid #EEE;
     color: #444;
@@ -487,7 +481,7 @@
     -webkit-transition: right .2s;
     background: #FFFFFF;
     border: 1px solid #999999;
-    bottom: 0;
+    bottom: 5px;
     margin: 3px;
     position: absolute;
     right: 50px;
@@ -634,8 +628,8 @@
     padding: 0 5px 4px;
     pointer-events: none;
     position: absolute;
-    right: 10px;
-    top: 0;
+    right: 6px;
+    top: 8px;
     transform: rotate(90deg);
     -moz-transform: rotate(90deg);
     -ms-transform: rotate(90deg);

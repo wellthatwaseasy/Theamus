@@ -791,7 +791,7 @@ select[multiple], select[size] {
 	color: #FFF;
 }
 .progress-bar {
-	background-color: #428bca;
+	background-color: #ccf;
 	margin: 5px 0 0;
 	padding: 5px 10px;
 }
@@ -849,12 +849,12 @@ select[multiple], select[size] {
 	border-bottom: 0;
 }
 .btn-primary {
-	background-color: #428bca;
-	border-bottom: 3px solid #357edb;
+	background-color: #ccf;
+	border-bottom: 3px solid #bbe;
 	color: #FFF;
 }
 .btn-primary:active {
-	background-color: #3276b1;
+	background-color: #aad;
 	border-bottom: 0;
 }
 .btn-success {
