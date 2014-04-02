@@ -35,6 +35,7 @@
             ["created", "themes/admin/css/admin.css"],
             ["modified", "themes/admin/js/admin.js"],
             ["modified", "themes/admin/css/main.css"],
+			["modified", "themes/admin/html.php"],
 			["modified", "themes/admin/html.php"]
         ],
         "bugs": [
