@@ -130,7 +130,7 @@ class tPages {
      * @return boolean
      */
     public function __descruct() {
-        $this->tDataClass->disconnect();
+        $this->tData->disconnect();
         return true;
     }
 
@@ -141,8 +141,8 @@ class tPages {
      * @return boolean
      */
     private function initialize_variables() {
-        $this->tDataClass = new tData();
-        $this->tData = $this->tDataClass->connect();
+        $this->tData = new tData();
+        $this->tData->db = $this->tData->connect();
         $this->data = array();
         return true;
     }
@@ -176,7 +176,7 @@ class tPages {
      */
     private function check_count() {
         if (count($this->data) == 0)
-            die(notify($this->notify, "info", "There are no results matching your criteria."));
+            notify($this->notify, "info", "There are no results matching your criteria.");
         return true;
     }
 
@@ -201,7 +201,7 @@ class tPages {
      */
     private function get_total_record_count() {
         if ($this->sql != false) {
-            $q = $this->tData->query($this->sql);
+            $q = $this->tData->db->query($this->sql);
             if ($q) return $q->num_rows;
         } else return count($this->defined_data);
         return 0;
@@ -216,9 +216,12 @@ class tPages {
     private function query_db() {
         $this->get_limits();
         $ret = array();
-        $q = $this->tData->query($this->sql." LIMIT ".$this->start.", ".$this->end);
-        if ($q)
-            while ($res = $q->fetch_assoc()) $ret[] = $res;
+        $q = $this->tData->db->query($this->sql." LIMIT ".$this->start.", ".$this->end);
+        if ($q) {
+            while ($res = $q->fetch_assoc()) {
+                $ret[] = $res;
+            }
+        }
         return isset($ret) && !empty($ret) ? $ret : false;
     }
 
@@ -303,7 +306,7 @@ class tPages {
     /**
      * Prints the data in the template provided
      *
-     * @return boolean|die
+     * @return boolean
      */
     public function print_list($return = false) {
         $this->data = $this->sql == false && !empty($this->defined_data) ? $this->get_data() : $this->query_db();
@@ -314,7 +317,7 @@ class tPages {
             if ($return != false) return $template_header.$ret;
             echo $template_header.$ret;
             return true;
-        } die(notify("admin", "info", "There are no results matching your criteria."));
+        } notify("admin", "info", "There are no results matching your criteria.");
     }
 
 
@@ -384,7 +387,7 @@ class tPages {
      * @return string
      */
     public function get_db_value($table, $column, $colval, $return_key) {
-        $q = $this->tData->query("SELECT * FROM `$table` WHERE `$column`='$colval'");
+        $q = $this->tData->db->query("SELECT * FROM `$table` WHERE `$column`='$colval'");
         $assoc = array();
         if ($q) $assoc = $q->fetch_assoc();
         return $assoc[$return_key];
