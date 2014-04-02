@@ -30,11 +30,6 @@
                 "layout":"homepage",
                 "file":"homepage.php",
                 "allow_nav":false
-            },
-            {
-                "layout":"variables",
-                "file":"vartest.php",
-                "allow_nav":false
             }
         ],
     "areas":
