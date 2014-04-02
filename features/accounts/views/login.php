@@ -44,16 +44,16 @@
                 },
                 success: function(data) {
                     if (typeof data !== "object") {
-                        login_result.html(alert_notify("danger", "<b>Oh no.</b>There was an issue logging in."));
+                        login_result.html(alert_notify("danger", "There was an issue logging in."));
                     } else {
                         if (data.error.status === 1) {
-                            login_result.html(alert_notify("danger", "<b>Oh no.</b> "+data.error.message));
+                            login_result.html(alert_notify("danger", data.error.message));
                         } else {
                             var response = data.response.data;
                             if (response === true) {
                                 window.location = theamus.base_url;
                             } else {
-                                login_result.html(alert_notify("danger", "<b>Oh no.</b> "+response.error.message));
+                                login_result.html(alert_notify("danger", response.error.message));
                             }
                         }
                     }
