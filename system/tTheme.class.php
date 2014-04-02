@@ -135,7 +135,7 @@ class tTheme {
         $ret['base'] = "<base href='".$this->data['base']."' />";
         $ret['page_alias'] = isset($this->data['page_alias']) ? $this->data['page_alias'] : "";
         $this->admin_panel = isset($this->data['admin']) ? $this->data['admin'] : "";
-        $ret['has_admin'] = isset($this->data['admin']) ? true : false;
+        $ret['has_admin'] = isset($this->data['admin']) && $this->tUser->is_admin() != false ? true : false;
         return $ret;
     }
 
@@ -197,11 +197,11 @@ class tTheme {
      * @param string $location
      * @return string
      */
-    public function get_page_navigation($location = "") {
+    public function get_page_navigation($location = "", $classes = "") {
         if ($location == "main") {
             return show_page_navigation();
         } elseif ($location == "extra") {
-            if ($this->data['nav'] != "") return extra_page_navigation($this->data['nav']);
+            if ($this->data['nav'] != "") return extra_page_navigation($this->data['nav'], $classes);
             else return;
         } else {
             return show_page_navigation($location);
@@ -284,6 +284,9 @@ class tTheme {
      * @throws Exception
      */
     private function get_template() {
+		if (!isset($this->config->layouts)) {
+			throw new Exception("The layouts are missing from the configuration file.");
+		}
         for ($i = 0; $i < count($this->config->layouts); $i++) {
             if ($this->config->layouts[$i]->layout == "default") $ret = $this->config->layouts[$i]->file;
             elseif ($this->config->layouts[$i]->layout == $this->data['template']) $ret = $this->config->layouts[$i]->file;
@@ -306,7 +309,7 @@ class tTheme {
             include $template_path;
             return;
         } else {
-            throw new Exception("Cannof find the template file in the directory structure.");
+            throw new Exception("Cannot find the template file in the directory structure.");
         }
     }
 
