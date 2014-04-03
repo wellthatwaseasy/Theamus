@@ -20,6 +20,33 @@ function notify($for, $type, $message, $extras = "", $return = false) {
     }
 }
 
+/**
+ * Prints out an alert on the website
+ *
+ * @param string $for
+ * @param string $type
+ * @param string $message
+ * @param string $extras
+ * @return boolean
+ */
+function alert_notify($type = "success", $message = "", $extras = "", $return = false) {
+    $glyph = array(
+        "success" => "ion-checkmark-round",
+        "danger" => "ion-close",
+        "warning" => "ion-alert",
+        "info" => "ion-information"
+    );
+    $ret = "<div class='alert alert-$type' id='notify' $extras>";
+    $ret .= "<span class='glyphicon ".$glyph[$type]."'></span>$message";
+    $ret .= "</div>";
+
+    if ($return == false) {
+        echo $ret;
+    } else {
+        return $ret;
+    }
+}
+
 
 /**
  * Prints out an input that requests the site to include an extra javascript file
@@ -109,21 +136,21 @@ function tMail($to, $subject, $message) {
     $settings = $q->fetch_assoc();
 
     $mail = new PHPMailer();
-    $mail -> IsSMTP();
-    $mail -> SMTPAuth   = true;
-    $mail -> SMTPSecure = $settings['email_protocol'];
-    $mail -> Host       = $settings['email_host'];
-    $mail -> Port       = $settings['email_port'];
-    $mail -> Username   = $settings['email_user'];
-    $mail -> Password   = $settings['email_password'];
-    $mail -> From       = $settings['email_user'];
-    $mail -> FromName   = $settings['name'];
+    $mail->IsSMTP();
+    $mail->SMTPAuth   = true;
+    $mail->SMTPSecure = $settings['email_protocol'];
+    $mail->Host       = $settings['email_host'];
+    $mail->Port       = $settings['email_port'];
+    $mail->Username   = $settings['email_user'];
+    $mail->Password   = $settings['email_password'];
+    $mail->From       = $settings['email_user'];
+    $mail->FromName   = $settings['name'];
 
-    $mail -> IsHTML(true);
-    $mail -> Subject = $subject;
-    $mail -> Body = $message;
+    $mail->IsHTML(true);
+    $mail->Subject = $subject;
+    $mail->Body = $message;
 
-    $mail -> AddAddress($to);
+    $mail->AddAddress($to);
 
     return $mail->Send();
 }
