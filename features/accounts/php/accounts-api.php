@@ -1,23 +1,7 @@
 <?php
 
-class AccountsApi {
-    private $tData;
-
+class AccountsApi extends Accounts {
     private $api_return = array("response"=>array("data"=>""), "error"=>array("status"=>0,"message"=>""));
-
-    public function __construct() {
-        $this->initialize_variables();
-    }
-
-    public function __destruct() {
-        $this->tData->disconnect();
-    }
-
-    private function initialize_variables() {
-        $this->tData = new tData();
-        $this->tData->db = $this->tData->connect();
-        $this->tData->prefix = $this->tData->get_system_prefix();
-    }
 
     private function api_error($message = "") {
         $this->api_return['error'] = array("status"=>1,"message"=>$message);
@@ -65,6 +49,12 @@ class AccountsApi {
         // Define the user information
         $row = $fetch_query->fetch_assoc();
 
+        // Check for an active user
+        if ($row['active'] == 0) {
+            $this->api_error("Your account is not active.");
+            return $this->api_return;
+        }
+
         // Define a new session value and update the user's information with it
         $session = md5(time().$session_salt);
         $this->tData->db->query("UPDATE `".$this->tData->prefix."_users` SET `session`='$session' WHERE `id`='".$row['id']."'");
@@ -82,5 +72,39 @@ class AccountsApi {
         setcookie("session", $session, $expire, "/");
 
         return true;
+    }
+
+    public function check_username($args) {
+        // Check for a username
+        if (!isset($args['username']) || $args['username'] == "") {
+            return "invalid";
+        }
+
+        // Return the accounts class username check
+        return $this->define_username(urldecode($args['username']));
+    }
+
+    public function check_password($args) {
+        // Check for a password
+        if (!isset($args['password']) || $args['password'] == "") {
+            return "invalid";
+        }
+
+        // Return the accounts class username check
+        return $this->define_password(urldecode($args['password']));
+    }
+
+    public function check_email($args) {
+        // Check for an email
+        if (!isset($args['email']) || $args['email'] == "") {
+            return "invalid";
+        }
+
+        // Return the accounts class username check
+        return $this->define_email(urldecode($args['email']));
+    }
+
+    public function register_user($args) {
+        return $this->create_registered_user($args);
     }
 }

@@ -21,7 +21,8 @@ $admin_files = array(
 // Deny bad users
 if ($ajax != "api") $tUser->deny_non_admins($file, $admin_files);
 
-$admin_files = array("index.php", "add.php", "edit.php", "remove-user.php", "users-list.php", "remove.php", "save.php");
+$admin_files = array("index.php", "add.php", "edit.php", "remove-user.php", "users-list.php", "remove.php", "save.php",
+    "check_username.php", "check_password.php", "check_email.php", "register_user.php");
 if (in_array($file, $admin_files) && $ajax != "api") {
     if ($location != "admin") back_up();
     if ($location != "admin" && $ajax != "include") die("Error");
@@ -57,6 +58,7 @@ switch ($file) {
         $feature['title'] = "Register";
         $feature['header'] = "Register";
         $feature['js']['file'][] = "sessions.js";
+        $feature['theme'] = "register";
         break;
 
     case "user/index.php":
