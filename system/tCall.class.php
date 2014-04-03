@@ -949,6 +949,7 @@ class tCall {
     private function default_css() {
         $ret = array(
             "<link rel='stylesheet' href='system/styles/css/theme.css' />",
+            "<link rel='stylesheet' href='system/styles/css/ionicons.min.css' />",
             "<link rel='stylesheet' href='themes/admin/css/admin.css' />",
             "<link rel='stylesheet' href='system/external/prettify/prettify.css' />",
             "<link rel='stylesheet' href='system/editor/css/editor.css' />"

@@ -247,10 +247,10 @@ function notify(location, type, message) {
 
 function alert_notify(type, message) {
     var glyph = {
-        "success": "glyphicon-ok",
-        "danger": "glyphicon-remove",
-        "warning": "glyphicon-warning-sign",
-        "info": "glyphicon-info-sign"
+        "success": "ion-checkmark-round",
+        "danger": "ion-close",
+        "warning": "ion-alert",
+        "info": "ion-information"
     };
     return "<div class='alert alert-"+type+"'><span class='glyphicon "+glyph[type]+"'></span>"+message+"</div>";
 }

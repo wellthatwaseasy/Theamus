@@ -2,13 +2,12 @@
     "version": "1.02",
     "changes": {
         "database": [
-
         ],
         "files": [
             ["modified", "system/tCall.class.php"],
             ["modified", "system/tTheme.class.php"],
-			["modified", "system/tFunctions.php"],
-			["modified", "system/tPages.class.php"],
+            ["modified", "system/tFunctions.php"],
+            ["modified", "system/tPages.class.php"],
             ["modified", "features/pages/views/show-page.php"],
             ["renamed", "themes/default/blank.php"],
             ["renamed", "themes/default/body.php"],
@@ -21,22 +20,19 @@
             ["renamed", "themes/default/login.php"],
             ["modified", "themes/default/config.json"],
             ["modified", "themes/default/css/homepage.css"],
-			["modified", "themes/default/css/login.css"],
-			["modified", "themes/default/css/main.css"],
+            ["modified", "themes/default/css/login.css"],
+            ["modified", "themes/default/css/main.css"],
             ["created", "features/accounts/php/accounts-api.php"],
             ["modified", "features/accounts/views/login.php"],
             ["modified", "features/accounts/config.php"],
             ["modified", "system/js/main.js"],
             ["created", "system/styles/css/theme.css"],
-            ["created", "system/styles/fonts/glyphicons-halflings-regular.eot"],
-            ["created", "system/styles/fonts/glyphicons-halflings-regular.svg"],
-            ["created", "system/styles/fonts/glyphicons-halflings-regular.ttf"],
-            ["created", "system/styles/fonts/glyphicons-halflings-regular.woff"],
+            ["created", "system/styles/css/ionicons.css"],
+            ["created", "system/styles/css/ionicons-license"],
             ["created", "themes/admin/css/admin.css"],
             ["modified", "themes/admin/js/admin.js"],
             ["modified", "themes/admin/css/main.css"],
-			["modified", "themes/admin/html.php"],
-			["modified", "themes/admin/html.php"]
+            ["modified", "themes/admin/html.php"]
         ],
         "bugs": [
             "Updated the way themes are made/handled to be less retarded.",
@@ -46,8 +42,8 @@
             "Updated the default theme to be mobile-friendly! :)",
             "Fixed an issue with the admin panel styling",
             "Made changes to the styling defaults",
-			"Fixed an issue in the pagination class where it would die, killing the rest of the page.",
-			"Added an option to define classes for extra navigation lists"
+            "Fixed an issue in the pagination class where it would die, killing the rest of the page.",
+            "Added an option to define classes for extra navigation lists"
         ]
     },
     "authors": [

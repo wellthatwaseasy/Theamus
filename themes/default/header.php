@@ -51,7 +51,7 @@
 
         <!-- Responsive Layout link -->
         <a href="#" id="nav-response-btn" data-open=".main-nav">
-            <span class="glyphicon glyphicon-align-justify"></span>
+            <span class="glyphicon ion-navicon"></span>
         </a>
     </nav>
 </div>
