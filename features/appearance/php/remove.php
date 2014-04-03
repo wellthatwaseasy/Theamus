@@ -34,4 +34,6 @@ if (!empty($error)) {
 	// Remove the database entry
 	$sql['delete'] = "DELETE FROM `".$themes_table."` WHERE `id`='".$id."'";
 	$tData->query($sql['delete']);
+        
+        $tData->query("DELETE FROM `".$tDataClass->prefix."_themes-data` WHERE `theme`='".$theme['alias']."'");
 }
