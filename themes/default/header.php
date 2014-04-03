@@ -12,6 +12,7 @@
             </a>
         </div>
 
+        <?php if (!$tUser->is_admin()): ?>
         <div class="site_header-user right">
             <?php if ($tUser->user != false): ?>
             <ul class="nav nav-inline">
@@ -40,6 +41,7 @@
             </ul>
             <?php endif; // End user not logged in ?>
         </div>
+        <?php endif; // end user not admin ?>
         <div class="clearfix"></div>
     </header>
 

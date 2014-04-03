@@ -35,8 +35,7 @@
     "areas":
         {
             "header":"header.php",
-            "body":"body.php",
-            "extra-nav":"extra-nav.php"
+            "body":"body.php"
         },
     "navigation": ["main"],
     "settings": false,

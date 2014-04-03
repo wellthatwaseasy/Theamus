@@ -13,7 +13,7 @@
             ["renamed", "themes/default/body.php"],
             ["renamed", "themes/default/empty.php"],
             ["renamed", "themes/default/error.php"],
-            ["renamed", "themes/default/extra-nav.php"],
+            ["removed", "themes/default/extra-nav.html"],
             ["renamed", "themes/default/header.php"],
             ["renamed", "themes/default/homepage.php"],
             ["renamed", "themes/default/index.php"],
