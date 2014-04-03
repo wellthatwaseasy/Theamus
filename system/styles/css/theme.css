@@ -428,6 +428,11 @@ label {
 .form-group {
 	margin-bottom: 15px;
 }
+.form-header {
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 15px;
+    margin-bottom: 10px;
+}
 .form-control {
 	background-color: #FFF;
 	background-image: none;
