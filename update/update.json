@@ -29,21 +29,27 @@
             ["created", "system/styles/css/theme.css"],
             ["created", "system/styles/css/ionicons.css"],
             ["created", "system/styles/css/ionicons-license"],
+			["created", "system/styles/fonts/ionicons.eot"],
+			["created", "system/styles/fonts/ionicons.svg"],
+			["created", "system/styles/fonts/ionicons.ttf"],
+			["created", "system/styles/fonts/ionicons.woff"],
             ["created", "themes/admin/css/admin.css"],
             ["modified", "themes/admin/js/admin.js"],
             ["modified", "themes/admin/css/main.css"],
-            ["modified", "themes/admin/html.php"]
+            ["modified", "themes/admin/html.php"],
+			["modified", "features/accounts/php/remove.php"]
         ],
         "bugs": [
-            "Updated the way themes are made/handled to be less retarded.",
+            "Updated the way themes are made/handled to be less retarded",
             "Fixed a few styling bugs in the default theme 'homepage' template",
-            "Added a base theme that will be required for all things related to Theamus. The purpose of this is to provide a structure on the style of forms/pages.  It's based on Bootstrap.",
-            "Updated the login form to be a part of the Theamus API.",
+            "Added a base theme that will be required for all things related to Theamus. The purpose of this is to provide a structure on the style of forms/pages.  It's based on Bootstrap",
+            "Updated the login form to be a part of the Theamus API",
             "Updated the default theme to be mobile-friendly! :)",
             "Fixed an issue with the admin panel styling",
             "Made changes to the styling defaults",
-            "Fixed an issue in the pagination class where it would die, killing the rest of the page.",
-            "Added an option to define classes for extra navigation lists"
+            "Fixed an issue in the pagination class where it would die, killing the rest of the page",
+            "Added an option to define classes for extra navigation lists",
+			"Fixed an issue where theme data wasn't being removed with the theme"
         ]
     },
     "authors": [
