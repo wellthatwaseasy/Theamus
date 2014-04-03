@@ -11,7 +11,6 @@ function toggle_pass() {
 
 function save_account() {
     scroll_top();
-    $("#user-result").html(working());
     theamus.ajax.run({
        url: "accounts/user/save-account/",
        result: "user-result",
@@ -24,7 +23,6 @@ function save_account() {
 
 function save_personal() {
     scroll_top();
-    $("#user-result").html(working());
     theamus.ajax.run({
         url: "accounts/user/save-personal/",
         result: "user-result",
@@ -36,7 +34,6 @@ function save_personal() {
 
 function save_contact() {
     scroll_top();
-    $("#user-result").html(working());
     theamus.ajax.run({
         url: "accounts/user/save-contact/",
         result: "user-result",

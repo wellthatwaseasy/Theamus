@@ -16,33 +16,23 @@ function format_phone($number) {
 
 ?>
 <div id="user-result"></div>
-<form class="site-form" id="user-form" onsubmit="return save_contact();">
-    <div class="site-formheader">
-        Contact Information
-    </div>
-    <div class="site-formrow">
-        <div class="site-formlabel">Email Address</div>
-        <div class="site-forminput">
-            <input type="text" name="email" maxlength="100" value="<?=$user['email']?>" />
-        </div>
-        <div class="site-forminfo">
-            Looks something like: "roadrunner@acme.org"
-        </div>
-    </div>
-    <div class="site-formrow">
-        <div class="site-formlabel">Phone Number</div>
-        <div class="site-forminput">
-            <input type="text" name="phone" maxlength="17" value="<?=format_phone($user['phone'])?>" />
-        </div>
-        <div class="site-forminfo">
-            Can be your cell, work, home, fax, or anything else you can think of.
-        </div>
+<form class="form" id="user-form" onsubmit="return save_contact();">
+    <h2 class="form-header">Contact Information</h2>
+    <div class="form-group">
+        <label class="control-label" for="email">Email Address</label>
+        <input type="email" class="form-control" id="email" name="email" value="<?php echo $user['email']; ?>">
+        <p class="help-block">Looks something like: "roadrunner@acme.org"</p>
     </div>
 
-    <hr />
+    <div class="form-group">
+        <label class="control-label" for="phone">Phone Number</label>
+        <input type="text" class="form-control" id="phone" name="phone" maxlength="17" value="<?php echo format_phone($user['phone']); ?>">
+        <p class="help-block">Can be your cell, work, home, fax, or anything else you can think of.<p>
+    </div>
+
+    <hr class="form-split">
 
     <div class="site-formsubmitrow">
-        <input type="submit" value="Save" class="site-greenbtn" />
-        <input type="button" value="Cancel" class="site-redbtn" />
+        <button type="submit" class="btn btn-success">Save</button>
     </div>
 </form>

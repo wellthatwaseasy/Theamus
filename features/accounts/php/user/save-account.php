@@ -49,7 +49,7 @@ if ($user != false) {
     }
 
     if (!empty($error)) {
-        notify("site", "failure", $error[0]);
+        alert_notify("danger", $error[0]);
     } else {
         // Define database information
         $users_table = $tDataClass->prefix."_users";
@@ -60,7 +60,7 @@ if ($user != false) {
         // Remove the picture if necessary
         if ($remove_picture != false) {
             if (!@unlink($media_path.$remove_picture)) {
-                notify("site", "failure", "There was an error removing your old picture. "
+                alert_notify("danger", "There was an error removing your old picture. "
                         . "This may be because of file permissions.");
                 die();
             }
@@ -77,7 +77,7 @@ if ($user != false) {
                 // Run JS to update the pictures on the page
                 run_after_ajax("update_pics", '{"pic":"'.$filename.'"}');
             } else {
-                notify("site", "failure", "There was an error uploading your picture. "
+                alert_notify("danger", "There was an error uploading your picture. "
                         . "This may be because of file permissions.");
             }
         }
@@ -90,6 +90,6 @@ if ($user != false) {
         }
 
         // Show result message
-        notify("site", "success", "You account information has been saved.");
+        alert_notify("success", "You account information has been saved.");
     }
 }

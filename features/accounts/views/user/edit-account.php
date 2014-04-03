@@ -2,82 +2,58 @@
 $user = $tUser->user;
 ?>
 <div id="user-result"></div>
-<form class="site-form" id="user-form" onsubmit="return save_account();">
-    <div class="site-formheader">
-        Login Information
-    </div>
-    <div class="site-formrow">
-        <div class="site-formlabel">Username</div>
-        <div class="site-forminput">
-            <input type="text" name="username" disabled value="<?=$user['username']?>" />
-        </div>
-        <div class="site-forminfo">
-            This is the username you log in with, it's unique to you and cannot
-            be changed.
-        </div>
-    </div>
-    <div class="site-formrow">
-        <div class="site-formlabel sfl-float">Change Password</div>
-        <div class="site-forminput">
-            <div class="site-cboxwrapper">
-                <input type="checkbox" class="site-switchcbox" name="change_pass"
-                  id="changePass" onchange="toggle_pass();">
-                <label class="site-switchlabel yn" for="changePass">
-                  <span class="site-switchinner"></span>
-                  <span class="site-switchswitch"></span>
-                </label>
-            </div>
-        </div>
-        <div class="clearfix"></div>
-    </div>
-    <div id="passwords" style="display:none;">
-        <hr />
-        <div class="site-formrow">
-            <div class="site-formlabel">New Password</div>
-            <div class="site-forminput">
-                <input type="password" id="password" maxlength="30" name="password" />
-            </div>
-            <div class="site-forminfo">
-                What would you like your new password to be?<br />
-                I bet it's something good.
-            </div>
-        </div>
-        <div class="site-formrow">
-            <div class="site-formlabel">Repeat Password</div>
-            <div class="site-forminput">
-                <input type="password" maxlength="30" name="repeat_password" />
-            </div>
-            <div class="site-forminfo">
-                This should match the password above.
-            </div>
-        </div>
-        <hr />
+<form class="form" id="user-form" onsubmit="return save_account();">
+    <h2 class="form-header">Login Information</h2>
+    <div class="form-group">
+        <label class="control-label">Username</label>
+        <div class="form-control-static"><?php echo $user['username']; ?></div>
+        <p class="help-block">This is the username you log in with, it's unique to you and cannot be changed.</p>
     </div>
 
-    <div class="site-formheader">
-        Profile Picture
+
+    <div class="form-group">
+        <label class="control-label checkbox">
+            Change Password
+            <input type="checkbox" name="change_pass" id="changePass" onchange="toggle_pass();">
+        </label>
     </div>
-    <div class="site-formrow">
-        <div class="site-formlabel">Current Picture</div>
-        <div class="site-formimg">
+
+    <div id="passwords" style="display:none;">
+        <hr class="form-split">
+
+        <div class="form-group">
+            <label class="control-label" for="password">New Password</label>
+            <input type="password" id="password" name="password" class="form-control">
+            <p class="help-block">What would you like your new password to be?<br>I bet it's something good.</p>
+        </div>
+        <div class="form-group">
+            <label class="control-label" for="repeat-password">Repeat Password</label>
+            <input type="password" id="repeat-password" name="repeat_password" class="form-control">
+            <p class="help-block">This should match the password above.</p>
+        </div>
+
+        <hr class="form-split">
+    </div>
+
+    <h2 class="form-header">Profile Picture</h2>
+    <div class="form-group">
+        <label class="control-label">Current Picture</label>
+        <div class="form-control-static">
             <?php if ($user['picture'] == ""): ?>
-            <img id="current-pic" src="media/profiles/default-user-picture.png" height="150px" />
+            <img id="current-pic" src="media/profiles/default-user-picture.png" alt="" height="150">
             <?php else: ?>
-            <img id="current-pic" src="media/profiles/<?=$user['picture']?>" height="150px" />
+            <img id="current-pic" src="media/profiles/<?=$user['picture']?>" alt="" height="150">
             <?php endif; ?>
         </div>
     </div>
-    <div class="site-formrow">
-        <div class="site-formlabel">Change Picture</div>
-        <div class="site-forminput">
-            <input type="file" id="picture" name="picture" />
-        </div>
+    <div class="form-group">
+        <label class="control-label" for="picture">Change Picture</label>
+        <input type="file" class="form-control" id="picture" name="picture" />
     </div>
 
-    <hr />
+    <hr class="form-split">
 
     <div class="site-formsubmitrow">
-        <input type="submit" value="Save" class="site-greenbtn" />
-        <input type="button" value="Cancel" class="site-redbtn" />
+        <button type="submit" class="btn btn-success">Save</button>
     </div>
 </form>

@@ -55,7 +55,7 @@ if ($user != false) {
 
     // Show the errors
     if (!empty($error)) {
-        notify("site", "failure", $error[0]);
+        alert_notify("danger", $error[0]);
     } else {
         // Define the user's table
         $users_table = $tDataClass->prefix."_users";
@@ -68,6 +68,6 @@ if ($user != false) {
 
         // Notify the user
         run_after_ajax("update_name", '{"firstname":"'.$firstname.'","lastname":"'.$lastname.'"}');
-        notify("site", "success", "Your personal information has been saved.");
+        alert_notify("success", "Your personal information has been saved.");
     }
 }

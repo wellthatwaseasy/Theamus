@@ -39,7 +39,7 @@ if ($user != false) {
 
     // Show errors
     if (!empty($error)) {
-        notify("site", "failure", $error[0]);
+        alert_notify("danger", $error[0]);
     } else {
         // Define the user table
         $users_table = $tDataClass->prefix."_users";
@@ -50,6 +50,6 @@ if ($user != false) {
         $qry['update'] = $tData->query($sql['update']);
 
         // Notify the user
-        notify("site", "success", "Your contact information has been saved.");
+        alert_notify("success", "Your contact information has been saved.");
     }
 }
