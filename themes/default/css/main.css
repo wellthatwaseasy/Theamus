@@ -156,6 +156,7 @@
     opacity: 0;
     transition: visibility 0s ease .3s;
     visibility: hidden;
+    z-index:100;
 }
 .site_header-user ul > li > ul > li {
     background-color: #666;
@@ -203,6 +204,7 @@
 }
 .nav-inline li ul {
     background-color: #666;
+    z-index: 100;
 }
 .nav-inline li ul li:hover {
     background-color: #777;
