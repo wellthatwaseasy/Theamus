@@ -37,7 +37,21 @@
             ["modified", "themes/admin/js/admin.js"],
             ["modified", "themes/admin/css/main.css"],
             ["modified", "themes/admin/html.php"],
-			["modified", "features/accounts/php/remove.php"]
+			["modified", "features/accounts/php/remove.php"],
+            ["removed", "features/accounts/php/login.php"],
+            ["removed", "features/accounts/php/login.php"],
+            ["modified", "features/accounts/files.info.php"],
+            ["modified", "features/accounts/js/edit_user.js"],
+            ["created", "features/accounts/php/accounts-api.php"],
+            ["created", "features/accounts/php/accounts.class.php"],
+            ["modified", "features/accounts/php/user/save-account.php"],
+            ["modified", "features/accounts/php/user/save-contact.php"],
+            ["modified", "features/accounts/php/user/save-personal.php"],
+            ["modified", "features/accounts/views/register.php"],
+            ["modified", "features/accounts/views/user/edit-account.php"],
+            ["modified", "features/accounts/views/user/edit-contact.php"],
+            ["modified", "features/accounts/views/user/edit-personal.php"],
+            ["modified", "features/accounts/views/user/other-information.php"]
         ],
         "bugs": [
             "Updated the way themes are made/handled to be less retarded",
