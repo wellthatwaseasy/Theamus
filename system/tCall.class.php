@@ -1219,11 +1219,13 @@ class tCall {
 
                 $data['name'] = $settings['name'];
                 $data['base'] = $this->base_url;
-                $data['title'] = "Error";
+                $data['title'] = $data['header'] = "Error";
                 $data['theme'] = $this->define_theme_path();
                 $data['template'] = "error";
                 $data['error_type'] = $type;
-                $data['js'] = $data['css'] = "";
+                $data['nav']        = false;
+                $data['css']        = $this->get_css();
+                $data['js']         = $this->get_javascript();
 
                 $tTheme = new tTheme($data);
             }
