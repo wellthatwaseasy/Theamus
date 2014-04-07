@@ -85,22 +85,23 @@ function add_css(source) {
     base = $("base")[0].href;
     styles = $("link");
     sources = new Array;
-    remove = new Array;
     head = $("head")[0];
     check_source = source.split("?")[0];
 
     for (var i = 0; i < styles.length; i++) {
         if (styles[i].href !== "") {
             sources.push(styles[i].href.split("?")[0]);
-
-            if (sources.indexOf(base + check_source) !== -1) {
-                $(styles[i]).remove();
-            }
         }
     }
 
-    $("head").append("<link rel='stylesheet' type='text/css' " +
-            "href='" + source + "' />");
+    if (sources.indexOf(base + check_source) !== -1) {
+        var remove_links = $("[href^='"+sources[sources.indexOf(base + check_source)].replace(base, "")+"']");
+        for (var i = 0; i < remove_links.length; i++) {
+            $(remove_links[i]).remove();
+        }
+    }
+
+    $("head").append("<link rel='stylesheet' type='text/css' "+"href='"+source+"' />");
 }
 
 function countdown(text, time, showTime) {
