@@ -63,7 +63,9 @@
             "Made changes to the styling defaults",
             "Fixed an issue in the pagination class where it would die, killing the rest of the page",
             "Added an option to define classes for extra navigation lists",
-			"Fixed an issue where theme data wasn't being removed with the theme"
+			"Fixed an issue where theme data wasn't being removed with the theme",
+            "Fixed a few issues where the blank theme template was still outputting content",
+            "Fixed an issue where some CSS files were being accidently deleted"
         ]
     },
     "authors": [
