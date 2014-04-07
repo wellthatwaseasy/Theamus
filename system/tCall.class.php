@@ -711,17 +711,18 @@ class tCall {
 
         $url_params = $this->parameters;
 
-        if ($this->define_classes()) {
-            $init_class = $this->init_class;
-            ${$init_class} = new $init_class;
-        }
-
         $this->tUser->set_420hash();
 
         $q = $this->tData->query("SELECT * FROM `".$this->tDataClass->prefix."_settings`");
         $settings = $q->fetch_assoc();
 
         $data = $this->define_theme_data($settings['name']);
+        if ($this->define_classes()) {
+            $data['init-class'] = $this->init_class;
+        } else {
+            $data['init-class'] = false;
+        }
+
         unset($settings, $q);
         new tTheme($data);
         return;
@@ -923,6 +924,7 @@ class tCall {
      * @return string
      */
     private function get_css($for_ajax = false) {
+        $ret = array();
         if ($for_ajax == false) {
             $ret[] = $this->default_css();
         }
