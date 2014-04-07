@@ -1,0 +1,1 @@
+<?php $tTheme->blank_content(); ?>

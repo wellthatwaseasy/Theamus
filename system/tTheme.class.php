@@ -224,8 +224,36 @@ class tTheme {
         $tPages = new tPages();
         $tTheme = $this;
 
+        if ($this->data['init-class'] != false) {
+            ${$this->data['init-class']} = new $this->data['init-class'];
+        }
+
         $ajax_hash_cookie = isset($_COOKIE['420hash']) ? $_COOKIE['420hash'] : "";
         echo '<input type="hidden" id="ajax-hash-data" name="ajax-hash-data" value=\'{"key":"'.$ajax_hash_cookie.'"}\' />';
+        include $this->data['file_path'];
+        return;
+    }
+
+
+    /**
+     * Includes the content into a blank page
+     *
+     * @return
+     */
+    public function blank_content() {
+        $tDataClass = $this->tData;
+        $tDataClass->prefix = $this->tData->prefix;
+        $tData = $this->tData->db;
+
+        $tFiles = new tFiles();
+        $tUser = $this->tUser;
+        $tPages = new tPages();
+        $tTheme = $this;
+
+        if ($this->data['init-class'] != false) {
+            ${$this->data['init-class']} = new $this->data['init-class'];
+        }
+
         include $this->data['file_path'];
         return;
     }
