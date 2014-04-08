@@ -18,5 +18,5 @@
     </div>
     <div id="remove_result"></div>
     <div id="media-result"></div>
-	<div class="admin-list" id="media_list" style="min-width:1050px;"></div>
+	<div class="admin-list" id="media_list" style="min-width:700px;"></div>
 </div>

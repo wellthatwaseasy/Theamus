@@ -30,5 +30,5 @@
     <div id="remove_result"></div>
 
     <div id="appearance_index-result"></div>
-	<div class="admin-list" id="themes_list" style="min-width:1050px;"></div>
+	<div class="admin-list" id="themes_list" style="min-width:700px;"></div>
 </div>

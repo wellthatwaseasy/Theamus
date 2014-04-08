@@ -23,23 +23,17 @@ $template_header = <<<TEMPLATE
         <ul class="header">
             <li style="width: 150px;">Username</li>
             <li style="width: 200px;">Full Name</li>
-            <li style="width: 175px; text-align: center;">Administrator</li>
-            <li style="width: 100px; text-align: center;">Active User</li>
-            <li>Birthday</li>
         </ul>
 TEMPLATE;
 
 $template = <<<TEMPLATE
 <ul>
-    <li style="width: 150px;">%username%<li>
-    <li style="width: 200px;">::urldecode("%firstname% %lastname%")::<li>
-    <li style="width: 100px; text-align: center;">::%admin% > 0 ? "Yes" : "No"::</li>
-    <li style="width: 100px; text-align: center;">::%active% > 0 ? "Yes" : "No"::</li>
-    <li>::date('l, F jS, Y', strtotime('%birthday%'))::</li>
     <li class="admin-listoptions">
         ::\$tUser->has_permission("edit_users") ? "<a href='#' onclick=\"return admin_go('accounts', 'accounts/edit&id=%id%');\">Edit</a>" : ""::
         ::\$tUser->has_permission("remove_users") && %permanent% == 0 ? "<a href='#' onclick=\"return remove_user('%id%');\">Remove</a>" : ""::
     </li>
+    <li style="width: 150px;">%username%</li>
+    <li style="width: 200px;">::urldecode("%firstname% %lastname%")::</li>
 </ul>
 TEMPLATE;
 

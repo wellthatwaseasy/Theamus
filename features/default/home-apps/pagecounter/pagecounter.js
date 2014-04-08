@@ -24,7 +24,7 @@ function show_count_chart() {
                 strokeColor: "rgba(220,220,220,1)",
                 data: info[1]
             }]
-    }
+    };
 
     largest = Math.max.apply(Math, info[1]);
     scale_override = {

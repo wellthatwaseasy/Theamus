@@ -21,7 +21,7 @@ $template_header = <<<TEMPLATE
         <ul class="header">
             <li style="width: 200px;">Name</li>
             <li style="width: 200px;">Folder</li>
-            <li style="width: 100px; text-align: center;">Active</li>
+            <li style="width: 100px;">Active</li>
         </ul>
 TEMPLATE;
 
@@ -29,7 +29,7 @@ $template = <<<TEMPLATE
 <ul>
     <li style="width: 200px;">::strlen("%name%") > 25 ? substr("%name%", 0, 25)."..." : "%name%"::<li>
     <li style="width: 200px;">%alias%<li>
-    <li style="width: 100px; text-align: center;">::%active% > 0 ? "Yes" : "No"::</li>
+    <li style="width: 100px;">::%active% > 0 ? "Yes" : "No"::</li>
     <li class="admin-listoptions">
         ::\$tUser->has_permission("edit_themes") ? "<a href='#' onclick=\"return admin_go('settings', 'appearance/edit&id=%id%');\">Edit</a>" : ""::
         ::\$tUser->has_permission("edit_themes") && %active% != 1 ? "<a href='#' name='make-active' data-id='%id%'>Make Active</a>" : ""::

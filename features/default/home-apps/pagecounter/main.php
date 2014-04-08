@@ -12,7 +12,7 @@ if ($qry['find']) {
         $pages = json_encode($pages);
 ?>
 <input type="hidden" id="pages" value='<?=$pages?>' />
-<canvas id="page_canvas" width="465" height="250" style="margin:0 auto; display:block;"></canvas>
+<canvas id="page_canvas" width="400" height="250" style="margin:0 auto; display:block;"></canvas>
 <?php
     } else {
         notify("admin", "info", "You have no pages to show!");

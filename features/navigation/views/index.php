@@ -29,5 +29,5 @@
         <div id="remove-window" class="navigation-window"></div>
     </div>
     <div id="remove_result"></div>
-	<div class="admin-list" id="navigation-list" style="min-width:1050px;"></div>
+	<div class="admin-list" id="navigation-list" style="min-width:700px;"></div>
 </div>

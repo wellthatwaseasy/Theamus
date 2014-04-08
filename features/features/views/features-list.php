@@ -25,14 +25,14 @@ TEMPLATE;
 
 $template = <<<TEMPLATE
 <ul>
-    <li style="width: 175px;">
-        ::strlen("%name%") >= 20 ? substr("%name%", 0, 20)."..." : "%name%"::
-    <li>
-    <li style="text-align:center; width: 200px;">::%enabled% == 1 ? "Yes" : "No"::<li>
     <li class="admin-listoptions">
         ::\$tUser->has_permission("edit_features") ? "<a href='#' onclick=\"return admin_go('features', 'features/edit&id=%id%');\">Edit</a>" : ""::
         ::\$tUser->has_permission("remove_features") && %permanent% == 0 ? "<a href='#' onclick=\"return remove_feature('%id%');\">Remove</a>" : ""::
     </li>
+    <li style="width: 175px;">
+        ::strlen("%name%") >= 20 ? substr("%name%", 0, 20)."..." : "%name%"::
+    </li>
+    <li style="text-align:center; width: 200px;">::%enabled% == 1 ? "Yes" : "No"::</li>
 </ul>
 TEMPLATE;
 

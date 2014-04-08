@@ -33,3 +33,16 @@
     padding: 10px 10px 0;
     text-align: right;
 }
+
+.path {
+    width: 350px;
+}
+
+@media (max-width: 900px) {
+    .affiliated-groups {
+        display: none !important;
+    }
+    .path {
+        width: 200px;
+    }
+}

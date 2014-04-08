@@ -57,16 +57,15 @@
     margin: 20px 0 0;
 }
 #apps > ul {
-    float:left;
+    float: left;
     list-style: none;
     margin: 0;
     min-height: 50px;
-    min-width: 500px;
     padding: 0;
-    width: 45%;
+    width: 450px;
 }
 #apps > ul:not(:first-child) {
-    margin-left: 20px;
+    margin-left: 45px;
 }
 #apps > ul > li .admin_container-header:hover {
     cursor: hand;
@@ -86,4 +85,13 @@
 .sortable-placeholder {
     border: 2px dashed #CCC;
     min-height: 50px;
+}
+@media (max-width: 900px) {
+    #apps > ul {
+        float: none;
+        margin: 0 0 20px;
+    }
+    #apps > ul:not(:first-child) {
+        margin: 0 0 20px;
+    }
 }

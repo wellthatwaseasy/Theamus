@@ -207,7 +207,7 @@
 .admin_content {
     max-width: 1500px;
     min-height: calc(100% - 5px);
-    min-width: 1000px;
+    min-width: 760px;
     position: relative;
 }
 .admin_content-footer {
@@ -386,6 +386,14 @@
 .admin-list > ul.header > li {
 	font-weight: bold;
     padding: 0 15px;
+}
+@media (max-width: 900px) {
+    .admin-list > ul > li {
+        padding: 2px;
+    }
+    .admin-list > ul.header > li {
+        padding: 0;
+    }
 }
 .admin-listoptions {
 	text-align: right;
