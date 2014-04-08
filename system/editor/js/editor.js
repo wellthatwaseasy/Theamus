@@ -38,20 +38,13 @@ var editor = new function() {
         editor.link_info_wrapper = document.getElementById(editor.link_info_wrapper_id);
         editor.sink_id = "editor_sink-wrapper";
         editor.sink = document.getElementById(editor.sink_id);
+        editor.codemirror = false;
         if (typeof CodeMirror !== "undefined") {
             if (CodeMirror.xml_loaded === undefined) {
                 var xml_script = "system/editor/js/codemirror/mode/xml/xml.js?x="+editor.load_time;
-                
+
                 if (check_js_file(xml_script) === true) add_js_file(xml_script);
                 add_css("system/editor/css/codemirror.css?x="+editor.load_time);
-            } else if (CodeMirror.xml_loaded) {
-                editor.codemirror = CodeMirror.fromTextArea(editor.code_el, {
-                    mode: "xml",
-                    lineNumbers: true
-                });
-                editor.codemirror_el = editor.codemirror.getWrapperElement();
-                if (editor.codemirror_el)
-                    editor.codemirror_el.classList.add("editor_code-input");
             }
         }
     };
@@ -59,7 +52,7 @@ var editor = new function() {
     this.initialize = function(argv) {
         // Define the load time, if it isn't defined already
         if (editor.load_time === undefined) editor.load_time = new Date().getTime();
-        
+
         var test = editor.test_load();
         editor.set_options(argv);
         if (!test) {
@@ -186,17 +179,19 @@ var editor = new function() {
     };
 
     this.add_event_listener = function(argv) {
-        if (argv.element.addEventListener) {
-            argv.element.addEventListener(argv.action, function(e) {
-                var parents = editor.parents(e.srcElement);
-                argv['do'](e);
-            }, false);
-        } else {
-            if (argv.action === "click") argv.action = "onclick";
-            if (argv.action === "keyup") argv.action = "onkeyup";
-            argv.element.attachEvent(argv.action, function(e) {
-                argv['do'](e);
-            });
+        if (argv.element !== undefined) {
+            if (argv.element.addEventListener) {
+                argv.element.addEventListener(argv.action, function(e) {
+                    var parents = editor.parents(e.srcElement);
+                    argv['do'](e);
+                }, false);
+            } else {
+                if (argv.action === "click") argv.action = "onclick";
+                if (argv.action === "keyup") argv.action = "onkeyup";
+                argv.element.attachEvent(argv.action, function(e) {
+                    argv['do'](e);
+                });
+            }
         }
     };
 
@@ -439,6 +434,16 @@ var editor = new function() {
     };
 
     this.toggle_code = function() {
+        if (editor.codemirror === false) {
+            editor.codemirror = CodeMirror.fromTextArea(editor.code_el, {
+                mode: "xml",
+                lineNumbers: true
+            });
+            editor.codemirror_el = editor.codemirror.getWrapperElement();
+            if (editor.codemirror_el)
+                editor.codemirror_el.classList.add("editor_code-input");
+        }
+
         editor.add_current(document.querySelectorAll(".editor_togglecode")[0]);
         if (editor.codemirror_el.classList.contains("editor_code-open")) {
             editor.codemirror_el.classList.remove("editor_code-open");
@@ -539,7 +544,7 @@ var editor = new function() {
             if (new_height !== last) {
                 el.style.height = (93 + new_height)+"px";
                 content_el.style.top = "55px";
-                
+
                 $(".editor_window-submit").css("top", (55 + new_height));
                 setTimeout(function() {
                     editor.set_window_height(el, content_el, new_height);
@@ -789,7 +794,7 @@ var editor = new function() {
             }
         });
     };
-    
+
     this.add_img_tabs = function() {
         var image_tabs = "<div class='image-window-tabs'><a href='#' name='image_type' data-for='url'>Add Image from URL</a><a href='#' name='image_type' data-for='lib'>Add Image from Library</a></div>";
         $("#editor_wc-add-image").prepend(image_tabs);
