@@ -94,14 +94,16 @@ function add_css(source) {
         }
     }
 
-    if (sources.indexOf(base + check_source) !== -1) {
-        var remove_links = $("[href^='"+sources[sources.indexOf(base + check_source)].replace(base, "")+"']");
-        for (var i = 0; i < remove_links.length; i++) {
-            $(remove_links[i]).remove();
+    if (sources.indexOf(base+source) === -1) {
+        if (sources.indexOf(base+check_source) !== -1) {
+            var remove_links = $("[href^='"+sources[sources.indexOf(base + check_source)].replace(base, "")+"']");
+            for (var i = 0; i < remove_links.length; i++) {
+                $(remove_links[i]).remove();
+            }
         }
-    }
 
-    $("head").append("<link rel='stylesheet' type='text/css' "+"href='"+source+"' />");
+        $("head").append("<link rel='stylesheet' type='text/css' "+"href='"+source+"' />");
+    }
 }
 
 function countdown(text, time, showTime) {
