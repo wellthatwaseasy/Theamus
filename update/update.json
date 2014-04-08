@@ -52,7 +52,22 @@
             ["modified", "features/accounts/views/user/edit-account.php"],
             ["modified", "features/accounts/views/user/edit-contact.php"],
             ["modified", "features/accounts/views/user/edit-personal.php"],
-            ["modified", "features/accounts/views/user/other-information.php"]
+            ["modified", "features/accounts/views/user/other-information.php"],
+            ["modified", "features/accounts/views/index.php"],
+            ["modified", "features/accounts/views/users-list.php"],
+            ["modified", "features/appearance/views/index.php"],
+            ["modified", "features/appearance/views/themes-list.php"],
+            ["modified", "features/default/css/admin/admin-home.css"],
+            ["modified", "features/default/home-apps/pagecounter/main.php"],
+            ["modified", "features/default/home-apps/pagecounter/pagecounter.js"],
+            ["modified", "features/features/views/features-list.php"],
+            ["modified", "features/features/views/index.php"],
+            ["modified", "features/media/views/index.php"],
+            ["modified", "features/navigation/css/main.css"],
+            ["modified", "features/navigation/views/index.php"],
+            ["modified", "features/navigation/views/navigation-list.php"],
+            ["modified", "features/pages/views/index.php"],
+            ["modified", "features/pages/views/pages-list.php"]
         ],
         "bugs": [
             "Updated the way themes are made/handled to be less retarded",
@@ -67,7 +82,8 @@
 			"Fixed an issue where theme data wasn't being removed with the theme",
             "Fixed a few issues where the blank theme template was still outputting content",
             "Fixed an issue where some CSS files were being accidently deleted",
-            "Fixed an issue with reloading javascript files that have already been loaded"
+            "Fixed an issue with reloading javascript files that have already been loaded",
+            "Fixed the administration panel to work on screens 800x600 and larger"
         ]
     },
     "authors": [
