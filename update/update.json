@@ -26,6 +26,7 @@
             ["modified", "features/accounts/views/login.php"],
             ["modified", "features/accounts/config.php"],
             ["modified", "system/js/main.js"],
+            ["modified", "system/editor/js/main.js"],
             ["created", "system/styles/css/theme.css"],
             ["created", "system/styles/css/ionicons.css"],
             ["created", "system/styles/css/ionicons-license"],
@@ -65,7 +66,8 @@
             "Added an option to define classes for extra navigation lists",
 			"Fixed an issue where theme data wasn't being removed with the theme",
             "Fixed a few issues where the blank theme template was still outputting content",
-            "Fixed an issue where some CSS files were being accidently deleted"
+            "Fixed an issue where some CSS files were being accidently deleted",
+            "Fixed an issue with reloading javascript files that have already been loaded"
         ]
     },
     "authors": [
