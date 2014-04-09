@@ -215,6 +215,26 @@
 #nav-response-btn {
     margin: 20px 20px 0 0;
 }
+@media (max-width: 768px) {
+    nav.content-wrapper {
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        z-index: 10;
+    }
+    #nav-response-btn {
+        z-index: 10;
+    }
+    .black_bar:before,
+    .black_bar:after {
+        content: " ";
+        display: table;
+    }
+    .black_bar:after {
+        clear: both;
+    }
+}
 
 /* Content */
 .site_content-header {
@@ -237,7 +257,10 @@
 @media (max-width: 768px) {
     .site_content-header {
         font-size: 2.5em;
-        padding: 10px 10px;
+        padding: 10px;
+    }
+    .site_content {
+        padding: 10px 15px;
     }
 }
 .site_content-nav {

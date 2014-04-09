@@ -46,14 +46,14 @@
     </header>
 
     <nav class="content-wrapper">
-        <ul class="nav nav-inline main-nav">
-            <li class="home"><a href="#">Home</a></li>
-            <?php echo $tTheme->get_page_navigation("main"); ?>
-        </ul>
-
         <!-- Responsive Layout link -->
         <a href="#" id="nav-response-btn" data-open=".main-nav">
             <span class="glyphicon ion-navicon"></span>
         </a>
+        
+        <ul class="nav nav-inline main-nav">
+            <li class="home"><a href="#">Home</a></li>
+            <?php echo $tTheme->get_page_navigation("main"); ?>
+        </ul>
     </nav>
 </div>
