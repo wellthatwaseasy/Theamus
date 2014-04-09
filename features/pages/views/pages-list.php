@@ -18,7 +18,7 @@ $s = "SELECT * FROM `".$pages_table."` WHERE "
 
 $template_header = <<<TEMPLATE
         <ul class="header">
-            <li style="width: 150px;">Title</li>
+            <li style="width: 300px;">Title</li>
             <li style="width: 200px;">Views</li>
         </ul>
 TEMPLATE;
@@ -29,7 +29,7 @@ $template = <<<TEMPLATE
         ::\$tUser->has_permission("edit_pages") ? "<a href='#' onclick=\"return admin_go('pages', 'pages/edit&id=%id%');\">Edit</a>" : ""::
         ::\$tUser->has_permission("remove_pages") && %permanent% == 0 ? "<a href='#' onclick=\"return remove_page('%id%');\">Remove</a>" : ""::
     </li>
-    <li style="width: 150px;">%title%</li>
+    <li style="width: 300px;">::strlen("%title%") > 40 ? substr("%title%", 0, 40)."..." : "%title%"::</li>
     <li style="width: 200px;">%views%</li>
 </ul>
 TEMPLATE;

@@ -4,14 +4,18 @@ $post = filter_input_array(INPUT_POST);
 
 // Get the page title
 if (isset($post['title'])) {
-    $title = urldecode($post['title']);
+    $title = htmlspecialchars(urldecode($post['title']));
     $alias = "";
     if ($title != "" ) {
-        if (!preg_match("/[^a-zA-Z0-9 ]/", $title)) {
-            $alias = $tData->real_escape_string(str_replace(" ", "_", strtolower($title)));
-            $title = $tData->real_escape_string($title);
-        } else {
-            $error[] = "The title must be alphanumeric only.";
+        // Define the title and alias
+        $title = $tData->real_escape_string($title);
+        $clean_alias = preg_replace("/[^a-zA-Z0-9 ]/", '', htmlspecialchars_decode($title));
+        $alias = $tData->real_escape_string(strtolower(str_replace(" ", "_", trim($clean_alias))));
+
+        // Check the database for an existing page
+        $query = $tData->query("SELECT * FROM `".$tDataClass->prefix."_pages` WHERE `alias`='$alias'");
+        if ($query->num_rows > 0) {
+            $error[] = "A page with this title/alias already exists.  Please choose another.";
         }
     } else {
         $error[] = "Please fill out the 'Page Title' field.";
@@ -20,7 +24,7 @@ if (isset($post['title'])) {
 
 // Get the page content
 if (isset($post['content'])) {
-    $content = urldecode($post['content']);
+    $content = strip_tags(urldecode($post['content']));
     if ($content != "") {
         $content = $tData->real_escape_string($content);
     } else {

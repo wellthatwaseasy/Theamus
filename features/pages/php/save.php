@@ -7,6 +7,14 @@ if (isset($post['page_id'])) {
     $id = $post['page_id'];
     if ($id != "") {
         $id = $tData->real_escape_string($id);
+
+        // Get the page information
+        $query = $tData->query("SELECT * FROM `".$tDataClass->prefix."_pages` WHERE `id`='$id'");
+        if ($query) {
+            $page = $query->fetch_assoc();
+        } else {
+            $error[] = "There was an error finding the page information in the database.";
+        }
     } else {
         $error[] = "Invalid ID value.";
     }
@@ -14,14 +22,20 @@ if (isset($post['page_id'])) {
 
 // Get the page title
 if (isset($post['title'])) {
-    $title = urldecode($post['title']);
+    $title = htmlspecialchars(urldecode($post['title']));
     $alias = "";
     if ($title != "" ) {
-        if (!preg_match("/[^a-zA-Z0-9 ]/", $title)) {
-            $alias = $tData->real_escape_string(str_replace(" ", "_", strtolower($title)));
-            $title = $tData->real_escape_string($title);
-        } else {
-            $error[] = "The title must be alphanumeric only.";
+        // Define the title and alias
+        $title = $tData->real_escape_string($title);
+        $clean_alias = preg_replace("/[^a-zA-Z0-9 ]/", '', htmlspecialchars_decode($title));
+        $alias = $tData->real_escape_string(strtolower(str_replace(" ", "_", trim($clean_alias))));
+
+        // Check the database for an existing page
+        if ($alias != $page['alias']) {
+            $query = $tData->query("SELECT * FROM `".$tDataClass->prefix."_pages` WHERE `alias`='$alias'");
+            if ($query->num_rows > 0) {
+                $error[] = "A page with this title/alias already exists.  Please choose another.";
+            }
         }
     } else {
         $error[] = "Please fill out the 'Page Title' field.";
@@ -63,7 +77,7 @@ if (!empty($error)) {
     notify("admin", "failure", $error[0]);
 } else {
     $pages_table = $tDataClass->prefix."_pages";
-    $sql['update'] = "UPDATE `$pages_table` SET "
+    $sql['update'] = "UPDATE `$pages_table` SET `alias`='$alias', "
         . "`title`='$title', `content`='$content', `groups`='$groups',"
         . "`theme`='$theme', `navigation`='$nav' WHERE `id`=$id";
 

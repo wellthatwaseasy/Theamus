@@ -1,10 +1,9 @@
-function get_chart_data() {
-    var json, labels = [], data = [], info = [];
-    json = $.parseJSON($("#pages")[0].value);
+function get_chart_data(pages) {
+    var labels = [], data = [], info = [];
 
-    for (key in json) {
+    for (key in pages) {
         labels.push(key);
-        data.push(json[key]);
+        data.push(pages[key]);
     }
 
     info.push(labels);
@@ -13,10 +12,10 @@ function get_chart_data() {
     return info;
 }
 
-function show_count_chart() {
+function show_count_chart(pages) {
     var info, chart_data, page_chart, largest, scale_override;
 
-    info = get_chart_data();
+    info = get_chart_data(pages);
     chart_data = {
         labels: info[0],
         datasets: [{
@@ -43,7 +42,3 @@ function show_count_chart() {
         }, 1000);
     }
 }
-
-$(document).ready(function() {
-    show_count_chart();
-});
