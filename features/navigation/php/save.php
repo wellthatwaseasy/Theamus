@@ -9,25 +9,37 @@ $id = ""; // Default for check query later on
 // Link ID
 if ($post['link-id'] != "") {
     $id = $tData->real_escape_string($post['link-id']);
+
+    // Get the link information
+    $query = $tData->query("SELECT * FROM `".$tDataClass->prefix."_links` WHERE `id`='$id'");
+    if ($query) {
+        $link = $query->fetch_assoc();
+    } else {
+        $error[] = "There was an error finding the link information in the database.";
+    }
 } else {
     $error[] = "Unkown link ID.";
 }
 
 // Link text
 if ($post['text'] != "") {
-    $text = urldecode($post['text']);
-    $alias = str_replace(" ", "_", strtolower($text));
+    $text = htmlspecialchars(urldecode($post['text']));
 
     // Check for the length of the link text
     if (strlen($text) < 2) {
         $error[] = "The link text must be at least 2 characters long.";
     } else {
-        // Allow only upper/lowercase letters, numbers and spaces
-        if (!preg_match("/[^a-zA-Z0-9 ]/", $text)) {
-            $text  = $tData->real_escape_string($text);
-            $alias = $tData->real_escape_string($alias);
-        } else {
-            $error[] = "The text can only contain alphabet letters and spaces.";
+        // Define the text and the alias
+        $text = $tData->real_escape_string($text);
+        $clean_alias = preg_replace("/[^a-zA-Z0-9 ]/", '', htmlspecialchars_decode($text));
+        $alias = $tData->real_escape_string(strtolower(str_replace(" ", "_", trim($clean_alias))));
+
+        // Check the database for an existing link
+        if ($alias != $link['alias']) {
+            $query = $tData->query("SELECT * FROM `".$tDataClass->prefix."_links` WHERE `alias`='$alias'");
+            if ($query->num_rows > 0) {
+                $error[] = "A link with this text/alias already exists.  Please choose another.";
+            }
         }
     }
 } else {
