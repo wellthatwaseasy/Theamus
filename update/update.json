@@ -67,7 +67,9 @@
             ["modified", "features/navigation/views/index.php"],
             ["modified", "features/navigation/views/navigation-list.php"],
             ["modified", "features/pages/views/index.php"],
-            ["modified", "features/pages/views/pages-list.php"]
+            ["modified", "features/pages/views/pages-list.php"],
+            ["modified", "features/navigation/php/create.php"],
+            ["modified", "features/navigation/php/save.php"]
         ],
         "bugs": [
             "Updated the way themes are made/handled to be less retarded",
@@ -83,7 +85,8 @@
             "Fixed a few issues where the blank theme template was still outputting content",
             "Fixed an issue where some CSS files were being accidently deleted",
             "Fixed an issue with reloading javascript files that have already been loaded",
-            "Fixed the administration panel to work on screens 800x600 and larger"
+            "Fixed the administration panel to work on screens 800x600 and larger",
+            "Fixed an issue where creating javascript links would add slashes at the end"
         ]
     },
     "authors": [
