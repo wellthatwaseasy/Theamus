@@ -89,7 +89,7 @@
             "Fixed an issue with reloading javascript files that have already been loaded",
             "Fixed the administration panel to work on screens 800x600 and larger",
             "Fixed an issue where creating javascript links would add slashes at the end",
-            "Page titles can now have special characters in them"
+            "Page titles and links can now have special characters in them"
         ]
     },
     "authors": [
