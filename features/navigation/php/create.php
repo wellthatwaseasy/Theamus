@@ -55,7 +55,11 @@ if ($post['path-type'] != "") {
     if ($path != "") {
         // Clean the path variable
         $path = trim(urldecode($path), "/");
-        $path = $tData->real_escape_string($path."/");
+        if ($type === "js") {
+            $path = $tData->real_escape_string($path);
+        } else {
+            $path = $tData->real_escape_string($path."/");
+        }
     } else {
         $error[] = "Please choose a path for this link to go to.";
     }
