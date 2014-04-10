@@ -2,6 +2,7 @@
 
 class Accounts {
     protected $tData;
+    protected $tUser;
 
     public function __construct() {
         $this->initialize_variables();
@@ -15,6 +16,7 @@ class Accounts {
         $this->tData = new tData();
         $this->tData->db = $this->tData->connect();
         $this->tData->prefix = $this->tData->get_system_prefix();
+        $this->tUser = new tUser();
     }
 
     /**

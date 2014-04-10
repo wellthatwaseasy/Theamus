@@ -43,6 +43,7 @@
                     form: $("#login-form")
                 },
                 success: function(data) {
+                    console.log(data);
                     if (typeof data !== "object") {
                         login_result.html(alert_notify("danger", "There was an issue logging in."));
                     } else {

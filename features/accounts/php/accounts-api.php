@@ -55,9 +55,8 @@ class AccountsApi extends Accounts {
             return $this->api_return;
         }
 
-        // Define a new session value and update the user's information with it
+        // Define a new session value
         $session = md5(time().$session_salt);
-        $this->tData->db->query("UPDATE `".$this->tData->prefix."_users` SET `session`='$session' WHERE `id`='".$row['id']."'");
 
         // Cookie expiration time
         $expire = time() + 3600;
@@ -67,11 +66,13 @@ class AccountsApi extends Accounts {
             }
         }
 
-        // Set the cookie for the user id and session id
-        setcookie("userid", $row['id'], $expire, "/");
-        setcookie("session", $session, $expire, "/");
-
-        return true;
+        // Update the user's session in the database
+        if ($this->tUser->add_user_session($row['id'], $session, $expire)) {
+            return true;
+        } else {
+            $this->api_error("There was an error updating/creating the session.");
+            return $this->api_return;
+        }
     }
 
     public function check_username($args) {
