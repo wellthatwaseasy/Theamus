@@ -13,8 +13,7 @@ $admin_files = array(
     // View files
     "adminHome.php",
     "admin/apps.php",
-    "admin/choice-window.php",
-    "test.php"
+    "admin/choice-window.php"
     );
 // Deny bad users
 $tUser->deny_non_admins($file, $admin_files);
