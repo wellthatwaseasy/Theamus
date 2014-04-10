@@ -40,7 +40,6 @@
             ["modified", "themes/admin/html.php"],
 			["modified", "features/accounts/php/remove.php"],
             ["removed", "features/accounts/php/login.php"],
-            ["removed", "features/accounts/php/login.php"],
             ["modified", "features/accounts/files.info.php"],
             ["modified", "features/accounts/js/edit_user.js"],
             ["created", "features/accounts/php/accounts-api.php"],

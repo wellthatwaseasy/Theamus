@@ -97,6 +97,14 @@ PRIMARY KEY (`id`),
 `permission` VARCHAR(100) NOT NULL);";
 
 
+// User Sessions
+$structure[] = "CREATE TABLE IF NOT EXISTS `".$prefix."_user-sessions` (
+`id` INT NOT NULL AUTO_INCREMENT,
+PRIMARY KEY(`id`),
+`key` TEXT NOT NULL,
+`value` TEXT NOT NULL,
+`selector` TEXT NOT NULL);";
+
 // Users
 $structure[] = "CREATE TABLE IF NOT EXISTS `".$prefix."_users` (
 `id` INT NOT NULL AUTO_INCREMENT,
