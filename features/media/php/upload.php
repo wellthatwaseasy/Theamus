@@ -3,7 +3,7 @@
 $error = array();
 $media_table = $tDataClass->prefix."_images";
 $file = $_FILES['file'];
-$allowed_media = array("jpg", "jpeg", "png", "gif", "webp");
+$allowed_media = array("jpg", "jpeg", "png", "gif", "webp", "pdf");
 $upload_path = ROOT."/media/images/";
 
 $name_array = explode(".", strtolower($file['name']));
@@ -19,16 +19,26 @@ if (in_array($extension, $allowed_media)) {
     $error[] = "This type of file is not allowed here. ($extension)";
 }
 
+// Define the media type
+$images = array("jpg", "jpeg", "png", "gif", "webp");
+if (in_array($extension, $images)) {
+    $type = "image";
+} elseif ($extension == "pdf") {
+    $type = "object";
+} else {
+    $type = "image";
+}
+
 if (!empty($error)) {
     echo "Failed. <span class='media_error-title' title='".$error[0]."'>?</span>";
 } else {
     if (move_uploaded_file($file['tmp_name'], $upload_path.$alias)) {
         $sql['add'] = "INSERT INTO `$media_table` ".
-            "(`path`, `file_name`, `file_size`) VALUES ".
-            "('$alias', '$name', '$size')";
+            "(`path`, `file_name`, `file_size`, `type`) VALUES ".
+            "('$alias', '$name', '$size', '$type')";
         $qry['add'] = $tData->query($sql['add']);
 
-        echo "Competed.";
+        echo "Completed.";
     } else {
         echo "Failed. <span class='media_error-title' "
         . "title='There was an error moving the uploaded file.'>?</span>";

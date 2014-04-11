@@ -19,9 +19,14 @@
     padding: 10px;
     position: relative;
 }
-.media_list-img > img {
+.media_list-img > img,
+.media_list-img > iframe {
     max-height: 225px;
     max-width: 300px;
+    overflow: hidden;
+}
+.media_list-img > iframe {
+    overflow: hidden;
 }
 
 .media_list-img:hover .media_list-options {

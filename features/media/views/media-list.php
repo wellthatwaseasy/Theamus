@@ -15,9 +15,10 @@ $template = <<<TEMPLATE
     <div class="media_list-img">
         <div class="media_list-options">
             <a href="#" onclick="return remove_media('%id%');" class="media_list-remove"
-                title="Remove this image">X</a>
+                title="Remove">X</a>
         </div>
-        <img src="media/images/%path%" alt="">
+        ::'%type%' == "image" ? '<img src="media/images/%path%" alt="">' : ""::
+        ::'%type%' == "object" ? '<iframe type="application/pdf" src="media/images/%path%"></iframe>' : ""::
     </div>
 TEMPLATE;
 
