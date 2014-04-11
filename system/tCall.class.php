@@ -182,14 +182,26 @@ class tCall {
 
 
     /**
+     * Lets the deconstruct function know whether or not to disconnect from the database or not
+     *
+     * @var boolean $no_init
+     */
+    private $no_init = false;
+
+
+    /**
      * Initiates the class and defines the class variables
      *
      * @param string $params
      * @return boolean
      */
-    function __construct($params) {
-        $this->initiate($params);
-        return true;
+    function __construct($params = false) {
+        if (gettype($params) == "string") {
+            $this->initiate($params);
+            return true;
+        } else {
+            $this->no_init = true;
+        }
     }
 
 
@@ -199,8 +211,10 @@ class tCall {
      * @return boolean
      */
     function __destruct() {
-        $this->tDataClass->disconnect();
-        return true;
+        if ($this->no_init == false) {
+            $this->tDataClass->disconnect();
+            return true;
+        }
     }
 
 
@@ -1484,5 +1498,73 @@ class tCall {
             }
         }
         return $request;
+    }
+
+    public function get_browser() {
+        $u_agent    = $_SERVER['HTTP_USER_AGENT'];
+        $bname      = 'Unknown';
+        $platform   = 'Unknown';
+        $version    = "";
+
+        // Get the platform
+        if (preg_match('/linux/i', $u_agent)) {
+            $platform = 'linux';
+        } elseif (preg_match('/macintosh|mac os x/i', $u_agent)) {
+            $platform = 'mac';
+        } elseif (preg_match('/windows|win32/i', $u_agent)) {
+            $platform = 'windows';
+        }
+
+        // Get the name of the agent
+        if(preg_match('/MSIE/i',$u_agent) && !preg_match('/Opera/i',$u_agent)) {
+            $bname = 'Internet Explorer';
+            $ub = "MSIE";
+        } elseif(preg_match('/Firefox/i',$u_agent)) {
+            $bname = 'Mozilla Firefox';
+            $ub = "Firefox";
+        } elseif(preg_match('/Chrome/i',$u_agent)) {
+            $bname = 'Google Chrome';
+            $ub = "Chrome";
+        } elseif(preg_match('/Safari/i',$u_agent)) {
+            $bname = 'Apple Safari';
+            $ub = "Safari";
+        } elseif(preg_match('/Opera/i',$u_agent)) {
+            $bname = 'Opera';
+            $ub = "Opera";
+        } elseif(preg_match('/Netscape/i',$u_agent)) {
+            $bname = 'Netscape';
+            $ub = "Netscape";
+        }
+
+        // Get the version number
+        $known = array('Version', $ub, 'other');
+        $pattern = '#(?<browser>'.join('|', $known).')[/ ]+(?<version>[0-9.|a-zA-Z.]*)#';
+        if (!preg_match_all($pattern, $u_agent, $matches)) {}
+
+        $i = count($matches['browser']);
+        if ($i != 1) {
+            // Check if version is before or after the name
+            if (strripos($u_agent,"Version") < strripos($u_agent,$ub)){
+                $version= $matches['version'][0];
+            } else {
+                $version= $matches['version'][1];
+            }
+        } else {
+            $version= $matches['version'][0];
+        }
+
+        // Check if we have a number
+        if ($version==null || $version=="") {
+            $version="?";
+        }
+
+        // Return the information
+        return array(
+            'agent'     => $u_agent,
+            'name'      => $bname,
+            'version'   => $version,
+            'platform'  => $platform,
+            'pattern'   => $pattern
+        );
     }
 }

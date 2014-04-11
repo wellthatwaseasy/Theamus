@@ -28,24 +28,29 @@ function update_02() {
 
 function update_11() {
     // Define the return array, connect and define database variables, define the file class
-    $return = array();
-    $tData = new tData();
-    $tData->db = $tData->connect();
-    $prefix = $tData->get_system_prefix();
-    $tFiles = new tFiles();
+    $return     = array();
+    $tData      = new tData();
+    $tData->db  = $tData->connect();
+    $prefix     = $tData->get_system_prefix();
 
     // Define the queries to perform
     $queries = array(
-        "CREATE TABLE IF NOT EXISTS `".$prefix."_user-sessions` (`id` INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(`id`), `key` TEXT NOT NULL, `value` TEXT NOT NULL, `selector` TEXT NOT NULL);",
-        "ALTER TABLE `".$prefix."_users` DROP COLUMN `session`"
+        "CREATE TABLE IF NOT EXISTS `".$prefix."_user-sessions` (`id` INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(`id`), `key` TEXT NOT NULL, `value` TEXT NOT NULL, `ip_address` TEXT NOT NULL, `user_id` INT NOT NULL);"
     );
+
+    // Define the drop queries
+    $drop_test_query = $tData->db->query("SELECT * FROM `".$prefix."_users`");
+    $drop_test = $drop_test_query->fetch_assoc();
+    if (isset($drop_test['session'])) {
+        $queries[] = "ALTER TABLE `".$prefix."_users` DROP COLUMN `session`";
+    }
 
     // Perform the queries
     foreach ($queries as $query) {
-        $return[] = $tData->query($query) ? true : false;
+        $return[] = $tData->db->query($query) ? true : false;
     }
 
-    // Remove files
+    // Define files to remove
     $files = array(
         "themes/default/blank.html",
         "themes/default/body.html",
@@ -56,10 +61,16 @@ function update_11() {
         "themes/default/homepage.html",
         "themes/default/index.html",
         "themes/default/login.html",
-        "features/accounts/php/login.php"
+        "features/accounts/php/login.php",
+        "features/accounts/php/register.php"
     );
+
+    // Remove the files
     foreach ($files as $file) {
-        unlink(path(ROOT."/$file"));
+        $file_path = path(ROOT."/$file");
+        if (file_exists($file_path)) {
+            unlink($file_path);
+        }
     }
 
     // Disconnect from the database and return
@@ -75,7 +86,7 @@ function update_version() {
     $prefix = $tDataClass->get_system_prefix();
 
     // Update the version
-    $return[] = $tData->query("UPDATE `".$prefix."_settings` SET `version`='1.01'") ? true : false;
+    $return[] = $tData->query("UPDATE `".$prefix."_settings` SET `version`='1.1'") ? true : false;
 
     // Disconnect from the database and return
     $tDataClass->disconnect();

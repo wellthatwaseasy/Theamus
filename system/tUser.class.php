@@ -69,6 +69,7 @@ class tUser {
         $this->tData = new tData();
         $this->tData->db = $this->tData->connect();
         $this->tData->prefix = $this->tData->get_system_prefix();
+        $this->tCall = new tCall(false);
         return true;
     }
 
@@ -119,11 +120,8 @@ class tUser {
             $user_sessions = $this->get_user_sessions(false, $this->user['id']);
             $user_ip = $_SERVER['REMOTE_ADDR'];
 
-            die(Pre($user_sessions[$user_ip]['session_key']." - ".$_COOKIE['session']));
-
-
             // Force a logout and go to the default page if the user isn't logged in
-            if (!isset($user_sessions[$user_ip])) {
+            if (!isset($user_sessions[$user_ip]) || empty($user_sessions[$user_ip])) {
                 $this->force_logout();
             } elseif ($user_sessions[$user_ip]['session_key'] != $_COOKIE['session']) {
                 $this->force_logout();
@@ -270,7 +268,7 @@ class tUser {
         }
 
         // Query the database for the current users IP address and check it
-        $query = $this->tData->db->query("SELECT * FROM `".$this->tData->prefix."_user-sessions` WHERE `key`='user_id' AND `value`='$user_id'");
+        $query = $this->tData->db->query("SELECT * FROM `".$this->tData->prefix."_user-sessions` WHERE `user_id`='$user_id'");
         if (!$query) {
             return array();
         }
@@ -278,7 +276,7 @@ class tUser {
         // Define the user's IP addresses
         $ip_addresses = array(); // blank for default
         while ($user = $query->fetch_assoc()) {
-            $ip_addresses[] = $user['selector'];
+            $ip_addresses[] = $user['ip_address'];
         }
 
         // Check and return the IP addresses
@@ -289,24 +287,20 @@ class tUser {
         // Define the return, temp and the ignore key array
         $return = array("user_id" => $user_id);
         $temp = array();
-        $ignore = array("user_id");
         $i = 0;
 
         // Loop through all of the IP addresses, gathering information
         foreach ($ip_addresses as $address) {
             // Query the database for information related to this IP address and check it
-            $query = $this->tData->db->query("SELECT * FROM `".$this->tData->prefix."_user-sessions` WHERE `selector`='$address'");
+            $query = $this->tData->db->query("SELECT * FROM `".$this->tData->prefix."_user-sessions` WHERE `ip_address`='$address' AND `user_id`='$user_id'");
             if (!$query) {
                 continue;
             }
 
             // Grab the information related to the IP
             while ($row = $query->fetch_assoc()) {
-                // Add the information to the temp
-                if (!in_array($row['key'], $ignore)) {
-                    $temp[$i][$row['key']] = $row['value'];
-                    $temp[$i]['ip_address'] = $row['selector'];
-                }
+                $temp[$address][$row['key']] = $row['value'];
+                $temp[$address]['ip_address'] = $address;
             }
 
             $i++; // count!
@@ -324,6 +318,9 @@ class tUser {
                 } elseif ($item['expires'] > time()) {
                     // Add the data to the return
                     $return[$ip] = $item;
+                } else {
+                    // define a blank array to return
+                    $return[$ip] = array();
                 }
             }
         }
@@ -347,11 +344,16 @@ class tUser {
         $user_sessions = $this->get_user_sessions(true, $user_id);
         $session = $user_sessions[$ip];
 
+        // Get the user browser information
+        $browser = $this->tCall->get_browser();
+        $user_browser   = $this->tData->db->real_escape_string($browser['name']." ".$browser['version']);
+
         // Define the update queries
         $sql = array(
-            "UPDATE `".$this->tData->prefix."_user-sessions` SET `value`='$session_key' WHERE `key`='session_key' AND `value`='".$session['session_key']."' AND `selector`='$ip';",
-            "UPDATE `".$this->tData->prefix."_user-sessions` SET `value`='$expire' WHERE `key`='expires' AND `value`='".$session['expires']."' AND `selector`='$ip';",
-            "UPDATE `".$this->tData->prefix."_user-sessions` SET `value`='".time()."' WHERE `key`='last_seen' AND `value`='".$session['last_seen']."' AND `selector`='$ip';"
+            "UPDATE `".$this->tData->prefix."_user-sessions` SET `value`='$session_key' WHERE `key`='session_key' AND `value`='".$session['session_key']."' AND `ip_address`='$ip' AND `user_id`='$user_id';",
+            "UPDATE `".$this->tData->prefix."_user-sessions` SET `value`='$expire' WHERE `key`='expires' AND `value`='".$session['expires']."' AND `ip_address`='$ip' AND `user_id`='$user_id';",
+            "UPDATE `".$this->tData->prefix."_user-sessions` SET `value`='".time()."' WHERE `key`='last_seen' AND `value`='".$session['last_seen']."' AND `ip_address`='$ip' AND `user_id`='$user_id';",
+            "UPDATE `".$this->tData->prefix."_user-sessions` SET `value`='$user_browser' WHERE `key`='browser' AND `value`='".$session['browser']."' AND `ip_address`='$ip' AND `user_id`='$user_id';"
         );
 
         // Query the database updating the user session information
@@ -397,11 +399,15 @@ class tUser {
             return false;
         }
 
+        // Get the user browser information
+        $browser = $this->tCall->get_browser();
+
         // Define SQL friendly variables
         $user_id        = $this->tData->db->real_escape_string($user_id);
         $session_key    = $this->tData->db->real_escape_string($session_key);
         $expire         = $this->tData->db->real_escape_string($expire);
         $ip             = $this->tData->db->real_escape_string($_SERVER['REMOTE_ADDR']);
+        $user_browser   = $this->tData->db->real_escape_string($browser['name']." ".$browser['version']);
 
         // Check if the user already has a session on this computer, it's just expired
         $user_sessions = $this->get_user_sessions(true, $user_id);
@@ -419,9 +425,9 @@ class tUser {
         }
 
         // Define the query to add to the database
-        if ($this->tData->db->query("INSERT INTO `".$this->tData->prefix."_user-sessions` (`key`, `value`, `selector`) VALUES ".
-            "('session_key', '$session_key', '$ip'), ('expires', '$expire', '$ip'), ('last_seen', '".time()."', '$ip'), ".
-            "('user_id', '$user_id', '$ip');")) {
+        if ($this->tData->db->query("INSERT INTO `".$this->tData->prefix."_user-sessions` (`key`, `value`, `ip_address`, `user_id`) VALUES ".
+            "('session_key', '$session_key', '$ip', '$user_id'), ('expires', '$expire', '$ip', '$user_id'), ('last_seen', '".time()."', '$ip', '$user_id'), ".
+            "('browser', '$user_browser', '$ip', '$user_id');")) {
 
             // Set the cookies
             $this->set_cookies($user_id, $session_key, $expire);

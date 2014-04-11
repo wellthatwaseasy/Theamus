@@ -1,7 +1,9 @@
 {
-    "version": "1.02",
+    "version": "1.1",
     "changes": {
         "database": [
+            "Added a 'user-sessions' table to help manage user sessions",
+            "Removed the 'session' column from the users table"
         ],
         "files": [
             ["modified", "system/tCall.class.php"],
@@ -88,11 +90,12 @@
             "Fixed an issue with reloading javascript files that have already been loaded",
             "Fixed the administration panel to work on screens 800x600 and larger",
             "Fixed an issue where creating javascript links would add slashes at the end",
-            "Page titles and links can now have special characters in them"
+            "Page titles and links can now have special characters in them",
+            "Can now log in with multiple instances that are tracked."
         ]
     },
     "authors": [
-        ["Eyrah Temet", "Eyraahh", "eyrah.temet@gmail.com"]
+        ["Eyrah Temet", "Eyraahh", "eyrah.temet@theamus.com"]
     ],
     "run_update_script": true,
     "update_files": ["update-functions.php", "update.php"]

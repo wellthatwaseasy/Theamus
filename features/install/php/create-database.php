@@ -3,7 +3,7 @@
 $post = filter_input_array(INPUT_POST); // Filter in the user's input
 $error = array(); // Error checking array
 
-$version = "0.8"; // Default version
+$version = "1.1"; // Default version
 
 $reset = isset($post['reset']) ? $post['reset'] : "false";
 if ($reset != "false") $Installer->reset_database();
@@ -103,7 +103,8 @@ $structure[] = "CREATE TABLE IF NOT EXISTS `".$prefix."_user-sessions` (
 PRIMARY KEY(`id`),
 `key` TEXT NOT NULL,
 `value` TEXT NOT NULL,
-`selector` TEXT NOT NULL);";
+`ip_address` TEXT NOT NULL,
+`user_id` INT NOT NULL);";
 
 // Users
 $structure[] = "CREATE TABLE IF NOT EXISTS `".$prefix."_users` (
@@ -111,7 +112,6 @@ $structure[] = "CREATE TABLE IF NOT EXISTS `".$prefix."_users` (
 PRIMARY KEY(`id`),
 `username` VARCHAR(25) NOT NULL,
 `password` VARCHAR(100) NOT NULL,
-`session` VARCHAR(64) NOT NULL,
 `email` VARCHAR(150) NOT NULL,
 `firstname` VARCHAR(30) NOT NULL,
 `lastname` VARCHAR(30) NOT NULL,
