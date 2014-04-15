@@ -86,7 +86,7 @@
     border: 2px dashed #CCC;
     min-height: 50px;
 }
-@media (max-width: 900px) {
+@media (max-width: 800px) {
     #apps > ul {
         float: none;
         margin: 0 0 20px;
