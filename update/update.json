@@ -29,6 +29,10 @@
             ["modified", "features/accounts/config.php"],
             ["modified", "system/js/main.js"],
             ["modified", "system/editor/js/main.js"],
+            ["modified", "system/editor/js/editor.js"],
+            ["modified", "system/editor/css/editor.css"],
+            ["modified", "system/editor/windows/add-image.php"],
+            ["modified", "system/editor/windows/edit-image.php"],
             ["created", "system/styles/css/theme.css"],
             ["created", "system/styles/css/ionicons.css"],
             ["created", "system/styles/css/ionicons-license"],
@@ -72,7 +76,13 @@
             ["modified", "features/navigation/php/create.php"],
             ["modified", "features/navigation/php/save.php"],
             ["modified", "features/pages/php/create.php"],
-            ["modified", "features/pages/php/save.php"]
+            ["modified", "features/pages/php/save.php"],
+            ["modified", "features/install/php/create-database.php"],
+            ["modified", "features/media/php/remove-media.php"],
+            ["modified", "features/media/php/upload.php"],
+            ["modified", "features/media/views/media-list.php"],
+            ["modified", "update/update-functions.php"],
+            ["modified", "features/default/home-apps/summary/main.php"]
         ],
         "bugs": [
             "Updated the way themes are made/handled to be less retarded",
@@ -91,7 +101,8 @@
             "Fixed the administration panel to work on screens 800x600 and larger",
             "Fixed an issue where creating javascript links would add slashes at the end",
             "Page titles and links can now have special characters in them",
-            "Can now log in with multiple instances that are tracked."
+            "Can now log in with multiple instances that are tracked.",
+            "PDF's are now usable via the Media feature"
         ]
     },
     "authors": [
