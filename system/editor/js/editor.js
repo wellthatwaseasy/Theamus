@@ -416,7 +416,9 @@ var editor = new function() {
         this.editor_interact({
             action: ["keyup", "click"],
             "do": function() {
-                editor.codemirror.setValue(editor.decode_html(editor.br2nl(editor.el.innerHTML), "decode"));
+                if (editor.codemirror !== false) {
+                    editor.codemirror.setValue(editor.decode_html(editor.br2nl(editor.el.innerHTML), "decode"));
+                }
             }
         });
 
@@ -444,13 +446,16 @@ var editor = new function() {
                 editor.codemirror_el.classList.add("editor_code-input");
         }
 
-        editor.add_current(document.querySelectorAll(".editor_togglecode")[0]);
         if (editor.codemirror_el.classList.contains("editor_code-open")) {
+            editor.add_current(document.querySelectorAll(".editor_togglecode")[0], true);
             editor.codemirror_el.classList.remove("editor_code-open");
+            editor.codemirror_el.style.display = "none";
             editor.el.classList.remove("editor_fancy-closed");
             editor.el.innerHTML = editor.nl2br(editor.decode_html(editor.codemirror.getValue()), "encode");
         } else {
+            editor.add_current(document.querySelectorAll(".editor_togglecode")[0]);
             editor.codemirror_el.classList.add("editor_code-open");
+            editor.codemirror_el.style.display = "";
             editor.el.classList.add("editor_fancy-closed");
             editor.codemirror.setValue(editor.decode_html(editor.br2nl(editor.el.innerHTML), "decode"));
         }
@@ -542,7 +547,7 @@ var editor = new function() {
         if (el) {
             var new_height = $(content_el).height();
             if (new_height !== last) {
-                el.style.height = (93 + new_height)+"px";
+                el.style.height = (120 + new_height)+"px";
                 content_el.style.top = "55px";
 
                 $(".editor_window-submit").css("top", (55 + new_height));
@@ -819,6 +824,7 @@ var editor = new function() {
                             editor.add_img_tabs();
                             editor.set_window_height($(".editor_window")[0], $("#editor_wc-add-image")[0]);
                             editor.center_window($(".editor_window")[0]);
+                            editor.add_img_listeners();
                         }
                     });
                 }
@@ -900,17 +906,28 @@ var editor = new function() {
             height = document.getElementById("height"),
             align = document.getElementById("alignment"),
             path = document.getElementById("image_path"),
-            fail = false;
+            type = document.getElementById("image_type"),
+            fail = false,
+            src_attribute = "src";
         if (editor.serialized === true) rangy.deserializeSelection(editor.selection);
         editor.with_selection({
             "do": function(sel) {
-                var node = document.createElement("img");
                 if (link !== undefined && link.element !== undefined) {
+                    if (editor.dataset(link.element, "type") !== null) {
+                        var media_type = editor.dataset(link.element, "type"),
+                            node = document.createElement(media_type === "image" ? "img" : media_type),
+                            src_attribute = media_type === "object" ? "data" : "src";
+                    } else {
+                        fail = true;
+                    }
+
                     if (editor.dataset(link.element, "path") !== null) {
-                        node.setAttribute("src", editor.dataset(link.element, "path"));
+                        node.setAttribute(src_attribute, editor.dataset(link.element, "path"));
                     } else fail = true;
                 } else {
-                    if (path !== null) node.setAttribute("src", path.value);
+                    node = document.createElement(type.value);
+                    src_attribute = type.value !== "IMG" ? "data" : "src";
+                    if (path !== null) node.setAttribute(src_attribute, path.value);
                     else fail = true;
                 }
                 if (fail === false) {
@@ -943,18 +960,23 @@ var editor = new function() {
         editor.editor_interact({
             action: ["mouseover", "click"],
             "do": function() {
-                var imgs = editor.el.getElementsByTagName("img");
-                for (var i = 0; i < imgs.length; i++) {
-                    if (editor.listeners.indexOf(imgs[i]) === -1) {
-                        editor.listeners.push(imgs[i]);
-                        imgs[i].addEventListener("click", function() {
+                var imgs = editor.el.getElementsByTagName("img"),
+                    objects = editor.el.getElementsByTagName("object"),
+                    media_nodes = imgs.length === 0 ? objects : imgs;
+
+                for (var i = 0; i < media_nodes.length; i++) {
+                    var node = media_nodes[i];
+                    if (editor.listeners.indexOf(node) === -1) {
+                        editor.listeners.push(node);
+                        node.addEventListener("click", function() {
                             var src = this.getAttribute("src").split("/"),
                                 path = src.indexOf("http:") === -1 && src.indexOf("https:") === -1 ? src[src.length - 3]+"/"+src[src.length - 2]+"/"+src[src.length - 1] : this.getAttribute("src"),
                                 params = [
                                     "path="+path.replace(/:/g, "{t:colon:}").replace(/\//g, "{t:bslash:}").replace(/\./g, "{t:period:}"),
                                     "width="+this.offsetWidth,
                                     "height="+this.offsetHeight,
-                                    "align="+this.getAttribute("align")
+                                    "align="+this.getAttribute("align"),
+                                    "type="+this.tagName
                                 ];
 
                             var range = rangy.createRange();

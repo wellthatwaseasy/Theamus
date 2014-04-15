@@ -35,7 +35,10 @@ function update_11() {
 
     // Define the queries to perform
     $queries = array(
-        "CREATE TABLE IF NOT EXISTS `".$prefix."_user-sessions` (`id` INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(`id`), `key` TEXT NOT NULL, `value` TEXT NOT NULL, `ip_address` TEXT NOT NULL, `user_id` INT NOT NULL);"
+        "CREATE TABLE IF NOT EXISTS `".$prefix."_user-sessions` (`id` INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(`id`), `key` TEXT NOT NULL, `value` TEXT NOT NULL, `ip_address` TEXT NOT NULL, `user_id` INT NOT NULL);",
+        "RENAME TABLE `".$prefix."_images` TO `".$prefix."_media`",
+        "ALTER TABLE `".$prefix."_media` ADD `type` TEXT NOT NULL",
+        "UPDATE `".$prefix."_media` SET `type`='image'"
     );
 
     // Define the drop queries
@@ -46,8 +49,15 @@ function update_11() {
     }
 
     // Perform the queries
+    $tData->db->autocommit(false);
     foreach ($queries as $query) {
-        $return[] = $tData->db->query($query) ? true : false;
+        if ($tData->db->query($query)) {
+            $return[] = true;
+        } else {
+            Pre($tData->db->error);
+            $return[] = false;
+        }
+        //$return[] = $tData->db->query($query) ? true : false;
     }
 
     // Define files to remove
@@ -72,10 +82,15 @@ function update_11() {
             unlink($file_path);
         }
     }
-
-    // Disconnect from the database and return
-    $tData->disconnect();
-    return in_array(false, $return) ? false : true;
+    if (in_array(false, $return)) {
+        $tData->db->rollback();
+        $tData->disconnect();
+        return false;
+    } else {
+        $tData->db->commit();
+        $tData->disconnect();
+        return true;
+    }
 }
 
 function update_version() {

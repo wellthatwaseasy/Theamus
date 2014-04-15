@@ -7,7 +7,7 @@ if (isset($get['page'])) {
     $page = $tData->real_escape_string($get['page']);
 }
 
-$images_table = $tDataClass->prefix."_images";
+$images_table = $tDataClass->prefix."_media";
 $s = "SELECT * FROM `".$images_table."`";
 
 $template_header = "";

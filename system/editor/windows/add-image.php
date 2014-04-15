@@ -19,21 +19,24 @@ if (isset($get['page'])) $page = $tData->real_escape_string($get['page']);
 
 $template = <<<TEMPLATE
 <div class="editor_window-image">
-    <span class="image"><img src="media/images/%path%" alt=""></span>
+    <span class="image">
+        ::'%type%' == "image" ? '<img src="media/images/%path%" alt="">' : ""::
+        ::'%type%' == "object" ? '<iframe type="application/pdf" src="media/images/%path%"></iframe>' : ""::
+    </span>
     <div class="info-wrapper">
         <div>
             <span class="filename">%file_name%</span>
             <span class="filesize">::format_bytes("%file_size%")::</span>
         </div>
         <div class="options">
-            <a href="#" name="add-image" data-path="media/images/%path%">Add this image</a>
+            <a href="#" name="add-image" data-type="%type%" data-path="media/images/%path%">Add this image</a>
         </div>
     </div>
 </div>
 TEMPLATE;
 
 $tPages->set_page_data(array(
-    "sql" => "SELECT * FROM `".$tDataClass->prefix."_images`",
+    "sql" => "SELECT * FROM `".$tDataClass->prefix."_media`",
     "per_page" => 9,
     "current" => $page,
     "list_template" => $template

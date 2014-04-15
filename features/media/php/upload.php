@@ -1,7 +1,7 @@
 <?php
 
 $error = array();
-$media_table = $tDataClass->prefix."_images";
+$media_table = $tDataClass->prefix."_media";
 $file = $_FILES['file'];
 $allowed_media = array("jpg", "jpeg", "png", "gif", "webp", "pdf");
 $upload_path = ROOT."/media/images/";

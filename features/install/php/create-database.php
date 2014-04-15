@@ -158,12 +158,13 @@ $structure[] = "CREATE TABLE IF NOT EXISTS `dflt_home-apps` (".
 
 
 // Images
-$structure[] = "CREATE TABLE IF NOT EXISTS `".$prefix."_images` (".
+$structure[] = "CREATE TABLE IF NOT EXISTS `".$prefix."_media` (".
     "`id` INT(11) NOT NULL AUTO_INCREMENT, ".
     "PRIMARY KEY(`id`), ".
     "`path` VARCHAR(150) NOT NULL, ".
     "`file_name` VARCHAR(100) NOT NULL, ".
-    "`file_size` INT(11) NOT NULL);";
+    "`file_size` INT(11) NOT NULL, ".
+    "`type` TEXT NOT NULL);";
 
 /*****************************************************************************
  * DATA QUERIES

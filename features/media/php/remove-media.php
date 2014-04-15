@@ -1,7 +1,7 @@
 <?php
 
 $error = array(); // Empty error array
-$media_table = $tDataClass->prefix."_images"; // Define the images database table
+$media_table = $tDataClass->prefix."_media"; // Define the images database table
 $get = filter_input_array(INPUT_GET); // Define and clean the GET information
 
 // Image ID

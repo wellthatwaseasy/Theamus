@@ -2,7 +2,7 @@
 
 $prefix = $tDataClass->prefix;
 
-$info = array("pages", "users", "features", "links", "groups", "images");
+$info = array("pages", "users", "features", "links", "groups", "media");
 foreach($info as $i) {
     $table = $prefix."_".$i;
     $qry = $tData->query("SELECT * FROM `$table`");

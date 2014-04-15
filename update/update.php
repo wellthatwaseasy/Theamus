@@ -7,14 +7,17 @@ function update($system_info) {
             if (update_02() == false) {
                 return false;
             }
+            break;
         case "0.8":
             if (update_11() == false) {
                 return false;
             }
+            break;
         case "1.0":
             if (update_11() == false) {
                 return false;
             }
+            break;
     }
 
     if (update_version() == false) return false;
