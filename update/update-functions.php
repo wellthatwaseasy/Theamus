@@ -46,9 +46,13 @@ function update_11() {
     // Define the drop queries
     foreach ($drop_queries as $key => $value) {
         $drop_test_query = $tData->db->query($value[0]);
-        $drop_test = $drop_test_query->fetch_assoc();
-        if (isset($drop_test[$key])) {
+        if (!$drop_test_query) {
             $queries[] = $value[1];
+        } else {
+            $drop_test = $drop_test_query->fetch_assoc();
+            if (isset($drop_test[$key])) {
+                $queries[] = $value[1];
+            }
         }
     }
     
