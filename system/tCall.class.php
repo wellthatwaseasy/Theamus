@@ -720,7 +720,11 @@ class tCall {
             $in_group[] = $this->tUser->in_group($group) ? true : false;
         }
 
-        if (!in_array(true, $in_group)) die($this->error_page());
+        if (!in_array(true, $in_group) && $this->tUser->user == false) { 
+            send_to_login();
+        } elseif (!in_array(true, $in_group) && $this->tUser != false) {
+            die($this->error_page());
+        }
         if ($feature_info['enabled'] == 0) die($this->error_page());
 
         $url_params = $this->parameters;

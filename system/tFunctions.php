@@ -116,7 +116,16 @@ function web_path($path) {
  * @return header
  */
 function back_up() {
-    header("Location: ../");
+    $protocol = isset($_SERVER['HTTPS']) ? "https://" : "http://";
+    $url = $protocol.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+    
+    if ($url != base_url) {
+        if (substr($url, -1) != "/") {
+            header("Location: $url/");
+        } else {
+            header("Location: ../");
+        }
+    }
 }
 
 
@@ -243,4 +252,12 @@ function Pre($array, $return = false) {
 
     if ($return == true) return implode("", $ret);
     else echo implode("", $ret);
+}
+
+
+function send_to_login() {
+    $protocol = isset($_SERVER['HTTPS']) ? "https://" : "http://";
+    $url = urlencode($protocol.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']);
+    $login_url = base_url."accounts/login?redirect=$url";
+    header("Location: $login_url");
 }
