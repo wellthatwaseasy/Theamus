@@ -36,28 +36,29 @@ function update_11() {
     // Define the queries to perform
     $queries = array(
         "CREATE TABLE IF NOT EXISTS `".$prefix."_user-sessions` (`id` INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(`id`), `key` TEXT NOT NULL, `value` TEXT NOT NULL, `ip_address` TEXT NOT NULL, `user_id` INT NOT NULL);",
-        "RENAME TABLE `".$prefix."_images` TO `".$prefix."_media`",
-        "ALTER TABLE `".$prefix."_media` ADD `type` TEXT NOT NULL",
-        "UPDATE `".$prefix."_media` SET `type`='image'"
+        "RENAME TABLE `".$prefix."_images` TO `".$prefix."_media`"
+    );
+    $drop_queries = array(
+        "session" => array("SELECT * FROM `".$prefix."_users`", "ALTER TABLE `".$prefix."_users` DROP COLUMN `session`;"),
+        "type"  => array("SELECT * FROM `".$prefix."_media`", "ALTER TABLE `".$prefix."_media` ADD `type` TEXT NOT NULL;")
     );
 
     // Define the drop queries
-    $drop_test_query = $tData->db->query("SELECT * FROM `".$prefix."_users`");
-    $drop_test = $drop_test_query->fetch_assoc();
-    if (isset($drop_test['session'])) {
-        $queries[] = "ALTER TABLE `".$prefix."_users` DROP COLUMN `session`";
+    foreach ($drop_queries as $key => $value) {
+        $drop_test_query = $tData->db->query($value[0]);
+        $drop_test = $drop_test_query->fetch_assoc();
+        if (isset($drop_test[$key])) {
+            $queries[] = $value[1];
+        }
     }
+    
+    // Define more queries
+    $queries[] = "UPDATE `".$prefix."_media` SET `type`='image'";
 
     // Perform the queries
     $tData->db->autocommit(false);
     foreach ($queries as $query) {
-        if ($tData->db->query($query)) {
-            $return[] = true;
-        } else {
-            Pre($tData->db->error);
-            $return[] = false;
-        }
-        //$return[] = $tData->db->query($query) ? true : false;
+        $return[] = $tData->db->query($query) ? true : false;
     }
 
     // Define files to remove
