@@ -24,7 +24,7 @@ if (isset($post['title'])) {
 
 // Get the page content
 if (isset($post['content'])) {
-    $content = strip_tags(urldecode($post['content']));
+    $content = urldecode($post['content']);
     if ($content != "") {
         $content = $tData->real_escape_string($content);
     } else {
