@@ -1,8 +1,10 @@
+<?php $redirect = isset($_GET['redirect']) ? filter_var(INPUT_GET, "redirect") : base_url; ?>
+
 <div id="login-result"></div>
 
 <form class="form" id="login-form">
     <!-- Redirect URL -->
-    <input type="hidden" id="redirect_url" value="<?php echo $_GET['redirect']; ?>" />
+    <input type="hidden" id="redirect_url" value="<?php echo $redirect; ?>" />
     
     <!-- Username -->
     <div class="form-group">
