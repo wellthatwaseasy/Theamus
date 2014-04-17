@@ -456,7 +456,7 @@ var ajax = new function() {
         // Set up the type data (GET or POST)
         api_vars.data = this.make_api_data(api_vars);
         api_vars.form_data = api_vars.type === "post" ? this.make_form_data(api_vars.data) : api_vars.data;
-        
+
         // Define the processData and contentType for GET requests
         if (api_vars.type === "get") {
             this.processData = true;
@@ -709,4 +709,34 @@ var ajax = new function() {
 
         return data; // Return the data
 	};
+
+    this.iterate_calls = function(functions, pause, count) {
+        // Define variables
+        var original_pause = pause,
+            pause = pause !== undefined ? parseInt(pause)*1000 : 0,
+            count = count !== undefined ? count : 0,
+            func = function(){};
+
+        // Check and error out for undefined functions
+        if (functions === undefined) {
+            console.log("Iterate calls error: Functions not defined.");
+            return;
+        }
+
+        // Make sure the function exists before attempting to run
+        if (functions[count] !== undefined) {
+            // Set a timeout (optional variable)
+            setTimeout(function() {
+                // Define the function from a string/function array value
+                func = typeof(functions[count]) === "function" ? functions[count] : window[functions[count]];
+
+                // Run the function and run on to the next function if this one worked
+                if (func() !== false) {
+                    ajax.iterate_calls(functions, original_pause, (count + 1));
+                }
+            }, pause);
+        }
+
+        return; // Return to end
+    };
 };
