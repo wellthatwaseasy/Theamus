@@ -10,7 +10,7 @@
 
 	<body>
         <?php echo $tTheme->get_page_area("admin"); ?>
-		<div class="site_wrapper">
+		<div id="site-wrapper" class="site_wrapper">
 			<div class="homepage_wrapper">
 				<div class="clouds_wrapper">
 					<div class="cloud x1"></div>
