@@ -34,7 +34,8 @@ function alert_notify($type = "success", $message = "", $extras = "", $return = 
         "success" => "ion-checkmark-round",
         "danger" => "ion-close",
         "warning" => "ion-alert",
-        "info" => "ion-information"
+        "info" => "ion-information",
+        "spinner" => "spinner spinner-fixed-size"
     );
     $ret = "<div class='alert alert-$type' id='notify' $extras>";
     $ret .= "<span class='glyphicon ".$glyph[$type]."'></span>$message";
@@ -118,7 +119,7 @@ function web_path($path) {
 function back_up() {
     $protocol = isset($_SERVER['HTTPS']) ? "https://" : "http://";
     $url = $protocol.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
-    
+
     if ($url != base_url) {
         if (substr($url, -1) != "/") {
             header("Location: $url/");
@@ -255,6 +256,9 @@ function Pre($array, $return = false) {
 }
 
 
+/**
+ * Sends a user to the login form with the current address attached for routing
+ */
 function send_to_login() {
     $protocol = isset($_SERVER['HTTPS']) ? "https://" : "http://";
     $url = urlencode($protocol.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']);

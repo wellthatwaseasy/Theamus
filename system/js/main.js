@@ -253,7 +253,8 @@ function alert_notify(type, message) {
         "success": "ion-checkmark-round",
         "danger": "ion-close",
         "warning": "ion-alert",
-        "info": "ion-information"
+        "info": "ion-information",
+        "spinner": "spinner spinner-fixed-size"
     };
     return "<div class='alert alert-"+type+"'><span class='glyphicon "+glyph[type]+"'></span>"+message+"</div>";
 }
