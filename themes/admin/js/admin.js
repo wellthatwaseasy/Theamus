@@ -1,6 +1,6 @@
 function open_admin(home) {
     add_css("themes/admin/css/main.css");
-    $(".site-wrapper").hide();
+    $("#site-wrapper").hide();
     $("#admin-nav").addClass("admin_nav-open");
     $("#admin-content").addClass("admin_content-wrapper-open");
 
@@ -13,7 +13,7 @@ function open_admin(home) {
 }
 
 function close_admin() {
-    $(".site-wrapper").show();
+    $("#site-wrapper").show();
     $("#admin-nav").removeClass("admin_nav-open");
     $("#admin-content").removeClass("admin_content-wrapper-open");
 
