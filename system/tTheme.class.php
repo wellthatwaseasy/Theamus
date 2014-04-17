@@ -249,6 +249,8 @@ class tTheme {
         $tUser = $this->tUser;
         $tPages = new tPages();
         $tTheme = $this;
+        
+        $url_params = $this->data['url_params'];
 
         if ($this->data['init-class'] != false) {
             ${$this->data['init-class']} = new $this->data['init-class'];

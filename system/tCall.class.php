@@ -720,14 +720,12 @@ class tCall {
             $in_group[] = $this->tUser->in_group($group) ? true : false;
         }
 
-        if (!in_array(true, $in_group) && $this->tUser->user == false) { 
+        if (!in_array(true, $in_group) && $this->tUser->user == false) {
             send_to_login();
         } elseif (!in_array(true, $in_group) && $this->tUser != false) {
             die($this->error_page());
         }
         if ($feature_info['enabled'] == 0) die($this->error_page());
-
-        $url_params = $this->parameters;
 
         $this->tUser->set_420hash();
 
@@ -767,6 +765,7 @@ class tCall {
         $data['template']   = isset($this->feature['files']['theme']) ? $this->feature['files']['theme'] : "default";
         $data['file_path']  = $this->complete_file_path;
         $data['page_alias'] = $this->page_alias;
+        $data['url_params'] = $this->parameters;
 
         return $data;
     }
