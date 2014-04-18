@@ -635,6 +635,22 @@ input[disabled], button[disabled], select[disabled], textarea[disabled] {
 	width: 1%;
 	white-space: nowrap;
 }
+.input-group-btn {
+    background-color: #eee;
+    border: 1px solid #ccc;
+    display: table-cell;
+    position: relative;
+    vertical-align: middle;
+    white-space: nowrap;
+    width: 1%;
+}
+.input-group-btn:hover {
+    background-color: #ddd;
+}
+.input-group-btn .btn {
+    background: transparent;
+    border: 0;
+}
 .input-group-form-control {
 	min-width: 1px;
 }
@@ -645,17 +661,21 @@ input[disabled], button[disabled], select[disabled], textarea[disabled] {
 	margin: 0;
 	width: auto;
 }
-.input-group-addon:first-child {
+.input-group-addon:first-child,
+.input-group-btn:first-child {
 	border-right: 0;
 }
-.input-group-addon:last-child {
+.input-group-addon:last-child,
+.input-group-btn:last-child {
 	border-left: 0;
 }
 .input-group-addon:first-child,
+.input-group-btn:first-child,
 .input-group .form-control:first-child {
 	border-radius: 3px 0 0 3px;
 }
 .input-group-addon:last-child,
+.input-group-btn:last-child,
 .input-group .form-control:last-child {
 	border-radius: 0 3px 3px 0;
 }
