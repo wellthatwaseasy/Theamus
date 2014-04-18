@@ -439,7 +439,15 @@ var editor = new function() {
         if (editor.codemirror === false) {
             editor.codemirror = CodeMirror.fromTextArea(editor.code_el, {
                 mode: "xml",
-                lineNumbers: true
+                lineNumbers: true,
+                indentUnit: 4,
+                extraKeys: {
+                    Tab: function(cm) {
+                        var spaces = Array(cm.getOption("indentUnit") + 1).join("\u00A0");
+                        cm.replaceSelection(spaces);
+                        cm.setCursor(cm.getCursor());
+                    }
+                }
             });
             editor.codemirror_el = editor.codemirror.getWrapperElement();
             if (editor.codemirror_el)
@@ -457,7 +465,7 @@ var editor = new function() {
             editor.codemirror_el.classList.add("editor_code-open");
             editor.codemirror_el.style.display = "";
             editor.el.classList.add("editor_fancy-closed");
-            editor.codemirror.setValue(editor.decode_html(editor.br2nl(editor.el.innerHTML), "decode"));
+            editor.codemirror.setValue(editor.br2nl(editor.decode_html(editor.el.innerHTML), "decode"));
         }
     };
 
