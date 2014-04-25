@@ -7,22 +7,21 @@ $get = filter_input_array(INPUT_GET);
 
 // Get the link ID
 if (isset($get['id']) && $get['id'] != "") {
-    $id = $tData->real_escape_string($get['id']);
+    $id = $get['id'];
 } else {
     $error = "I can't find the link you're looking for.";
 }
 
-// Define the link database table
-$links_table = $tDataClass->prefix."_links";
-
-// Query the database for the link
-$qry['find'] = $tData->query("SELECT * FROM `$links_table` WHERE `id`='$id'");
+$query = $tData->select_from_table($tData->prefix."_links", array(), array(
+    "operator"  => "",
+    "conditions"=> array("id" => $id)
+));
 
 // Check for a valid query
-if ($qry['find'] || $qry['find']->num_rows > 0) {
-    $link = $qry['find']->fetch_assoc();
+if ($query != false && $tData->count_rows($query) > 0) {
+    $link = $tData->fetch_rows($query);
 } else {
-    $error = "This link isn't in the database.";
+    $error = "This link does not exist in the database.";
 }
 
 ?>
@@ -37,7 +36,7 @@ if ($qry['find'] || $qry['find']->num_rows > 0) {
 	<div class="admin_content-header-text">
         <?php
         if ($error != false):
-            notify("admin", "failure", $error);
+            echo "Error";
         else:
         ?>
         Edit the link "<?=$link['text']?>"
@@ -45,6 +44,11 @@ if ($qry['find'] || $qry['find']->num_rows > 0) {
     </div>
 </div>
 
+<?php if ($error != false):
+    echo "<div class='admin_page-content'>";
+    notify("admin", "failure", $error);
+    echo "</div>";
+else: ?>
 <form id="info-form" style="visiblity: hidden; position: absolute;">
     <input type="hidden" name="page-type" value="save" />
     <?php
@@ -55,3 +59,4 @@ if ($qry['find'] || $qry['find']->num_rows > 0) {
     <?php endforeach; ?>
 </form>
 <div class="admin_page-content" id="form-wrapper"></div>
+<?php endif; ?>

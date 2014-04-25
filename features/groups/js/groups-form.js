@@ -7,7 +7,7 @@ function get_homepage() {
             ret = "{t:homepage;type=\""+type+"\";";
 
             if (type === "page") ret += "id=\""+elements[0].value+"\";";
-            if (type === "custom") ret += "url=\""+elements[0].value+"\";";
+            if (type === "custom") ret += "url=\""+elements[0].value.replace(/\./g, "{p}").replace(/\-/g, "{d}").replace(/\//g, "{fs}")+"\";";
             if (type === "feature") {
                 ret += "id=\""+elements[0].value+"\";";
                 ret += "file=\""+elements[1].value+"\";";

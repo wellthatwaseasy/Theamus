@@ -139,11 +139,11 @@ function back_up() {
  * @return boolean
  */
 function tMail($to, $subject, $message) {
-    $tDataClass = new tData();
-    $tData = $tDataClass->connect();
+    $tData      = new tData();
+    $tData->db  = $tData->connect(true);
 
-    $q = $tData->query("SELECT * FROM `".$tDataClass->get_system_prefix()."_settings`");
-    $settings = $q->fetch_assoc();
+    $query      = $tData->select_from_table($tData->get_system_prefix()."_settings", array("email_protocol", "email_host", "email_port", "email_user", "email_password", "email_user", "name"));
+    $settings   = $tData->fetch_rows($query);
 
     $mail = new PHPMailer();
     $mail->IsSMTP();
@@ -188,27 +188,46 @@ function show_upload_progress($pro = "upload-progress", $per = "upload-percentag
  * @return boolean
  */
 function show_page_navigation($loc = "main", $child_of = 0) {
-    $ret = array();
-    $tDataClass = new tData();
-    $tData      = $tDataClass->connect();
+    $ret        = array();
+    $tData      = new tData();
+    $tData->db  = $tData->connect();
+    $tUser      = new tUser();
 
-    $tUser = new tUser();
+    $query_data = array(
+        "table"     => $tData->get_system_prefix()."_links",
+        "columns"   => array("groups", "path", "text", "id"),
+        "clause"    => array(
+            "operator"  => "AND",
+            "conditions"=> array("location" => $loc, "child_of" => $child_of)
+        )
+    );
 
-    $q = $tData->query("SELECT * FROM `".$tDataClass->get_system_prefix()."_links` WHERE `location`='$loc' AND `child_of`='$child_of'");
-    while ($link = $q->fetch_assoc()) {
-        $in = array();
-        foreach (explode(",", $link['groups']) as $group) $in[] = $tUser->in_group($group) ? "true" : "false";
+    $query = $tData->select_from_table($query_data['table'], $query_data['columns'], $query_data['clause']);
 
-        if (in_array("true", $in)) {
-            $c = $tData->query("SELECT * FROM `".$tDataClass->get_system_prefix()."_links` WHERE `child_of`='".$link['id']."'");
-            $ret[] = "<li>";
-            $ret[] = "<a href='".$link['path']."'>".$link['text']."</a>";
-            if ($c->num_rows > 0) $ret[] = "<ul>";
-            $ret[] = show_page_navigation($loc, $link['id']);
-            if ($c->num_rows > 0) $ret[] = "</ul>";
-            $ret[] = "</li>";
+    if ($tData->count_rows($query) > 0) {
+        $results = $tData->fetch_rows($query);
+        if (!isset($results[0])) {
+            $results = array($results);
+        }
+
+        foreach ($results as $link) {
+            $in = array();
+            foreach (explode(",", $link['groups']) as $group) {
+                $in[] = $tUser->in_group($group) ? "true" : "false";
+            }
+
+            if (in_array("true", $in)) {
+                $c = $tData->select_from_table($query_data['table'], array(), array("operator" => "", "conditions" => array("child_of" => $link['id'])));
+                $ret[] = "<li>";
+                $ret[] = "<a href='".$link['path']."'>".$link['text']."</a>";
+                if ($tData->count_rows($c) > 0) $ret[] = "<ul>";
+                $ret[] = show_page_navigation($loc, $link['id']);
+                if ($tData->count_rows($c) > 0) $ret[] = "</ul>";
+                $ret[] = "</li>";
+            }
         }
     }
+
     return implode($ret);
 }
 

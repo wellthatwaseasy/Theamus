@@ -1,5 +1,7 @@
 <?php
 
+$query_data = array("table_name" => $tData->prefix."_users", "data" => array(), "clause" => array());
+
 // Get the user's information
 $user = $tUser->user;
 
@@ -33,7 +35,7 @@ if ($user != false) {
                 if ($password == $repeat_pass) {
                     if (strlen($password) >= 4 && strlen($password) <= 30) {
                         $salt = $tDataClass->get_config_salt("password");
-                        $password = $tData->real_escape_string(hash('SHA256', $password.$salt));
+                        $password = hash('SHA256', $password.$salt);
                     } else {
                         $error[] = "Your new password must be between 4 and 30 characters.";
                     }
@@ -51,9 +53,6 @@ if ($user != false) {
     if (!empty($error)) {
         alert_notify("danger", $error[0]);
     } else {
-        // Define database information
-        $users_table = $tDataClass->prefix."_users";
-
         // Define the media path for profile pictures
         $media_path = path(ROOT."/media/profiles/");
 
@@ -70,9 +69,8 @@ if ($user != false) {
         if ($file != false) {
             if (@move_uploaded_file($file['tmp_name'], $media_path.$filename)) {
                 chmod($media_path.$filename, "777");
-                $sql['update'] = "UPDATE `".$users_table."` SET `picture`='".$filename."'"
-                    . " WHERE `id`='".$user['id']."'";
-                $qry['update'] = $tData->query($sql['update']);
+                $query_data['data'][] = array("picture" => $filename);
+                $query_data['clause'][] = array("operator" => "", "conditions" => array("id" => $user['id']));
 
                 // Run JS to update the pictures on the page
                 run_after_ajax("update_pics", '{"pic":"'.$filename.'"}');
@@ -84,12 +82,18 @@ if ($user != false) {
 
         // Update the password
         if ($password != false) {
-            $sql['update'] = "UPDATE `".$users_table."` SET `password`='".$password."'"
-                . " WHERE `id`='".$user['id']."'";
-            $qry['update'] = $tData->query($sql['update']);
+            $query_data['data'][] = array("password" => $password);
+            $query_data['clause'][] = array("operator" => "", "conditions" => array("id" => $user['id']));
         }
 
-        // Show result message
-        alert_notify("success", "You account information has been saved.");
+        if (!empty($query_data['data'])) {
+            if ($tData->update_table_row($query_data['table_name'], $query_data['data'], $query_data['clause'])) {
+                alert_notify("success", "You account information has been saved.");
+            } else {
+                alert_notify("danger", "There was an error saving the account information.");
+            }
+        } else {
+            alert_notify("success", "Your account information has been saved.");
+        }
     }
 }

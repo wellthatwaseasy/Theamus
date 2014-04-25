@@ -5,13 +5,14 @@ $get = filter_input_array(INPUT_GET);
 if (isset($get['id'])) {
     $id = $get['id'];
     if (is_numeric($id)) {
-        $links_table = $tDataClass->prefix."_links";
-        $sql['link'] = "SELECT * FROM `".$links_table."` WHERE `id`='".$id."'";
-        $qry['link'] = $tData->query($sql['link']);
+        $query = $tData->select_from_table($tData->prefix."_links", array("id", "text", "path"), array(
+            "operator"  => "",
+            "conditions"=> array("id" => $id)
+        ));
 
-        if ($qry['link']) {
-            if ($qry['link']->num_rows > 0) {
-                $link = $qry['link']->fetch_assoc();
+        if ($query != false) {
+            if ($tData->count_rows($query) > 0) {
+                $link = $tData->fetch_rows($query);
             } else {
                 $error[] = "There was an error when finding the link requested.";
             }

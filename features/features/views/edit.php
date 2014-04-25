@@ -1,7 +1,6 @@
 <?php
 
 $get            = filter_input_array(INPUT_GET); // Clean the request information
-$features_table = $tDataClass->prefix."_features"; // Define the features database tabel
 $error          = array(); // Error checking array
 
 $id = ""; // Default ID for check later
@@ -14,13 +13,16 @@ if (isset($get['id']) && $get['id'] != "") {
 }
 
 // Check the database for this feature
-$sql['find'] = "SELECT * FROM `$features_table` WHERE `id`='$id'";
-$qry['find'] = $tData->query($sql['find']);
-if ($qry['find'] && $qry['find']->num_rows == 0) {
+$query = $tData->select_from_table($tData->prefix."_features", array(), array(
+    "operator"  => "",
+    "conditions"=> array("id" => $id)
+));
+
+if ($query != false && $tData->count_rows($query) == 0) {
     $error[] = "There was an error finding this feature in the database.";
 } else {
     // Grab all feature information
-    $feature = $qry['find']->fetch_assoc();
+    $feature = $tData->fetch_rows($query);
 
     // Define the enabled checkbox
     $enable_check = $feature['enabled'] == 1 ? "checked" : "";

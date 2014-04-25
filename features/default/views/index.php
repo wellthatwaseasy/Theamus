@@ -3,10 +3,10 @@
 $HomePage = new HomePage();
 $i = $HomePage->redirect();
 
-$q = $tData->query("SELECT * FROM `".$tDataClass->prefix."_pages` WHERE `alias`='".$i['alias']."'");
-$row = $q->fetch_assoc();
+$query = $tData->select_from_table($tData->prefix."_pages", array("views"), array("operator" => "", "conditions" => array("alias" => $i['alias'])));
+$row = $tData->fetch_rows($query);
 
 $views = $row['views'] + 1;
-$tData->query("UPDATE `".$tDataClass->prefix."_pages` SET `views`='".$views."' WHERE `alias`='".$i['alias']."'");
+$tData->update_table_row($tData->prefix."_pages", array("views" => $views), array("operator" => "", "conditions" => array("alias" => $i['alias'])));
 
 echo $HomePage->page_content;

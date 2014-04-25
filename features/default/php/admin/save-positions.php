@@ -1,31 +1,21 @@
 <?php
 
-function connect() {
-    // Connect to the database
-    $tDataClass = new tData();
-    $tData = $tDataClass->connect();
-
-    return $tData;
-}
-
 function get_item_sql($column, $items) {
-    $tData = connect();
+    $query_data = array();
 
     // Loop through all of the items
     foreach ($items as $item) {
         // Split the item to get the path/position
         $info = explode("=", $item);
 
-        // Saftey first!
-        $path = $tData->real_escape_string($info[0]);
-        $pos = $tData->real_escape_string($info[1]);
-
-        // Add this query to the sql array
-        $sql[] = "UPDATE `dflt_home-apps` SET `position`='".$pos."',"
-            . " `column`='".$column."' WHERE `path`='".$path."';\n";
+        // Define the query information
+        $query_data[] = array(
+            "set"       => array("position" => $info[1], "column" => $column),
+            "clause"    => array("operator" => "", "conditions" =>  array("path" => $info[0]))
+        );
     }
 
-    return $sql;
+    return $query_data;
 }
 
 function get_sql($column) {
@@ -44,18 +34,24 @@ function get_sql($column) {
     // Define the column items and return the sql
     } else {
         $items = explode(",", $get["column".$column]);
-        return implode("", get_item_sql($column, $items));
+        return get_item_sql($column, $items);
     }
 }
 
 $user = $tUser->user;
 
 if ($user != false) {
-    $sql[] = get_sql("1");
-    $sql[] = get_sql("2");
-    $sql = implode("", $sql);
+    $query_data = array_merge(get_sql("1"), get_sql("2"));
 
-    if ($tData->multi_query($sql)) {
+    $query_data['data'] = $query_data['clause'] = array();
+    foreach ($query_data as $qd) {
+        if (isset($qd['set']) && isset($qd['clause'])) {
+            $query_data['data'][]     = $qd['set'];
+            $query_data['clause'][]   = $qd['clause'];
+        }
+    }
+
+    if ($tData->update_table_row("dflt_home-apps", $query_data['data'], $query_data['clause'])) {
         notify("admin", "success", "Your home page has been saved.");
     } else {
         notify("admin", "failure", "There was an error saving the home page.");

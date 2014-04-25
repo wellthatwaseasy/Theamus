@@ -1,20 +1,9 @@
 <?php
 
 $get = filter_input_array(INPUT_GET);
+$search = isset($get['search']) ? $get['search'] : "";
+$page = isset($get['page']) ? $get['page'] : 1;
 
-$search = "";
-if (isset($get['search'])) {
-    $search = $tData->real_escape_string($get['search']);
-}
-
-$page = 1;
-if (isset($get['page'])) {
-    $page = $tData->real_escape_string($get['page']);
-}
-
-$pages_table = $tDataClass->prefix."_pages";
-$s = "SELECT * FROM `".$pages_table."` WHERE "
-        . "`title` LIKE '".$search."%'";
 
 $template_header = <<<TEMPLATE
         <ul class="header">
@@ -34,12 +23,28 @@ $template = <<<TEMPLATE
 </ul>
 TEMPLATE;
 
-$tPages->set_page_data(array(
-    "sql" => $s,
-    "per_page" => 25,
-    "current" => $page,
-    "list_template" => $template,
-    "template_header" => $template_header
+$query = $tData->select_from_table($tData->prefix."_pages", array("id", "title", "views", "permanent"), array(
+    "operator"  => "",
+    "conditions"=> array("[%]title" => $search."%")
 ));
-$tPages->print_list();
-$tPages->print_pagination();
+
+if ($query != false) {
+    if ($tData->count_rows($query) > 0) {
+        $results = $tData->fetch_rows($query);
+        $pages = isset($results[0]) ? $results : array($results);
+
+        $tPages->set_page_data(array(
+            "data"              => $pages,
+            "per_page"          => 25,
+            "current"           => $page,
+            "list_template"     => $template,
+            "template_header"   => $template_header
+        ));
+        $tPages->print_list();
+        $tPages->print_pagination();
+    } else {
+        notify("admin", "info", "There are no pages to show.");
+    }
+} else {
+    notify("admin", "failure", "There was an error when querying for pages.");
+}

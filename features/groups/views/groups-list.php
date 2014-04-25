@@ -4,18 +4,14 @@ $get = filter_input_array(INPUT_GET);
 
 $search = "";
 if (isset($get['search'])) {
-    $search = $tData->real_escape_string($get['search']);
+    $search = $get['search'];
 }
 
 $page = 1;
 if (isset($get['page'])) {
-    $page = $tData->real_escape_string($get['page']);
+    $page = $get['page'];
 }
 
-$groups_table = $tDataClass->prefix."_groups";
-$s = "SELECT * FROM `".$groups_table."` WHERE "
-        . "`alias` LIKE '".$search."%' || "
-        . "`name` LIKE '".$search."%'";
 
 $template_header = <<<TEMPLATE
         <ul class="header">
@@ -23,7 +19,6 @@ $template_header = <<<TEMPLATE
             <li style="width: 200px;">Group Name</li>
         </ul>
 TEMPLATE;
-
 $template = <<<TEMPLATE
 <ul>
     <li style="width: 150px;">%alias%<li>
@@ -35,13 +30,37 @@ $template = <<<TEMPLATE
 </ul>
 TEMPLATE;
 
-$tPages->set_page_data(array(
-    "sql" => $s,
-    "per_page" => 25,
-    "current" => $page,
-    "list_template" => $template,
-    "template_header" => $template_header
-));
+$query_data = array(
+    "table_name"    => $tData->prefix."_groups",
+    "data"          => array("id", "alias", "name", "permanent"),
+    "clause"        => array(
+        "operator"  => "OR",
+        "conditions"=> array(
+            "[%]alias" => $search."%",
+            "[%]name"  => $search."%"
+        )
+    )
+);
+$query = $tData->select_from_table($query_data['table_name'], $query_data['data'], $query_data['clause']);
 
-$tPages->print_list();
-$tPages->print_pagination("groups_next_page");
+if ($query != false) {
+    if ($tData->count_rows($query) > 0) {
+        $results = $tData->fetch_rows($query);
+        $groups = isset($results[0]) ? $results : array($results);
+
+        $tPages->set_page_data(array(
+            "data"              => $groups,
+            "per_page"          => 25,
+            "current"           => $page,
+            "list_template"     => $template,
+            "template_header"   => $template_header
+        ));
+
+        $tPages->print_list();
+        $tPages->print_pagination("groups_next_page");
+    } else {
+        notify("admin", "info", "There are no groups to show.");
+    }
+} else {
+    notify("admin", "failure", "There was an error querying the database for groups.");
+}

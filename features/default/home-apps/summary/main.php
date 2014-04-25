@@ -1,12 +1,12 @@
 <?php
 
-$prefix = $tDataClass->prefix;
+$prefix = $tData->prefix;
 
 $info = array("pages", "users", "features", "links", "groups", "media");
 foreach($info as $i) {
     $table = $prefix."_".$i;
-    $qry = $tData->query("SELECT * FROM `$table`");
-    $total[$i] = $qry->num_rows;
+    $query = $tData->select_from_table($table, array("id"));
+    $total[$i] = $tData->count_rows($query);
 }
 
 foreach ($total as $key => $val):

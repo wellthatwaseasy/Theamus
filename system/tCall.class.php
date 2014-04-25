@@ -3,7 +3,7 @@
 /**
  * tCall - Theamus content control class
  * PHP Version 5.5.3
- * Version 1.1
+ * Version 1.2
  * @package Theamus
  * @link http://www.theamus.com/
  * @author Matthew Tempinski (Eyraahh) <matt.tempinski@theamus.com>
@@ -116,14 +116,6 @@ class tCall {
      *
      * See ROOT/system/tData.class.php
      *
-     * @var object $tDataClass
-     */
-    private $tDataClass;
-
-
-    /**
-     * Object mysqli
-     *
      * @var object $tData
      */
     private $tData;
@@ -195,7 +187,7 @@ class tCall {
      * @param string $params
      * @return boolean
      */
-    function __construct($params = false) {
+    public function __construct($params = false) {
         if (gettype($params) == "string") {
             $this->initiate($params);
             return true;
@@ -210,9 +202,9 @@ class tCall {
      *
      * @return boolean
      */
-    function __destruct() {
+    public function __destruct() {
         if ($this->no_init == false) {
-            $this->tDataClass->disconnect();
+            $this->tData->disconnect();
             return true;
         }
     }
@@ -290,9 +282,9 @@ class tCall {
     private function define_private_variables() {
         $this->tUser = new tUser();
 
-        $this->tDataClass = new tData();
-        $this->tData = $this->tDataClass->connect();
-        $this->tDataClass->prefix = $this->tDataClass->get_system_prefix();
+        $this->tData = new tData();
+        $this->tData->db = $this->tData->connect(true);
+        $this->tData->prefix = $this->tData->get_system_prefix();
 
         $this->tPages = new tPages();
 
@@ -308,13 +300,13 @@ class tCall {
      * @return boolean
      */
     private function display_errors() {
-        $settings_table = $this->tDataClass->prefix."_settings";
+        $settings_table = $this->tData->prefix."_settings";
 
         if ($this->tData) {
-            $q = $this->tData->query("SELECT `display_errors` FROM `$settings_table`");
+            $q = $this->tData->select_from_table($settings_table, array("display_errors"));
 
             if ($q) {
-                $settings = $q->fetch_assoc();
+                $settings = $this->tData->fetch_rows($q);
                 ini_set("display_errors", $settings['display_errors']);
             }
         }
@@ -328,13 +320,13 @@ class tCall {
      * @return boolean
      */
     private function developer_mode() {
-        $settings_table = $this->tDataClass->prefix."_settings";
+        $settings_table = $this->tData->prefix."_settings";
 
         if ($this->tData) {
-            $q = $this->tData->query("SELECT `developer_mode` from `$settings_table`");
+            $q = $this->tData->select_from_table($settings_table, array("developer_mode"));
 
             if ($q) {
-                $settings = $q->fetch_assoc();
+                $settings = $this->tData->fetch_rows($q);
                 return $settings['developer_mode'] == "1" ? true : false;
             }
         }
@@ -428,7 +420,7 @@ class tCall {
                    $this->api_fail = "Invalid API key.";
                }
            } else {
-               if ($hash['key'] != $this->tDataClass->get_hash() && $this->api == true && $this->api_from == false) {
+               if ($hash['key'] != $this->tData->get_hash() && $this->api == true && $this->api_from == false) {
                    $this->api_fail = "Invalid API key.";
                }
            }
@@ -515,15 +507,15 @@ class tCall {
      * @return boolean
      */
     private function determine_page() {
-        $pages_table = $this->tDataClass->prefix."_pages";
+        if ($this->tData->db) {
+            $query = $this->tData->select_from_table($this->tData->prefix."_pages", array(), array("operator" => "", "conditions" => array("alias" => $this->parameters[0])));
 
-        if ($this->tData) {
-            $alias = $this->tData->real_escape_string($this->parameters[0]);
+            if ($query != false) {
+                if ($this->tData->count_rows($query) == 0) {
+                    return false;
+                }
 
-            $q = $this->tData->query("SELECT * FROM `$pages_table` WHERE `alias`='$alias'");
-
-            if ($q) {
-                $page = $q->fetch_assoc();
+                $page = $this->tData->fetch_rows($query);
 
                 $theme = explode(":", $page['theme']);
                 $file = $theme[count($theme)-1];
@@ -538,14 +530,14 @@ class tCall {
                     }
                 }
 
-                $this->page_alias = $alias;
+                $this->page_alias = $this->parameters[0];
 
-                $this->feature['files']['theme'] = $file;
-                $this->feature['files']['nav'] = $navigation;
-                $this->feature['files']['header'] = $page['title'];
-                $this->feature['files']['title'] = $page['title'];
+                $this->feature['files']['theme']    = $file;
+                $this->feature['files']['nav']      = $navigation;
+                $this->feature['files']['header']   = $page['title'];
+                $this->feature['files']['title']    = $page['title'];
 
-                return $q->num_rows == 0 ? false : true;
+                return true;
             }
         }
         return false;
@@ -698,12 +690,21 @@ class tCall {
      * @return boolean|array
      */
     private function get_feature_information() {
-        $features_table = $this->tDataClass->prefix.'_features';
-        $q = $this->tData->query("SELECT * FROM `$features_table` WHERE `alias`='$this->feature_folder'");
+        $query_data = array(
+            "table"     => $this->tData->prefix."_features",
+            "clause"    => array(
+                "operator"  => "",
+                "conditions"=> array("alias" => $this->feature_folder)
+            )
+        );
+        $query = $this->tData->select_from_table($query_data['table'], array(), $query_data['clause']);
 
-        if ($q->num_rows > 0) {
-            $feature = $q->fetch_assoc();
-            return $feature;
+        if ($query) {
+            $results = $this->tData->fetch_rows($query);
+
+            if (count($results) > 0) {
+                return $results;
+            }
         }
         return false;
     }
@@ -729,8 +730,8 @@ class tCall {
 
         $this->tUser->set_420hash();
 
-        $q = $this->tData->query("SELECT * FROM `".$this->tDataClass->prefix."_settings`");
-        $settings = $q->fetch_assoc();
+        $query = $this->tData->select_from_table($this->tData->prefix."_settings", array("name"));
+        $settings = $this->tData->fetch_rows($query);
 
         $data = $this->define_theme_data($settings['name']);
         if ($this->define_classes()) {
@@ -780,18 +781,24 @@ class tCall {
      * @return string
      */
     private function define_theme_path($type = "html") {
-        $tDataClass = $this->tDataClass;
-        $tDataClass->prefix = $this->tDataClass->prefix;
-        $tData = $this->tData;
+        $tData          = $this->tData;
+        $tData->prefix  = $this->tData->prefix;
+        $tData->db      = $this->tData->db;
 
         $folder = "default";
         if ($tData) {
-            $themes_table = $this->tDataClass->prefix."_themes";
-            $q = $this->tData->query("SELECT * FROM `$themes_table` WHERE `active`='1'");
+            $query_data = array(
+                "table" => $this->tData->prefix."_themes",
+                "clause"=> array(
+                    "operator"  => "",
+                    "conditions"=> array("active" => 1)
+                )
+            );
+            $query = $this->tData->select_from_table($query_data['table'], array(), $query_data['clause']);
 
-            if ($q->num_rows > 0) {
-                $theme = $q->fetch_assoc();
-                $folder = $theme['alias'];
+            if ($this->tData->count_rows($query) > 0) {
+                $results = $this->tData->fetch_rows($query);
+                $folder = $results['alias'];
             }
         }
 
@@ -1230,18 +1237,17 @@ class tCall {
      * @return boolean
      */
     private function error_page($type="404") {
-        if ($this->tData) {
-            $table = $this->tDataClass->prefix."_settings";
-            $q = $this->tData->query("SELECT * FROM `$table`");
+        if ($this->tData->db) {
+            $query = $this->tData->select_from_table($this->tData->prefix."_settings");
 
-            if ($q) {
-                $settings = $q->fetch_assoc();
+            if ($query) {
+                $settings = $this->tData->fetch_rows($query);
 
-                $data['name'] = $settings['name'];
-                $data['base'] = $this->base_url;
-                $data['title'] = $data['header'] = "Error";
-                $data['theme'] = $this->define_theme_path();
-                $data['template'] = "error";
+                $data['name']       = $settings['name'];
+                $data['base']       = $this->base_url;
+                $data['title']      = $data['header'] = "Error";
+                $data['theme']      = $this->define_theme_path();
+                $data['template']   = "error";
                 $data['error_type'] = $type;
                 $data['nav']        = false;
                 $data['css']        = $this->get_css();
@@ -1274,9 +1280,9 @@ class tCall {
         $tUser = $this->tUser;
         $tPages = $this->tPages;
 
-        $tDataClass = $this->tDataClass;
-        $tDataClass->prefix = $this->tDataClass->prefix;
-        $tData = $this->tData;
+        $tData          = $this->tData;
+        $tData->prefix  = $this->tData->prefix;
+        $tData->db      = $this->tData->db;
 
         if ($this->define_classes()) {
             $init_class = $this->init_class;
@@ -1300,9 +1306,9 @@ class tCall {
         $tUser = $this->tUser;
         $tPages = $this->tPages;
 
-        $tDataClass = $this->tDataClass;
-        $tDataClass->prefix = $this->tDataClass->prefix;
-        $tData = $this->tData;
+        $tData          = $this->tData;
+        $tData->prefix  = $this->tData->prefix;
+        $tData->db      = $this->tData->db;
 
         if ($this->define_classes()) {
             $init_class = $this->init_class;
@@ -1328,9 +1334,9 @@ class tCall {
         $tUser = $this->tUser;
         $tPages = $this->tPages;
 
-        $tDataClass = $this->tDataClass;
-        $tDataClass->prefix = $this->tDataClass->prefix;
-        $tData = $this->tData;
+        $tData          = $this->tData;
+        $tData->prefix  = $this->tData->prefix;
+        $tData->db      = $this->tData->db;
 
         $desired = filter_input(INPUT_GET, "params");
         $path = path(trim(ROOT."/system/$desired", "/").".php");
@@ -1353,9 +1359,9 @@ class tCall {
         $tUser = $this->tUser;
         $tPages = $this->tPages;
 
-        $tDataClass = $this->tDataClass;
-        $tDataClass->prefix = $this->tDataClass->prefix;
-        $tData = $this->tData;
+        $tData          = $this->tData;
+        $tData->prefix  = $this->tData->prefix;
+        $tData->db      = $this->tData->db;
 
         $path = $file.".php";
         if ($absolute == false) {
@@ -1381,7 +1387,7 @@ class tCall {
         $ignore = array("method_class", "method", "params", "ajax", "ajax-hash-data", "type", "url", "api-key", "api-from");
         foreach ($input as $key => $value) {
             if (!in_array($key, $ignore)) {
-                if ($this->tDataClass->string_is_json(urldecode($value))) {
+                if ($this->tData->string_is_json(urldecode($value))) {
                     $ret[$key] = json_decode(urldecode($value), true);
                 } else {
                     $ret[$key] = urldecode($value);

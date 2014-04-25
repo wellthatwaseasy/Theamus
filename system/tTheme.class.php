@@ -3,7 +3,7 @@
 /**
  * tTheme - Theamus theme parsing class
  * PHP Version 5.5.3
- * Version 1.1
+ * Version 1.2
  * @package Theamus
  * @link http://www.theamus.com/
  * @author Matthew Tempinski (Eyraahh) <matt.tempinski@theamus.com>
@@ -77,7 +77,7 @@ class tTheme {
         $this->data = $data;
         $this->tUser = new tUser();
         $this->tData = new tData();
-        $this->tData->db = $this->tData->connect();
+        $this->tData->db = $this->tData->connect(true);
         $this->tData->prefix = $this->tData->get_system_prefix();
 
         try {
@@ -110,9 +110,9 @@ class tTheme {
      * @throws Exception
      */
     private function get_settings() {
-        $q = $this->tData->db->query("SELECT * FROM `".$this->tData->prefix."_settings`");
-        if (!$q) throw new Exception("Error getting system settings information from the database.");
-        return $q->fetch_assoc();
+        $query = $this->tData->select_from_table($this->tData->prefix."_settings");
+        if (!$query) throw new Exception("Error getting system settings information from the database.");
+        return $this->tData->fetch_rows($query);
     }
 
 
@@ -215,13 +215,13 @@ class tTheme {
      * @return
      */
     public function content() {
-        $tDataClass = $this->tData;
-        $tDataClass->prefix = $this->tData->prefix;
-        $tData = $this->tData->db;
+        $tData          = $this->tData;
+        $tData->prefix  = $this->tData->prefix;
+        $tData->db      = $this->tData->db;
 
         $tFiles = new tFiles();
-        $tUser = $this->tUser;
         $tPages = new tPages();
+        $tUser  = $this->tUser;
         $tTheme = $this;
 
         if ($this->data['init-class'] != false) {
@@ -249,7 +249,7 @@ class tTheme {
         $tUser = $this->tUser;
         $tPages = new tPages();
         $tTheme = $this;
-        
+
         $url_params = $this->data['url_params'];
 
         if ($this->data['init-class'] != false) {
@@ -272,15 +272,14 @@ class tTheme {
         if ($key == "") return "";
 
         // Sanitize the key and query the database
-        $safe_key = $this->tData->db->real_escape_string($key);
-        $query = $this->tData->db->query("SELECT `$safe_key` FROM `".$this->tData->prefix."_settings`");
+        $query = $this->tData->select_from_table($this->tData->prefix."_settings", array($key));
 
         // Check the query and gather the results
         if (!$query) {
             return "";
         } else {
             // Get the results
-            $row = $query->fetch_assoc();
+            $row = $this->tData->fetch_rows($query);
 
             // Check for the key's existance and return relatively
             if (isset($row[$key])) {
@@ -350,7 +349,7 @@ class tTheme {
      * @param string|boolean $key
      * @return array|string
      */
-    public function get_theme_variable($selector = "", $key = "") {
+    public function get_theme_variable($selector = "", $key = false) {
         $return = array(); // Default = empty
 
         // Return nothing it the selector or key are empty
@@ -358,37 +357,45 @@ class tTheme {
             return "";
         }
 
-        // Sanitize the variables
-        $selector   = $this->tData->db->real_escape_string($selector);
-        $key        = $this->tData->db->real_escape_string($key);
-        $theme      = $this->tData->db->real_escape_string($this->get_theme_folder());
-
         // Define the sql query
+        $query_data = array("table_name" => $this->tData->prefix."_themes-data");
         if ($key == false) {
-            $sql = "SELECT * FROM `".$this->tData->prefix."_themes-data` WHERE `selector`='$selector' AND `theme`='$theme'";
+            $query_data['clause'] = array(
+                "operator" => "AND",
+                "conditions"=> array("selector" => $selector, "theme" => $this->get_theme_folder())
+            );
         } else {
-            $sql = "SELECT * FROM `".$this->tData->prefix."_themes-data` WHERE `key`='$key' AND `selector`='$selector' AND `theme`='$theme'";
+            $query_data['clause'] = array(
+                "operator" => "AND",
+                "conditions"=> array("selector" => $selector, "theme" => $this->get_theme_folder(), "key" => $key)
+            );
         }
 
         // Query the database
-        $query = $this->tData->db->query($sql);
+        $query = $this->tData->select_from_table($query_data['table_name'], array(), $query_data['clause']);
 
         // Check the query and return relevant results
         if (!$query) {
             return "";
         } else {
-            // Loop throught all of the results
-            while ($row = $query->fetch_assoc()) {
-                // Define the information and return the value
-                $return[$row['key']] = urldecode(stripslashes($row['value']));
+            $results = $this->tData->fetch_rows($query);
+
+            if (isset($results[0])) {
+                // Loop throught all of the results
+                $i = 0;
+                foreach($results as $item) {
+                    $return[$i]['id']           = $item['id'];
+                    $return[$i][$item['key']]   = stripslashes(urldecode($item['value']));
+                    $return[$i]['selector']     = $item['selector'];
+                    $i++;
+                }
+            } else {
+                $return['id']               = $results['id'];
+                $return[$results['key']]    = stripslashes(urldecode($results['value']));
+                $return['selector']         = $results['selector'];
             }
 
-            // Return the appropriate values
-            if (count($return) == 1) {
-                return $return[key($return)];
-            } else {
-                return $return;
-            }
+            return $return;
         }
     }
 }

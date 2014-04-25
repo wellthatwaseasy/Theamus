@@ -12,77 +12,57 @@ function add_homeapp_js($path, $homeapp) {
     }
 }
 
-
+$query_error = false;
 $user = $tUser->user;
 
-$sql['col1'] = "SELECT * FROM `dflt_home-apps` WHERE `active`='1' && `column`='1' ORDER BY `position` ASC";
-$qry['col1'] = $tData->query($sql['col1']);
+for ($i = 1; $i <= 2; $i++) {
+    $query = $tData->select_from_table("dflt_home-apps", array("path"), array(
+        "operator"  => "AND",
+        "conditions"=> array(
+            "active"    => 1,
+            "column"    => $i
+        )
+    ), "ORDER BY `position` ASC");
 
-$sql['col2'] = "SELECT * FROM `dflt_home-apps` WHERE `active`='1' && `column`='2' ORDER BY `position` ASC";
-$qry['col2'] = $tData->query($sql['col2']);
-
-if ($user != false) {
-    if ($qry['col1'] && $qry['col2']) {
+    if ($query != false) {
         $base_path = path(ROOT."/features/default/home-apps/");
-        if ($qry['col1']->num_rows > 0 || $qry['col2']->num_rows > 0) {
+        if ($tData->count_rows($query) > 0) {
             $x = 0;
-?>
-<ul class="col-half left" id="column1">
-<?php
-            while ($app = $qry['col1']->fetch_assoc()):
+            $results = $tData->fetch_rows($query);
+            $results = isset($results[0]) ? $results : array($results);
+    ?>
+    <ul class="col-half left" id="column<?=$i?>">
+    <?php
+            foreach ($results as $app) {
                 if (is_dir($base_path.$app['path'])) {
                     $path = $base_path.$app['path'];
                     $web_path = "features/default/home-apps/".$app['path'];
                     include $path."/config.php";
                     $x++;
-?>
-    <li id="<?=$app['path']?>=<?=$x?>">
-        <div class="admin_container" draggable="true">
-            <div class="admin_container-header handle"><?=$homeapp['block_title']?></div>
-            <div class="admin_container-content">
-                <?=$this->include_file($path."/main", false, true)?>
+    ?>
+        <li id="<?=$app['path']?>=<?=$x?>">
+            <div class="admin_container" draggable="true">
+                <div class="admin_container-header handle"><?=$homeapp['block_title']?></div>
+                <div class="admin_container-content">
+                    <?=$this->include_file($path."/main", false, true)?>
+                </div>
             </div>
-        </div>
-    </li>
-<?php
+        </li>
+    <?php
                 }
                 if (isset($web_path) && isset($homeapp)) {
                     add_homeapp_js($web_path, $homeapp);
                 }
-            endwhile;
-?>
-</ul>
-<ul class="col-half left" id="column2">
-<?php
-            $x = 0;
-            while ($app = $qry['col2']->fetch_assoc()):
-                if (is_dir($base_path.$app['path'])) {
-                    $path = $base_path.$app['path'];
-                    $web_path = "features/default/home-apps/".$app['path'];
-                    include $path."/config.php";
-                    $x++;
-?>
-    <li id="<?=$app['path']?>=<?=$x?>">
-        <div class="admin_container" draggable="true">
-            <div class="admin_container-header handle"><?=$homeapp['block_title']?></div>
-            <div class="admin_container-content">
-                <?=$this->include_file($path."/main", false, true)?>
-            </div>
-        </div>
-    </li>
-<?php
-                }
-                if (isset($web_path) && isset($homeapp)) {
-                    add_homeapp_js($web_path, $homeapp);
-                }
-            endwhile;
-?>
-</ul>
-<?php
-        } else {
-            notify("admin", "info", "You have no home apps!");
+            }
+    ?>
+    </ul>
+    <?php
         }
     } else {
-        notify("admin", "failure", "There was an error querying the database.");
+        $query_error = true;
     }
+}
+
+if ($query_error == true) {
+    alert_notify("danger", "There was an error querying the database.");
 }

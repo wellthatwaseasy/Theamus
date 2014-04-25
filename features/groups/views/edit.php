@@ -16,28 +16,25 @@ function home_type($array) {
 }
 
 $error = array();   // Define an empty error array
+$query_data = array("table" => $tData->prefix."_groups");
 
 $get = filter_input_array(INPUT_GET);   // Define a filtered 'get'
 
 $id = isset($get['id']) ? $get['id'] : "";  // Define the id or it's default
-$id = $tData->real_escape_string($id);      // Sanitize for the DB
-
-$table = $tDataClass->prefix."_groups";  // Define the group's table
 
 // Query the database for the group
-$sql['group'] = "SELECT * FROM `".$table."` WHERE `id`='".$id."'";
-$qry['group'] = $tData->query($sql['group']);
+$query_group = $tData->select_from_table($query_data['table'], array(), array("operator" => "", "conditions" => array("id" => $id)));
 
 // Get the group's information
-if ($qry['group']) {                             // Check for a successful query
-    if ($qry['group']->num_rows > 0) {           // Check for results
-        $group = $qry['group']->fetch_assoc();   // Define the group's information
+if ($query_group != false) {                                // Check for a successful query
+    if ($tData->count_rows($query_group) > 0) {             // Check for results
+        $group = $tData->fetch_rows($query_group);          // Define the group's information
 
         $permanent = $group['permanent'] == "1" ? true : false;
         $permissions = explode(",", $group['permissions']);
 
         if ($group['home_override'] != "false") {
-            $homeType = $tDataClass->t_decode($group['home_override']);
+            $homeType = $tData->t_decode($group['home_override']);
         } else {
             $homeType['type'] = 'nooverride';
         }
@@ -95,24 +92,20 @@ if ($qry['group']) {                             // Check for a successful query
                 <select name="permissions" id="permissions" size="20" multiple="multiple">
                     <?php
                     // Query the database for permissions
-                    $ptable = $tDataClass->prefix . "_permissions";
-                    $sql['perm'] = "SELECT * FROM `" . $ptable . "`";
-                    $query['perm'] = $tData->query($sql['perm']);
+                    $query_permissions = $tData->select_from_table($tData->prefix."_permissions", array("permission", "feature"));
 
                     // Loop through results
-                    while ($results = $query['perm']->fetch_assoc()) {
+                    $results = $tData->fetch_rows($query_permissions);
+                    foreach ($results as $permission) {
                         // Clean up the text
-                        $permission = str_replace("_", " ", $results['permission']);
-                        $permission = ucwords($permission);
-                        $feature = str_replace("_", " ", $results['feature']);
-                        $feature = ucwords($feature);
+                        $permission_name    = ucwords(str_replace("_", " ", $permission['permission']));
+                        $permission_feature = ucwords(str_replace("_", " ", $permission['feature']));
 
                         // Define checked
-                        $checked = in_array($results['permission'], $permissions) ? "selected" : "";
+                        $checked = in_array($permission['permission'], $permissions) ? "selected" : "";
 
                         // Show options
-                        echo "<option value='" . $results['permission'] . "' " . $checked . ">" .
-                        $feature . " - " . $permission . "</option>";
+                        echo "<option value='".$permission['permission']."' $checked>$permission_feature - $permission_name</option>";
                     }
                     ?>
                 </select>
@@ -180,17 +173,13 @@ if ($qry['group']) {                             // Check for a successful query
                         <label class='admin-selectlabel'>
                             <select name='pageid'>
                             <?php
-                            // Define the pages table
-                            $pages = $tDataClass->prefix . '_pages';
-
-                            // Query the database for all pages
-                            $sql['pages'] = 'SELECT * FROM `' . $pages . '`';
-                            $qry['pages'] = $tData -> query($sql['pages']);
+                            $query_pages = $tData->select_from_table($tData->prefix."_pages", array("id", "title"));
 
                             // Make sure there are pages
-                            if ($qry['pages'] -> num_rows > 0) {
+                            if ($tData->count_rows($query_pages) > 0) {
                                 // Grab the pages data and loop
-                                while ($page = $qry['pages'] -> fetch_assoc()) {
+                                $results = $tData->fetch_rows($query_pages);
+                                foreach ($results as $page) {
                                     $homePage['selected'] = $homePage['id'] == $page['id'] ? 'selected' : '';
                                     echo '<option value="' . $page['id'] . '" ' . $homePage['selected'] . '>'
                                          . $page['title'] . '</option>';
@@ -239,21 +228,22 @@ if ($qry['group']) {                             // Check for a successful query
                                 <?php
                                 // Define the features table and query the database
                                 // for all available features
-                                $features = $tDataClass->prefix . '_features';
-                                $sql['features'] = 'SELECT * FROM `' . $features . '`';
-                                $qry['features'] = $tData->query($sql['features']);
+                                $query_features = $tData->select_from_table($tData->prefix."_features", array("id", "alias", "name"));
 
                                 // Make sure there are features to show
-                                if ($qry['features'] -> num_rows > 0) {
+                                if ($tData->count_rows($query_features) > 0) {
                                     $fi = 0; // Counter!
                                     // Grab the feature information and loop
-                                    while ($feature = $qry['features'] -> fetch_assoc()) {
+                                    $results = $tData->fetch_rows($query_features);
+                                    foreach ($results as $feature) {
                                         $homeFeature['selected'] = $homeFeature['id'] == $feature['id'] ? 'selected' : '';
 
                                         if ($homeFeature['id'] != '') {
-                                            $sql['sfeature'] = 'SELECT * FROM `' . $features . '` WHERE `id`="'.$homeFeature['id'].'"';
-                                            $qry['sfeature'] = $tData->query($sql['sfeature']);
-                                            $sfeature = $qry['sfeature']->fetch_assoc();
+                                            $query_homefeature = $tData->select_from_table($tData->prefix."_features", array("alias"), array(
+                                                "operator"  => "",
+                                                "conditions"=> array("id" => $homeFeature['id'])
+                                            ));
+                                            $sfeature = $tData->fetch_rows($query_homefeature);
                                             $firstFeature = $sfeature['alias'];
                                         } else {
                                             if ($fi == 0) {

@@ -8,16 +8,16 @@ if (isset($get['feature']) && $get['feature'] != "") {
     $get_feature = $get['feature'];
 }
 
-// Define the features table
-$feature_table = $tDataClass->prefix."_features";
-
 // Query the database for all available features
-$qry['find'] = $tData->query("SELECT * FROM `$feature_table` ORDER BY `name` ASC");
+$query = $tData->select_from_table($tData->prefix."_features", array("alias", "name"), array(), "ORDER BY `name` ASC");
 
 // Check for a valid query
-if ($qry['find'] && $qry['find']->num_rows > 0) {
+if ($query != false && $tData->count_rows($query) > 0) {
+    $results = $tData->fetch_rows($query);
+    $features = isset($results[0]) ? $results : array($results);
+
     // Loop through all of the features echoing them as options
-    while ($feature = $qry['find']->fetch_assoc()) {
+    foreach ($features as $feature) {
         $selected = $get_feature == $feature['alias'] ? "selected" : "";
         echo "<option $selected value='".$feature['alias']."'>".$feature['name']."</option>";
     }

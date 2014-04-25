@@ -3,7 +3,7 @@
 /**
  * tUser - Theamus user information class
  * PHP Version 5.5.3
- * Version 1.0
+ * Version 1.2
  * @package Theamus
  * @link http://www.theamus.com/
  * @author Matthew Tempinski (Eyraahh) <matt.tempinski@theamus.com>
@@ -65,11 +65,11 @@ class tUser {
      * @return boolean
      */
     private function initialize_variables() {
-        $this->cookies = filter_input_array(INPUT_COOKIE);
-        $this->tData = new tData();
-        $this->tData->db = $this->tData->connect();
-        $this->tData->prefix = $this->tData->get_system_prefix();
-        $this->tCall = new tCall(false);
+        $this->cookies          = filter_input_array(INPUT_COOKIE);
+        $this->tData            = new tData();
+        $this->tData->db        = $this->tData->connect(true);
+        $this->tData->prefix    = $this->tData->get_system_prefix();
+        $this->tCall            = new tCall(false);
         return true;
     }
 
@@ -113,8 +113,8 @@ class tUser {
     private function get_user_info() {
         if ($this->check_login()) {
             // Get the user's information from the database
-            $query = $this->tData->db->query("SELECT * FROM `".$this->tData->prefix."_users` WHERE `id`='".$this->cookies['userid']."'");
-            $this->user = $this->tData->check_query_and_return($query);
+            $query = $this->tData->select_from_table($this->tData->prefix."_users", array(), array("operator" => "", "conditions" => array("id" => $this->cookies['userid'])));
+            $this->user = $query == false ? false : $this->tData->fetch_rows($query);
 
             // Get the user's session and IP address
             $user_sessions = $this->get_user_sessions(false, $this->user['id']);
@@ -139,8 +139,8 @@ class tUser {
      * @return boolean|array
      */
     public function get_specific_user($id = 0) {
-        $q = $this->tData->db->query("SELECT * FROM `".$this->tData->prefix."_users` WHERE `id`='$id'");
-        if ($q->num_rows > 0) return $q->fetch_assoc();
+        $q = $this->tData->select_from_table($this->tData->prefix."_users", array(), array("operator" => "", "conditions" => array("id" => $id)));
+        if ($this->tData->count_rows($q) > 0) return $this->tData->fetch_rows($q);
         return false;
     }
 
@@ -191,11 +191,12 @@ class tUser {
     public function has_permission($permission) {
         $ret = array();
         foreach(explode(",", $this->user['groups']) as $group) {
-            $q = $this->tData->db->query("SELECT `permissions` FROM `".$this->tData->prefix."_groups` ".
-                "WHERE `alias`='".$group."'");
-            $qd = $this->tData->check_query_and_return($q);
-            $permissions = explode(",", $qd['permissions']);
-            if (in_array($permission, $permissions)) $ret[] = "true";
+            $q = $this->tData->select_from_table($this->tData->prefix."_groups", array(), array("operator" => "", "conditions" => array("alias" => $group)));
+            $qd = $q == false ? false : $this->tData->fetch_rows($q);
+            if ($qd != false) {
+                $permissions = explode(",", $qd['permissions']);
+                if (in_array($permission, $permissions)) $ret[] = "true";
+            }
         }
         if (in_array("true", $ret)) return true;
         return false;
@@ -268,15 +269,19 @@ class tUser {
         }
 
         // Query the database for the current users IP address and check it
-        $query = $this->tData->db->query("SELECT * FROM `".$this->tData->prefix."_user-sessions` WHERE `user_id`='$user_id'");
+        $query = $this->tData->select_from_table($this->tData->prefix."_user-sessions", array(), array("operator" => "", "conditions" => array("user_id" => $user_id)));
         if (!$query) {
             return array();
         }
 
         // Define the user's IP addresses
         $ip_addresses = array(); // blank for default
-        while ($user = $query->fetch_assoc()) {
-            $ip_addresses[] = $user['ip_address'];
+        if ($this->tData->count_rows($query) > 0) {
+            $user = $this->tData->fetch_rows($query);
+            $user = !isset($user[0]) ? array($user) : $user;
+            foreach ($user as $u) {
+                $ip_addresses[] = $u['ip_address'];
+            }
         }
 
         // Check and return the IP addresses
@@ -292,13 +297,17 @@ class tUser {
         // Loop through all of the IP addresses, gathering information
         foreach ($ip_addresses as $address) {
             // Query the database for information related to this IP address and check it
-            $query = $this->tData->db->query("SELECT * FROM `".$this->tData->prefix."_user-sessions` WHERE `ip_address`='$address' AND `user_id`='$user_id'");
-            if (!$query) {
-                continue;
-            }
+            $query = $this->tData->select_from_table($this->tData->prefix."_user-sessions", array(), array(
+                "operator"      => "AND",
+                "conditions"    => array(
+                    "ip_address"    => $address,
+                    "user_id"       => $user_id
+                )
+            ));
 
             // Grab the information related to the IP
-            while ($row = $query->fetch_assoc()) {
+            $user_rows = $this->tData->fetch_rows($query);
+            foreach ($user_rows as $row) {
                 $temp[$address][$row['key']] = $row['value'];
                 $temp[$address]['ip_address'] = $address;
             }
@@ -403,11 +412,8 @@ class tUser {
         $browser = $this->tCall->get_browser();
 
         // Define SQL friendly variables
-        $user_id        = $this->tData->db->real_escape_string($user_id);
-        $session_key    = $this->tData->db->real_escape_string($session_key);
-        $expire         = $this->tData->db->real_escape_string($expire);
-        $ip             = $this->tData->db->real_escape_string($_SERVER['REMOTE_ADDR']);
-        $user_browser   = $this->tData->db->real_escape_string($browser['name']." ".$browser['version']);
+        $ip             = $_SERVER['REMOTE_ADDR'];
+        $user_browser   = $browser['name']." ".$browser['version'];
 
         // Check if the user already has a session on this computer, it's just expired
         $user_sessions = $this->get_user_sessions(true, $user_id);
@@ -425,10 +431,34 @@ class tUser {
         }
 
         // Define the query to add to the database
-        if ($this->tData->db->query("INSERT INTO `".$this->tData->prefix."_user-sessions` (`key`, `value`, `ip_address`, `user_id`) VALUES ".
-            "('session_key', '$session_key', '$ip', '$user_id'), ('expires', '$expire', '$ip', '$user_id'), ('last_seen', '".time()."', '$ip', '$user_id'), ".
-            "('browser', '$user_browser', '$ip', '$user_id');")) {
+        $query = $this->tData->insert_table_row($this->tData->prefix."_user-sessions", array(
+            array(
+                "key"           => "session_key",
+                "value"         => $session_key,
+                "ip_address"    => $ip,
+                "user_id"       => $user_id
+            ),
+            array(
+                "key"           => "expires",
+                "value"         => $expire,
+                "ip_address"    => $ip,
+                "user_id"       => $user_id
+            ),
+            array(
+                "key"           => "last_seen",
+                "value"         => time(),
+                "ip_address"    => $ip,
+                "user_id"       => $user_id
+            ),
+            array(
+                "key"           => "browser",
+                "value"         => $user_browser,
+                "ip_address"    => $ip,
+                "user_id"       => $user_id
+            )
+        ));
 
+        if ($query) {
             // Set the cookies
             $this->set_cookies($user_id, $session_key, $expire);
 

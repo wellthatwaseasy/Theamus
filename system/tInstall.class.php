@@ -3,7 +3,7 @@
 /**
  * tInstall - Theamus installer class
  * PHP Version 5.5.3
- * Version 1.0
+ * Version 1.2
  * @package Theamus
  * @link http://www.theamus.com/
  * @author Matthew Tempinski (Eyraahh) <matt.tempinski@theamus.com>
@@ -99,22 +99,8 @@ class tInstall {
      * @return boolean
      */
     private function check_database_existence() {
-        if (file_exists(path(ROOT."/config.php"))) {
-            include path(ROOT."/config.php");
-            $connection = @new mysqli($config['Database']['Host Address'],
-                                      $config['Database']['Username'],
-                                      $config['Database']['Password'],
-                                      $config['Database']['Name']);
-
-                if ($connection->connect_errno) {
-                    $this->connection = false;
-                    return false;
-                } else {
-                    $this->connection = $connection;
-                    return true;
-                }
-        }
-        return false;
+        $tData = new tData();
+        return $tData->connect(true) ? true : false;
     }
 
 
@@ -124,17 +110,17 @@ class tInstall {
      * @return boolean
      */
     private function check_installation() {
-        if ($this->connection) {
-            $tDataClass = new tData();
-            $tData      = $tDataClass->connect();
+        $tData      = new tData();
+        $tData->db  = $tData->connect(true);
 
-            $q = $tData->query("SELECT * FROM `".$tDataClass->get_system_prefix()."_settings` WHERE `installed`='1'");
-            if ($q) $ret = $q->num_rows > 0 ? true : false;
-
-            $tDataClass->disconnect();
-            return isset($ret) ? $ret : false;
+        $query = $tData->select_from_table($tData->get_system_prefix()."_settings", array(), array("operator" => "", "conditions" => array("installed" => 1)));
+        if ($query) {
+            $results = $tData->fetch_rows($query);
+            $ret = count($results) > 0 ? true : false;
         }
-        return false;
+
+        $tData->disconnect();
+        return isset($ret) ? $ret : false;
     }
 
 
@@ -182,10 +168,10 @@ class tInstall {
         );
         $data['js'] = implode("", $js_files);
 
-        
+
         $tUser->set_420hash();
         $ajax_hash_cookie = isset($_COOKIE['420hash']) ? $_COOKIE['420hash'] : "";
-        
+
         include path(ROOT."/themes/installer/html.php");
         open_page($data);
         echo '<input type="hidden" id="ajax-hash-data" name="ajax-hash-data" value=\'{"key":"'.$ajax_hash_cookie.'"}\' />';

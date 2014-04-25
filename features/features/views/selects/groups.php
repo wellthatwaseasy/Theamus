@@ -9,14 +9,13 @@ if (isset($get['groups']) && $get['groups'] != "") {
     $groups = array();
 }
 
-// Define the groups table
-$groups_table = $tDataClass->prefix."_groups";
-
 // Query the database for groups
-$qry['find'] = $tData->query("SELECT * FROM `".$groups_table."`");
+$query = $tData->select_from_table($tData->prefix."_groups", array("alias", "name"));
+$results = $tData->fetch_rows($query);
+$all_groups = isset($results[0]) ? $results : array($results);
 
 // Loop through all groups, showing as options
-while ($group = $qry['find']->fetch_assoc()) {
+foreach ($all_groups as $group) {
     if (empty($groups)) {
         $selected = $group['alias'] == "everyone" ? "selected" : "";
     } else {

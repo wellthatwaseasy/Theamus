@@ -13,8 +13,8 @@ function get_app_folders() {
 
 function connect() {
     // Connect to the database and return the new resource
-    $tDataClass = new tData();
-    $tData = $tDataClass->connect();
+    $tData      = new tData();
+    $tData->db  = $tData->connect();
     return $tData;
 }
 
@@ -24,7 +24,7 @@ function check_existance($folders) {
 
     // Loop through all of the folders, checking which ones exist in the database
     foreach ($folders as $path) {
-        $q = $tData->query("SELECT * FROM `dflt_home-apps` WHERE `path`='".$path."'");
+        $q = $tData->db->query("SELECT * FROM `dflt_home-apps` WHERE `path`='".$path."'");
         if ($q->num_rows == 0) {
             $ret[] = $path; // If they aren't in the database, add them to the return array
         }
@@ -54,13 +54,13 @@ function add_app_to_db($info) {
     }
 
     // Sanitize the variables
-    $alias = $tData->real_escape_string($info['alias']);
-    $title = $tData->real_escape_string($info['title']);
+    $alias = $tData->db->real_escape_string($info['alias']);
+    $title = $tData->db->real_escape_string($info['title']);
 
     // Add the new app to the database
     $s = "INSERT INTO `dflt_home-apps` (`name`, `path`, `active`, `position`, `column`)"
             . " VALUES ('".$title."', '".$alias."', 0, 1, 1);";
-    if (!$tData->query($s)) {
+    if (!$tData->db->query($s)) {
         return false;
     } else {
         return true;
@@ -114,7 +114,7 @@ function install_apps($new) {
 
 function check_db_existance($folders) {
     $tData = connect();
-    $q = $tData->query("SELECT * FROM `dflt_home-apps`");
+    $q = $tData->db->query("SELECT * FROM `dflt_home-apps`");
     $ret = array();
     while ($app = $q->fetch_assoc()) {
         if (!in_array($app['path'], $folders)) {
@@ -129,7 +129,7 @@ function remove_apps($apps) {
     $tData = connect();
     $count = 0;
     foreach($apps as $app) {
-        $q = $tData->query("DELETE FROM `dflt_home-apps` WHERE `path`='".$app."'");
+        $q = $tData->db->query("DELETE FROM `dflt_home-apps` WHERE `path`='".$app."'");
         if (!$q) {
             notify("admin", "failure", "There was an error removing an old app from"
                 . " the database. This has prevented me from removing other old apps.");

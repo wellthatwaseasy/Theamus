@@ -2,19 +2,17 @@
 
 $post = filter_input_array(INPUT_POST); // Define filtered 'post'
 
-$users_table = $tDataClass->prefix."_users";
+$query_data = array("table_name" => $tData->prefix."_users", "data" => array());
 
 // Username
 if ($post['username'] != "") {
-    $username = $post['username'];
-    if (!preg_match("/[^a-zA-Z0-9]/", $username)) {
+    $username = urldecode($post['username']);
+    if (!preg_match("/[^a-zA-Z0-9_-]/", $username)) {
         if (strlen($username) >= 4 && strlen($username) <= 25) {
-            $username = $tData->real_escape_string($username);
-            $sql['user'] = "SELECT * FROM `".$users_table."` WHERE `username`='".$username."'";
-            $qry['user'] = $tData->query($sql['user']);
+            $query_username = $tData->select_from_table($query_data['table_name'], array("username"), array("operator" => "", "conditions" => array("username" => $username)));
 
-            if ($qry['user']) {
-                if ($qry['user']->num_rows > 0) {
+            if ($query_username != false) {
+                if ($tData->count_rows($query_username) > 0) {
                     $error[] = "This username has already been taken, try another.";
                 }
             } else {
@@ -32,13 +30,13 @@ if ($post['username'] != "") {
 
 // User's password
 if ($post['password'] != "") {                      // Check for input
-    $password = $post['password'];
+    $password = urldecode($post['password']);
     if ($post['repeat_password'] != "") {           // Check for input
-        $repeat_pass = $post['repeat_password'];
+        $repeat_pass = urldecode($post['repeat_password']);
         if ($password == $repeat_pass) {            // Check for match
             if (strlen($password) >= 4 && strlen($password) <= 30) {  // Check for length
-                $salt = $tDataClass->get_config_salt("password");
-                $password = $tData->real_escape_string(hash('SHA256', $password.$salt));
+                $salt = $tData->get_config_salt("password");
+                $password = hash('SHA256', $password.$salt);
             } else {
                 $error[] = "The password must be between 4 and 30 characters.";
             }
@@ -54,12 +52,12 @@ if ($post['password'] != "") {                      // Check for input
 
 // User's name
 if ($post['firstname'] != "") {
-    $firstname = $tData->real_escape_string($post['firstname']);
+    $firstname = urldecode($post['firstname']);
 } else {
     $error[] = "Please fill out the 'First Name' field.";
 }
 if ($post['lastname'] != "") {
-    $lastname = $tData->real_escape_string($post['lastname']);
+    $lastname = urldecode($post['lastname']);
 } else {
     $error[] = "Please fill out the 'Last Name' field.";
 }
@@ -67,9 +65,7 @@ if ($post['lastname'] != "") {
 // User's email
 if ($post['email'] != "") {
     $email = urldecode($post['email']);
-    if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $email = $tData->real_escape_string($email);
-    } else {
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error[] = "Please enter a valid email.";
     }
 } else {
@@ -88,7 +84,7 @@ if ($post['phone'] != "") {
     }
 
     if (strlen($numbers) == 10 && is_numeric($numbers)) {   // If the phone number is 10 integers
-        $phone = $tData->real_escape_string($numbers);
+        $phone = $numbers;
     }
 } else {
     $phone = "";
@@ -96,7 +92,7 @@ if ($post['phone'] != "") {
 
 // Get gender
 if ($post['gender'] == "m" || $post['gender'] == "f") {
-    $gender = $tData->real_escape_string($post['gender']);
+    $gender = $post['gender'];
 } else {
     $error[] = "I don't know that gender.  Try 'Male' or 'Female'";
 }
@@ -108,7 +104,6 @@ if ($post['bday-m'] != "" && $post['bday-d'] != "" && $post['bday-y'] != "") {
     $year = $post['bday-y'];
     if (is_numeric($month) && is_numeric($day) && is_numeric($year)) {
         $birthday = $year."-".$month."-".$day;
-        $birthday = $tData->real_escape_string($birthday);
     } else {
         $error[] = "Please provide the numerical values of your birthday.";
     }
@@ -118,7 +113,7 @@ if ($post['bday-m'] != "" && $post['bday-d'] != "" && $post['bday-y'] != "") {
 
 // Get groups
 if ($post['groups'] != "") {
-    $groups = $tData->real_escape_string(urldecode($post['groups']));
+    $groups = urldecode($post['groups']);
 } else {
     $groups = "everyone";
 }
@@ -130,28 +125,29 @@ $admin = $post['is_admin'] == "true" ? "1" : "0";
 if (!empty($error)) {
     notify("admin", "failure", $error[0]);
 } else {
-    // Define password sql
-    if ($password != false) {
-        $sql['pass'] = ", `password`='".$password."'";
-    } else {
-        $sql['pass'] = "";
-    }
+    $query_data['data'] = array(
+        "username"  => $username,
+        "password"  => $password,
+        "email"     => $email,
+        "firstname" => $firstname,
+        "lastname"  => $lastname,
+        "birthday"  => $birthday,
+        "gender"    => $gender,
+        "admin"     => $admin,
+        "groups"    => $groups,
+        "permanent" => 0,
+        "phone"     => $phone,
+        "picture"   => "default-user-picture.png",
+        "created"   => date('Y-m-d H:i:s'),
+        "active"    => 1
+    );
 
-    // Define the update sql
-    $sql['update'] = "INSERT INTO `".$users_table."`"
-            . "(`username`, `password`, `email`, `firstname`, `lastname`, `birthday`, "
-            . "`gender`, `admin`, `groups`, `permanent`, `phone`, `picture`, `created`, `active`)"
-            . "VALUES"
-            . "('".$username."', '".$password."', '".$email."', '".$firstname."', "
-            . "'".$lastname."', '".$birthday."', '".$gender."', '".$admin."', '".$groups."', 0, "
-            . "'".$phone."', 'default-user-picture.png', now(), '1')";
-    $qry['update'] = $tData->query($sql['update']);
+    $query = $tData->insert_table_row($query_data['table_name'], $query_data['data']);
 
-    if ($qry['update']) {
+    if ($query_data != false) {
         notify("admin", "success", "This information has been saved.<br />".js_countdown());
         run_after_ajax("back_to_userlist");
     } else {
-        notify("admin", "failure", "There was an error saving this information."
-                . $tData->error);
+        notify("admin", "failure", "There was an error saving this information.");
     }
 }

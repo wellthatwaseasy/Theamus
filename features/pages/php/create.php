@@ -8,13 +8,16 @@ if (isset($post['title'])) {
     $alias = "";
     if ($title != "" ) {
         // Define the title and alias
-        $title = $tData->real_escape_string($title);
         $clean_alias = preg_replace("/[^a-zA-Z0-9 ]/", '', htmlspecialchars_decode($title));
-        $alias = $tData->real_escape_string(strtolower(str_replace(" ", "_", trim($clean_alias))));
+        $alias = strtolower(str_replace(" ", "_", trim($clean_alias)));
 
         // Check the database for an existing page
-        $query = $tData->query("SELECT * FROM `".$tDataClass->prefix."_pages` WHERE `alias`='$alias'");
-        if ($query->num_rows > 0) {
+        $query_find_page = $tData->select_from_table($tData->prefix."_pages", array("id"), array(
+            "operator"  => "",
+            "conditions"=> array("alias" => $alias)
+        ));
+
+        if ($tData->count_rows($query_find_page) > 0) {
             $error[] = "A page with this title/alias already exists.  Please choose another.";
         }
     } else {
@@ -25,9 +28,7 @@ if (isset($post['title'])) {
 // Get the page content
 if (isset($post['content'])) {
     $content = urldecode($post['content']);
-    if ($content != "") {
-        $content = $tData->real_escape_string($content);
-    } else {
+    if ($content == "") {
         $error[] = "Please give this page some content.";
     }
 }
@@ -35,32 +36,38 @@ if (isset($post['content'])) {
 // Get groups
 if (isset($post['groups'])) {
     $groups = urldecode($post['groups']);
-    if ($groups != "") {
-        $groups = $tData->real_escape_string($groups);
-    } else {
+    if ($groups == "") {
         $groups = "everyone";
     }
 }
 
 // Get theme
 if (isset($post['layout'])) {
-    $theme = $tData->real_escape_string(urldecode($post['layout']));
+    $theme = urldecode($post['layout']);
 }
 
 // Get navigation
 if (isset($post['navigation'])) {
-    $nav = $tData->real_escape_string(urldecode($post['navigation']));
+    $nav = urldecode($post['navigation']);
 }
 
 // Get new link
 if (isset($post['create_link'])) {
     if ($post['create_link'] == "true") {
-        $links_table = $tDataClass->prefix."_links";
-        $sql['create_link'] = "INSERT INTO `".$links_table."`"
-                . "(`alias`, `text`, `path`, `weight`, `groups`, `type`, `location`, `child_of`) VALUES "
-                . "('".$alias."', '".$title."', '".$alias."', 0,  '".$groups."', 'page', 'main', 0)";
-    } else {
-        $sql['create_link'] = false;
+        $query_create_link = $tData->insert_table_row($tData->prefix."_links", array(
+            "alias"     => $alias,
+            "text"      => $title,
+            "path"      => $alias,
+            "weight"    => 0,
+            "groups"    => $groups,
+            "type"      => "page",
+            "location"  => "main",
+            "child_of"  => 0
+        ));
+
+        if ($query_create_link == false) {
+            $error[] = "There was an error when creating the link for this page.  The page was not created.";
+        }
     }
 }
 
@@ -68,19 +75,17 @@ if (isset($post['create_link'])) {
 if (!empty($error)) {
     notify("admin", "failure", $error[0]);
 } else {
-    if ($sql['create_link'] != false) {
-        if (!$tData->query($sql['create_link'])) {
-            die(notify("admin", "failure", "There was an issue creating the link for this page."));
-        }
-    }
+    $query_create_page = $tData->insert_table_row($tData->prefix."_pages", array(
+        "alias"     => $alias,
+        "title"     => $title,
+        "content"   => $content,
+        "permanent" => 0,
+        "groups"    => $groups,
+        "theme"     => $theme,
+        "navigation"=> $nav
+    ));
 
-    $pages_table = $tDataClass->prefix."_pages";
-    $sql['create'] = "INSERT INTO `".$pages_table."` "
-            . "(`alias`, `title`, `content`, `views`, `permanent`, `groups`, `theme`, `navigation`) "
-            . "VALUES "
-            . "('".$alias."', '".$title."', '".$content."', 0, 0, '".$groups."', "
-            . "'".$theme."', '".$nav."')";
-    if ($tData->query($sql['create'])) {
+    if ($query_create_page != false) {
         notify("admin", "success", "This page has been created.<br />".js_countdown());
         run_after_ajax("back_to_pagelist");
     } else {

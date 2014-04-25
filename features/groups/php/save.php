@@ -5,6 +5,8 @@ $error = array(); // Define an empty error array
 $post = filter_input_array(INPUT_POST); // Define a filtered post array
 $get = filter_input_array(INPUT_GET);   // Define a filtered get array
 
+$query_data = array("table" => $tData->prefix."_groups", "data" => array(), "clause" => array());
+
 // Get group ID
 if ($post['group_id'] != "") {
     $id = $post['group_id'];
@@ -15,13 +17,11 @@ if ($post['group_id'] != "") {
 // Get group name
 if ($post['name'] != "") {
     $name = urldecode($post['name']);
-    if (!preg_match("/[^a-zA-Z ']/", $name)) { // Check for illegal characters
+    if (!preg_match("/[^a-zA-Z '_-]/", $name)) { // Check for illegal characters
         // Clean and define the alias and name
-        $cleaned_alias = str_replace(" ", "_", strtolower($name));
-        $alias = $tData->real_escape_string($cleaned_alias);
-        $name = $tData->real_escape_string($name);
+        $alias = str_replace(" ", "_", strtolower($name));
     } else {
-        $error[] = "The group's name can only contain alphabet letters and spaces.";
+        $error[] = "There are invalid characters in the group name.";
     }
 } else {
     $error[] = "Please fill out the 'Group Name' field.";
@@ -30,12 +30,12 @@ if ($post['name'] != "") {
 // Get permissions
 $permissions = "";
 if ($post['permissions'] != "" || $post['name'] == "Everyone") {
-    $permissions = $tData->real_escape_string(urldecode($post['permissions']));
+    $permissions = urldecode($post['permissions']);
 }
 
 // Get home page
 if ($get['home'] != "") {
-    $home = $tData->real_escape_string($get['home']);
+    $home = str_replace("{p}", ".", str_replace("{d}", "-", str_replace("{fs}", "/", urldecode($get['home']))));
 } else {
     $error[] = "There's something wrong with the home page selection.";
 }
@@ -46,19 +46,23 @@ if (!empty($error)) {
 
 // Update group
 } else {
-    // Define the groups table
-    $table = $tDataClass->prefix . "_groups";
+    $query_data['data'] = array(
+        "alias" => $alias,
+        "name"  => $name,
+        "permissions"   => $permissions,
+        "home_override" => $home
+    );
+    $query_data['clause'] = array(
+        "operator"  => "",
+        "conditions"=> array(
+            "id" => $id
+        )
+    );
 
-    // Query to update
-    $sql['update'] = "UPDATE `".$table."` SET "
-            . "`alias`='".$alias."', "
-            . "`name`='".$name."', "
-            . "`permissions`='".$permissions."', "
-            . "`home_override`='".$home."' "
-            . "WHERE `id`='".$id."'";
-    $qry['update'] = $tData->query($sql['update']);
+    $query = $tData->update_table_row($query_data['table'], $query_data['data'], $query_data['clause']);
 
-    if ($qry['update']) {
+
+    if ($query != false) {
         notify("admin", "success", "This information has been saved.");
     } else {
         notify("admin", "failure", "There was an error querying the database.");

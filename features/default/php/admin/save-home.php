@@ -1,5 +1,7 @@
 <?php
 
+$query_data = array("table_name" => "dflt_home-apps", "data" => array(), "clause" => array());
+
 // Get current user's info
 $user = $tUser->user;
 
@@ -27,11 +29,18 @@ if ($user != false) {
     } else {
         // Save the apps
         foreach ($apps as $key => $val) {
-            $sql['update'] = "UPDATE `dflt_home-apps` SET `active`='".$val."' WHERE `path`='".$key."'";
-            $qry['update'] = $tData->query($sql['update']);
+            $query_data['data'][] = array("active" => $val);
+            $query_data['clause'][] = array (
+                "operator"  => "",
+                "conditions"=> array("path" => $key)
+            );
         }
 
         // Notify the user and get out
-        notify("admin", "success", "Your apps have been saved.<br />".js_countdown());
+        if ($tData->update_table_row($query_data['table_name'], $query_data['data'], $query_data['clause'])) {
+            notify("admin", "success", "Your apps have been saved.<br />".js_countdown());
+        } else {
+            notify("admin", "failure", "There was an error saving the apps.");
+        }
     }
 }

@@ -4,15 +4,15 @@
     <form class="admin-form" id="home-form" onsubmit="return save_home();">
     <?php
     $apps = true;
-    $sql['find'] = "SELECT * FROM `dflt_home-apps`";
-    $qry['find'] = $tData->query($sql['find']);
+    $query = $tData->select_from_table("dflt_home-apps", array("active", "path", "name"));
 
-    if ($qry['find']) {
-        if ($qry['find']->num_rows > 0) {
+    if ($query != false) {
+        if ($tData->count_rows($query) > 0) {
         ?>
         <ul>
         <?php
-        while ($app = $qry['find']->fetch_assoc()):
+        $results = $tData->fetch_rows($query);
+        foreach ($results as $app):
             $checked = $app['active'] == 1 ? "checked" : "";
         ?>
             <li>
@@ -27,16 +27,16 @@
                 <span><?=$app['name']?></span>
                 <div class="clearfix"></div>
             </li>
-        <?php endwhile; ?>
+        <?php endforeach; ?>
         </ul>
         <?php
         } else {
             $apps = false;
-            notify("admin", "info", "You have no home apps!");
+            alert_notify("info", "You have no home apps!");
         }
     } else {
         $apps = false;
-        notify("admin", "info", "There was an error querying the database.");
+        alert_notify("info", "There was an error querying the database.");
     }
     ?>
         <div class="options-row">

@@ -4,13 +4,9 @@ $get = filter_input_array(INPUT_GET);
 
 $page = 1;
 if (isset($get['page'])) {
-    $page = $tData->real_escape_string($get['page']);
+    $page = $get['page'];
 }
 
-$images_table = $tDataClass->prefix."_media";
-$s = "SELECT * FROM `".$images_table."`";
-
-$template_header = "";
 $template = <<<TEMPLATE
     <div class="media_list-img">
         <div class="media_list-options">
@@ -22,14 +18,25 @@ $template = <<<TEMPLATE
     </div>
 TEMPLATE;
 
-$tPages->set_page_data(array(
-    "sql" => $s,
-    "per_page" => 10,
-    "current" => $page,
-    "list_template" => $template,
-    "template_header" => $template_header
-));
+$query = $tData->select_from_table($tData->prefix."_media", array("id", "path", "type"));
+if ($query != false) {
+    if ($tData->count_rows($query) > 0) {
+        $results = $tData->fetch_rows($query);
+        $media = isset($results[0]) ? $results : array($results);
 
-$tPages->print_list();
-echo "<div class='clearfix'></div>";
-$tPages->print_pagination("next_page");
+        $tPages->set_page_data(array(
+            "data"              => $media,
+            "per_page"          => 10,
+            "current"           => $page,
+            "list_template"     => $template
+        ));
+
+        $tPages->print_list();
+        echo "<div class='clearfix'></div>";
+        $tPages->print_pagination("next_page");
+    } else {
+        notify("admin", "info", "There is no media to display.");
+    }
+} else {
+    notify("admin", "failure", "There was an error querying the database for media.");
+}

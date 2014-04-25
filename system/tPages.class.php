@@ -3,7 +3,7 @@
 /**
  * tPages - Theamus data list/pagination class
  * PHP Version 5.5.3
- * Version 1.0
+ * Version 1.2
  * @package Theamus
  * @link http://www.theamus.com/
  * @author Matthew Tempinski (Eyraahh) <matt.tempinski@theamus.com>
@@ -13,14 +13,6 @@
 class tPages {
     /**
      * Holds the Theamus data class object
-     *
-     * @var object $tDataClass
-     */
-    private $tDataClass;
-
-
-    /**
-     * Holds the mysqli object
      *
      * @var object $tData
      */
@@ -141,8 +133,8 @@ class tPages {
      * @return boolean
      */
     private function initialize_variables() {
-        $this->tData = new tData();
-        $this->tData->db = $this->tData->connect();
+        $this->tData        = new tData();
+        $this->tData->db    = $this->tData->connect();
         $this->data = array();
         return true;
     }
@@ -201,7 +193,7 @@ class tPages {
      */
     private function get_total_record_count() {
         if ($this->sql != false) {
-            $q = $this->tData->db->query($this->sql);
+            $q = $this->tData->custom_query($this->sql);
             if ($q) return $q->num_rows;
         } else return count($this->defined_data);
         return 0;
@@ -216,7 +208,7 @@ class tPages {
     private function query_db() {
         $this->get_limits();
         $ret = array();
-        $q = $this->tData->db->query($this->sql." LIMIT ".$this->start.", ".$this->end);
+        $q = $this->tData->custom_query($this->sql." LIMIT ".$this->start.", ".$this->end);
         if ($q) {
             while ($res = $q->fetch_assoc()) {
                 $ret[] = $res;
@@ -387,9 +379,9 @@ class tPages {
      * @return string
      */
     public function get_db_value($table, $column, $colval, $return_key) {
-        $q = $this->tData->db->query("SELECT * FROM `$table` WHERE `$column`='$colval'");
+        $q = $this->tData->select_from_table($table, array(), array("operator" => "", "conditions" => array($column => $colval)));
         $assoc = array();
-        if ($q) $assoc = $q->fetch_assoc();
+        if ($q) $assoc = $this->tData->fetch_rows($q);
         return $assoc[$return_key];
     }
 }

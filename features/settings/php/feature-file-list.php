@@ -11,15 +11,17 @@ if (isset($_GET['id'])) {
     }
 }
 
+$query_data = array("table" => $tData->prefix."_features");
+
 // Find the feature in the database
-$features = $tDataClass->prefix . '_features';
-$sql['find'] = 'SELECT * FROM `' . $features . '` WHERE `id`="' . $id . '"';
-$qry['find'] = $tData -> query($sql['find']);
+$query = $tData->select_from_table($query_data['table'], array("alias"), array(
+        "operator" => "",
+        "conditions" => array("id" => $id)));
 
 // Make sure the feature exists and update the alias
-if ($qry['find'] -> num_rows > 0) {
+if ($tData->count_rows($query) > 0) {
     // Grab the feature information
-    $feature = $qry['find'] -> fetch_assoc();
+    $feature = $tData->fetch_rows($query);
 
     // Define the new alias
     $alias = $feature['alias'];

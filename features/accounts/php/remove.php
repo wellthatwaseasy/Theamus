@@ -3,21 +3,19 @@
 // Error checking
 $error = array();
 
+$query_data = array("table_name" => $tData->prefix."_users");
+
 $post = filter_input_array(INPUT_POST);
 
 // User id
 if ($post['user_id'] != "") {
-    $id = $tData->real_escape_string($post['user_id']);
-
-    // Define the users table
-    $table = $tDataClass->prefix."_users";
+    $id = $post['user_id'];
 
     // Query the database for an existing user
-    $sql['find'] = "SELECT * FROM `".$table."` WHERE `id`='".$id."'";
-    $qry['find'] = $tData->query($sql['find']);
+    $query_user = $tData->select_from_table($query_data['table_name'], array("username"), array("operator" => "", "conditions" => array("id" => $id)));
 
     // Check for records
-    if ($qry['find']->num_rows == 0) {
+    if ($tData->count_rows($query_user) == 0) {
         $error[] = "This user doesn't exist.";
     }
 } else {
@@ -31,10 +29,9 @@ if (!empty($error)) {
 // Delete the user from the database
 } else {
     // Query to delete
-    $sql['delete'] = "DELETE FROM `".$table."` WHERE `id`='".$id."'";
-    $qry['delete'] = $tData->query($sql['delete']);
+    $query = $tData->delete_table_row($query_data['table_name'], array("operator" => "", "conditions" => array("id" => $id)));
 
-    if ($qry['delete']) {
+    if ($query != false) {
         notify("admin", "success", "This user has been deleted.");
     } else {
         notify("admin", "failure", "There was an issue querying the database.");

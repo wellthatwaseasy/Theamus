@@ -19,7 +19,9 @@ $admin_files = array(
 $tUser->deny_non_admins($file, $admin_files);
 
 $HomePage = new HomePage();
-$i = $HomePage->redirect();
+if ($file == "index.php") {
+    $i = $HomePage->redirect();
+}
 
 switch ($file) {
     case "index.php":

@@ -1,12 +1,9 @@
-<?php // Define the table
-$table = $tDataClass->prefix . "_settings";
+<?php
 
-// Query the database for site settings
-$sql['settings'] = "SELECT * FROM `" . $table . "`";
-$query['settings'] = $tData -> query($sql['settings']);
+$query = $tData->select_from_table($tData->prefix."_settings");
 
 // Grab settings information
-$result = $query['settings'] -> fetch_assoc();
+$result = $tData->fetch_rows($query);
 
 // Define page variables
 $email['host'] = $result['email_host'];

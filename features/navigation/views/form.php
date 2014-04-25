@@ -28,7 +28,7 @@ switch ($post['type']) {
         break;
 
     case "page":
-        $page = $post['path'];
+        $page = trim($post['path'], "/");
         break;
 
     case "feature":
@@ -175,7 +175,7 @@ switch ($post['type']) {
                 Creates a sub-menu to the parent link selected.
             </div>
         </div>
-        
+
         <div class="admin-formheader">Extra Information</div>
         <div class="admin-formrow">
             <div class="admin-formlabel">Link Weight</div>

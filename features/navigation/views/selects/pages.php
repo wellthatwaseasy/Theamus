@@ -2,16 +2,16 @@
 
 $alias = urldecode(filter_input(INPUT_GET, "page"));
 
-// Define the pages table
-$pages_table = $tDataClass->prefix."_pages";
-
 // Query the database for all of the site's pages
-$qry['find'] = $tData->query("SELECT * FROM `$pages_table`");
+$query = $tData->select_from_table($tData->prefix."_pages", array("alias", "title"));
 
 // Check for a valid query
-if ($qry['find'] && $qry['find']->num_rows > 0) {
+if ($query != false && $tData->count_rows($query) > 0) {
+    $results = $tData->fetch_rows($query);
+    $pages = isset($results[0]) ? $results : array($results);
+
     // Loop through the results, printing out the options
-    while ($page = $qry['find']->fetch_assoc()) {
+    foreach ($pages as $page) {
         $s = $alias == $page['alias'] ? "selected" : "";
         echo "<option value='".$page['alias']."' $s>".$page['title']."</option>";
     }

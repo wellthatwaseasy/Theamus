@@ -5,21 +5,25 @@ $get = filter_input_array(INPUT_GET);
 if (isset($get['id'])) {
     $id = $get['id'];
     if (is_numeric($id)) {
-        $groups_table = $tDataClass->prefix."_groups";
-        $sql['group'] = "SELECT * FROM `".$groups_table."` WHERE `id`='".$id."'";
-        $qry['group'] = $tData->query($sql['group']);
+        $query_group = $tData->select_from_table($tData->prefix."_groups", array("id", "alias", "name"), array(
+            "operator"  => "",
+            "conditions"=> array("id" => $id)
+        ));
 
-        if ($qry['group']) {
-            if ($qry['group']->num_rows > 0) {
-                $group = $qry['group']->fetch_assoc();
+        if ($query_group != false) {
+            if ($tData->count_rows($query_group) > 0) {
+                $group = $tData->fetch_rows($query_group);
 
-                $users_table = $tDataClass->prefix."_users";
-                $sql['users'] = "SELECT * FROM `".$users_table."` WHERE `groups` LIKE '%".$group['alias']."%'";
-                $qry['users'] = $tData->query($sql['users']);
+                $query_users = $tData->select_from_table($tData->prefix."_users", array("id"), array(
+                    "operator"  => "",
+                    "conditions"=> array(
+                        "[%]groups" => "%".$group['alias']."%"
+                    )
+                ));
 
-                if ($qry['users']) {
-                    $affected = $qry['users']->num_rows;
-                    $affected = $affected == 1 ? $affected." user" : $affected." users";
+                if ($query_users != false) {
+                    $affected_count = $tData->count_rows($query_users);
+                    $affected = $affected_count == 1 ? "1 user" : $affected_count." users";
                 } else {
                     $error[] = "There was an issue querying the users database.";
                 }
@@ -38,11 +42,7 @@ if (isset($get['id'])) {
 
 ?>
 <div class="window-header">
-    <?php if (empty($error)): ?>
-    Are you sure?
-    <?php else: ?>
-    Hmmm...
-    <?php endif; ?>
+    <?php echo empty($error) ? "Are you sure?" : "Hmmm..."; ?>
 </div>
 <div class="window-content">
     <?php

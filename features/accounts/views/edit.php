@@ -18,18 +18,14 @@ $error = array();   // Define an empty error array
 $get = filter_input_array(INPUT_GET);   // Define a filtered 'get'
 
 $id = isset($get['id']) ? $get['id'] : "";  // Define the id or it's default
-$id = $tData->real_escape_string($id);      // Sanitize for the DB
-
-$table = $tDataClass->prefix."_users";  // Define the user's table
 
 // Query the database for the user
-$sql['user'] = "SELECT * FROM `".$table."` WHERE `id`='".$id."'";
-$qry['user'] = $tData->query($sql['user']);
+$query = $tData->select_from_table($tData->prefix."_users", array(), array("operator" => "", "conditions" => array("id" => $id)));
 
 // Get the user's information
-if ($qry['user']) {                             // Check for a successful query
-    if ($qry['user']->num_rows > 0) {           // Check for results
-        $user = $qry['user']->fetch_assoc();    // Define the user's information
+if ($query != false) {                              // Check for a successful query
+    if ($tData->count_rows($query) > 0) {           // Check for results
+        $user = $tData->fetch_rows($query);         // Define the user's information
 
         $permanent = $user['permanent'] == "1" ? true : false;
     } else {
@@ -229,17 +225,14 @@ if ($qry['user']) {                             // Check for a successful query
             <div class="admin-forminput">
                 <select name="groups" multiple="multiple" size="7">
                 <?php
-                // Define the groups table
-                $groups_table = $tDataClass->prefix."_groups";
-
                 // Query the database for groups
-                $sql['groups'] 	= "SELECT * FROM `".$groups_table."`";
-                $qry['groups']	= $tData->query($sql['groups']);
+                $query = $tData->select_from_table($tData->prefix."_groups", array("alias", "name"));
 
                 $groups = explode(",", $user['groups']);
 
                 // Loop through all groups, showing as options
-                while ($group = $qry['groups']->fetch_assoc()) {
+                $results = $tData->fetch_rows($query);
+                foreach ($results as $group) {
                     $checked = in_array($group['alias'], $groups) ? "selected" : "";
                     echo "<option ".$checked." value=\"".$group['alias']."\">"
                             .$group['name']."</option>";

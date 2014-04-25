@@ -32,19 +32,17 @@
                 <select name="permissions" id="permissions" size="20" multiple="multiple">
                     <?php
                     // Query the database for permissions
-                    $ptable = $tDataClass->prefix . "_permissions";
-                    $sql['perm'] = "SELECT * FROM `" . $ptable . "`";
-                    $qry['perm'] = $tData->query($sql['perm']);
+                    $query = $tData->select_from_table($tData->prefix."_permissions", array("permission", "feature"));
 
                     // Loop through results
-                    while ($results = $qry['perm']->fetch_assoc()) {
+                    $results = $tData->fetch_rows($query);
+                    foreach ($results as $permission) {
                         // Clean up the text
-                        $permission = ucwords(str_replace("_", " ", $results['permission']));
-                        $feature = ucwords(str_replace("_", " ", $results['feature']));
+                        $permission_feature    = ucwords(str_replace("_", " ", $permission['permission']));
+                        $permission_feature = ucwords(str_replace("_", " ", $permission['feature']));
 
                         // Show options
-                        echo "<option value='".$results['permission']."'>".
-                        $feature." - ".$permission."</option>";
+                        echo "<option value='".$permission['permission']."'>$permission_feature - $permission_feature</option>";
                     }
                     ?>
                 </select>

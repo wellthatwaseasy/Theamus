@@ -5,13 +5,14 @@ $get = filter_input_array(INPUT_GET);
 if (isset($get['id'])) {
     $id = $get['id'];
     if (is_numeric($id)) {
-        $features_table = $tDataClass->prefix."_features";
-        $sql['feature'] = "SELECT * FROM `".$features_table."` WHERE `id`='".$id."'";
-        $qry['feature'] = $tData->query($sql['feature']);
+        $query = $tData->select_from_table($tData->prefix."_features", array("id", "name"), array(
+            "operator"  => "",
+            "conditions"=> array("id" => $id)
+        ));
 
-        if ($qry['feature']) {
-            if ($qry['feature']->num_rows > 0) {
-                $feature = $qry['feature']->fetch_assoc();
+        if ($query != false) {
+            if ($tData->count_rows($query) > 0) {
+                $feature = $tData->fetch_rows($query);
             } else {
                 $error[] = "There was an error when finding the feature requested.";
             }

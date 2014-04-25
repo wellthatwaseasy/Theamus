@@ -5,23 +5,22 @@ $error = array(); // Define an empty error array
 $post = filter_input_array(INPUT_POST); // Define a filtered post array
 $get = filter_input_array(INPUT_GET);   // Define a filtered get array
 
-$groups_table = $tDataClass->prefix."_groups";
+$query_data = array("table" => $tData->prefix."_groups", "data" => array());
 
 // Get group name
 if ($post['name'] != "") {
     $name = urldecode($post['name']);
-    if (!preg_match("/[^a-zA-Z ']/", $name)) { // Check for illegal characters
+    if (!preg_match("/[^a-zA-Z '_-]/", $name)) { // Check for illegal characters
         // Clean and define the alias and name
-        $cleaned_alias = str_replace(" ", "_", strtolower($name));
-        $alias = $tData->real_escape_string($cleaned_alias);
-        $name = $tData->real_escape_string($name);
+        $alias = str_replace(" ", "_", strtolower($name));
 
         // Query the database for a group with this name
-        $sql['check'] = "SELECT * FROM `".$groups_table."` WHERE `alias`='".$alias."'";
-        $qry['check'] = $tData->query($sql['check']);
+        $query_group = $tData->select_from_table($query_data['table'], array("alias"), array(
+            "operator"  => "",
+            "conditions"=> array("alias" => $alias)));
 
-        if ($qry['check']) {
-            if ($qry['check']->num_rows > 0) {
+        if ($query_group != false) {
+            if ($tData->count_rows($query_group) > 0) {
                 $error[] = "A group with that name already exists";
             }
         } else {
@@ -37,21 +36,25 @@ if ($post['name'] != "") {
 // Get permissions
 $permissions = "";
 if ($post['permissions'] != "" || $post['name'] == "Everyone") {
-    $permissions = $tData->real_escape_string(urldecode($post['permissions']));
+    $permissions = urldecode($post['permissions']);
 }
 
 if (!empty($error)) { // Show errors
 	notify("admin", "failure", $error[0]);
 } else {
+    // Define the creation query data
+    $query_data['data'] = array(
+        "alias"         => $alias,
+        "name"          => $name,
+        "permissions"   => $permissions,
+        "home_override" => "false"
+    );
+
 	// Query to create
-	$sql['create'] = "INSERT INTO `".$groups_table."` "
-            . "(`alias`, `name`, `permissions`, `home_override`) "
-            . "VALUES "
-            . "('".$alias."', '".$name."', '".$permissions."', 'false');";
-	$qry['create'] = $tData->query($sql['create']);
+    $query = $tData->insert_table_row($query_data['table'], $query_data['data']);
 
 	// Notify user and get out
-    if ($qry['create']) {
+    if ($query != false) {
         notify("admin", "success", "This group has been created.<br/>".js_countdown());
         run_after_ajax("back_to_grouplist");
     } else {

@@ -1,5 +1,7 @@
 <?php
 
+$query_data = array("table_name" => $tData->prefix."_users", "data" => array(), "clause" => array());
+
 // Get the logged in user's info
 $user = $tUser->user;
 
@@ -10,9 +12,7 @@ if ($user != false) {
     // Check first name
     if ($_POST['firstname'] != "") {
         $firstname = $_POST['firstname'];
-        if (!preg_match("/[^a-zA-Z0-9-\']/", $firstname)) {
-            $firstname = $tData->real_escape_string($firstname);
-        } else {
+        if (preg_match("/[^a-zA-Z0-9-\']/", $firstname)) {
             $error[] = "First names usually don't have all those fancy characters.";
         }
     } else {
@@ -22,9 +22,7 @@ if ($user != false) {
     // Check last name
     if ($_POST['lastname'] != "") {
         $lastname = $_POST['lastname'];
-        if (!preg_match("/[^a-zA-Z0-9-\']/", $lastname)) {
-            $lastname = $tData->real_escape_string($lastname);
-        } else {
+        if (preg_match("/[^a-zA-Z0-9-\']/", $lastname)) {
             $error[] = "Last names usually don't have all those fancy characters.";
         }
     } else {
@@ -33,7 +31,7 @@ if ($user != false) {
 
     // Get gender
     if ($_POST['gender'] == "m" || $_POST['gender'] == "f") {
-        $gender = $tData->real_escape_string($_POST['gender']);
+        $gender = $_POST['gender'];
     } else {
         $error[] = "I don't know that gender.  Try 'Male' or 'Female'";
     }
@@ -45,7 +43,6 @@ if ($user != false) {
         $year = $_POST['bday-y'];
         if (is_numeric($month) && is_numeric($day) && is_numeric($year)) {
             $birthday = $year."-".$month."-".$day;
-            $birthday = $tData->real_escape_string($birthday);
         } else {
             $error[] = "Please provide the numerical values of your birthday.";
         }
@@ -57,17 +54,20 @@ if ($user != false) {
     if (!empty($error)) {
         alert_notify("danger", $error[0]);
     } else {
-        // Define the user's table
-        $users_table = $tDataClass->prefix."_users";
+        $query_data['data'] = array(
+            "firstname" => $firstname,
+            "lastname"  => $lastname,
+            "gender"    => $gender,
+            "birthday"  => $birthday
+        );
+        $query_data['clause'] = array("operator" => "", "conditions" => array("id" => $user['id']));
 
         // Update the database
-        $sql['update'] = "UPDATE `".$users_table."` SET `firstname`='".$firstname."',"
-            . " `lastname`='".$lastname."', `gender`='".$gender."', `birthday`='".$birthday."'"
-            . " WHERE `id`='".$user['id']."'";
-        $qry['update'] = $tData->query($sql['update']);
-
-        // Notify the user
-        run_after_ajax("update_name", '{"firstname":"'.$firstname.'","lastname":"'.$lastname.'"}');
-        alert_notify("success", "Your personal information has been saved.");
+        if ($tData->update_table_row($query_data['table_name'], $query_data['data'], $query_data['clause'])) {
+            run_after_ajax("update_name", '{"firstname":"'.$firstname.'","lastname":"'.$lastname.'"}');
+            alert_notify("success", "Your personal information has been saved.");
+        } else {
+            alert_notify("danger", "There was an error saving this information.");
+        }
     }
 }

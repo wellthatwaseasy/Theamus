@@ -5,7 +5,7 @@ $post = filter_input_array(INPUT_POST); // Define filtered 'post'
 // User's ID
 if (isset($post['id'])) {           // If it is set
     if (is_numeric($post['id'])) {  // If it is a number
-        $id = $tData->real_escape_string($post['id']);
+        $id = urldecode($post['id']);
     } else {
         $error[] = "Invalid ID.";
     }
@@ -17,15 +17,15 @@ if (isset($post['id'])) {           // If it is set
 $password = false;
 if ($post['change_pass'] == "true") {                   // Check for password change
     if ($post['password'] != "") {                      // Check for input
-        $password = $post['password'];
+        $password = urldecode($post['password']);
         if ($post['repeat_password'] != "") {           // Check for input
-            $repeat_pass = $post['repeat_password'];
+            $repeat_pass = urldecode($post['repeat_password']);
             if ($password == $repeat_pass) {            // Check for match
-                if (strlen($password) >= 4 && strlen($password) <= 30) {  // Check for length
-                    $salt = $tDataClass->get_config_salt("password");
-                    $password = $tData->real_escape_string(hash('SHA256', $password.$salt));
+                if (strlen($password) >= 4) {  // Check for length
+                    $salt = $tData->get_config_salt("password");
+                    $password = hash('SHA256', $password.$salt);
                 } else {
-                    $error[] = "The password must be between 4 and 30 characters.";
+                    $error[] = "The password must be at least 4 characters.";
                 }
             } else {
                 $error[] = "The passwords you've entered don't match.";
@@ -40,12 +40,12 @@ if ($post['change_pass'] == "true") {                   // Check for password ch
 
 // User's name
 if ($post['firstname'] != "") {
-    $firstname = $tData->real_escape_string($post['firstname']);
+    $firstname = urldecode($post['firstname']);
 } else {
     $error[] = "Please fill out the 'First Name' field.";
 }
 if ($post['lastname'] != "") {
-    $lastname = $tData->real_escape_string($post['lastname']);
+    $lastname = urldecode($post['lastname']);
 } else {
     $error[] = "Please fill out the 'Last Name' field.";
 }
@@ -53,9 +53,7 @@ if ($post['lastname'] != "") {
 // User's email
 if ($post['email'] != "") {
     $email = urldecode($post['email']);
-    if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $email = $tData->real_escape_string($email);
-    } else {
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error[] = "Please enter a valid email.";
     }
 } else {
@@ -74,7 +72,7 @@ if ($post['phone'] != "") {
     }
 
     if (strlen($numbers) == 10 && is_numeric($numbers)) {   // If the phone number is 10 integers
-        $phone = $tData->real_escape_string($numbers);
+        $phone = $numbers;
     }
 } else {
     $phone = "";
@@ -82,7 +80,7 @@ if ($post['phone'] != "") {
 
 // Get gender
 if ($post['gender'] == "m" || $post['gender'] == "f") {
-    $gender = $tData->real_escape_string($post['gender']);
+    $gender = $post['gender'];
 } else {
     $error[] = "I don't know that gender.  Try 'Male' or 'Female'";
 }
@@ -94,7 +92,7 @@ if ($post['bday-m'] != "" && $post['bday-d'] != "" && $post['bday-y'] != "") {
     $year = $post['bday-y'];
     if (is_numeric($month) && is_numeric($day) && is_numeric($year)) {
         $birthday = $year."-".$month."-".$day;
-        $birthday = $tData->real_escape_string($birthday);
+        $birthday = $birthday;
     } else {
         $error[] = "Please provide the numerical values of your birthday.";
     }
@@ -104,7 +102,7 @@ if ($post['bday-m'] != "" && $post['bday-d'] != "" && $post['bday-y'] != "") {
 
 // Get groups
 if ($post['groups'] != "") {
-    $groups = $tData->real_escape_string(urldecode($post['groups']));
+    $groups = urldecode($post['groups']);
 } else {
     $groups = "everyone";
 }
@@ -119,31 +117,35 @@ $active = $post['active'] == "true" ? "1" : "0";
 if (!empty($error)) {
     notify("admin", "failure", $error[0]);
 } else {
+    // Define query data
+    $query_data = array(
+        "table_name"    => $tData->prefix."_users",
+        "data"          => array(
+            "firstname" => $firstname,
+            "lastname"  => $lastname,
+            "email"     => $email,
+            "phone"     => $phone,
+            "gender"    => $gender,
+            "birthday"  => $birthday,
+            "groups"    => $groups,
+            "admin"     => $admin,
+            "active"    => $active,
+        ),
+        "clause"        => array(
+            "operator"  => "",
+            "conditions"=> array("id" => $id)
+        )
+    );
+
     // Define password sql
     if ($password != false) {
-        $sql['pass'] = ", `password`='".$password."'";
-    } else {
-        $sql['pass'] = "";
+        $query_data['data']['password'] = $password;
     }
 
-    $users_table = $tDataClass->prefix."_users";
+    // Query the database, update the user's information
+    $query = $tData->update_table_row($query_data['table_name'], $query_data['data'], $query_data['clause']);
 
-    // Define the update sql
-    $sql['update'] = "UPDATE `".$users_table."` SET "
-            . "`firstname`='".$firstname."', "
-            . "`lastname`='".$lastname."', "
-            . "`email`='".$email."', "
-            . "`phone`='".$phone."', "
-            . "`gender`='".$gender."', "
-            . "`birthday`='".$birthday."', "
-            . "`groups`='".$groups."', "
-            . "`admin`='".$admin."', "
-            . "`active`='".$active."'"
-            . $sql['pass']
-            . " WHERE `id`='".$id."'";
-    $qry['update'] = $tData->query($sql['update']);
-
-    if ($qry['update']) {
+    if ($query != false) {
         notify("admin", "success", "This information has been saved.");
     } else {
         notify("admin", "failure", "There was an error saving this information.");

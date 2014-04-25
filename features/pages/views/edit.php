@@ -9,14 +9,14 @@ if (isset($get['id'])) {
     // Check the ID has a value
     if ($id != "") {
         // Query the database for the page
-        $id = $tData->real_escape_string($id);
-        $pages_table = $tDataClass->prefix . "_pages";
-        $sql['page'] = "SELECT * FROM `" . $pages_table . "` WHERE `id`='" . $id . "'";
-        $qry['page'] = $tData->query($sql['page']);
+        $query = $tData->select_from_table($tData->prefix."_pages", array(), array(
+            "operator"  => "",
+            "conditions"=> array("id" => $id)
+        ));
 
         // Check for a valid query
-        if ($qry['page']) {
-            $page = $qry['page']->fetch_assoc(); // Define the database informations
+        if ($query != false) {
+            $page = $tData->fetch_rows($query); // Define the database informations
         } else {
             $error = "There was an error querying the database for the page.";
         }
@@ -83,17 +83,12 @@ if (isset($get['id'])) {
                             // Define the page groups
                             $pageGroups = explode(",", $page['groups']);
 
-                            // Define the groups table
-                            $groups_table = $tDataClass->prefix . "_groups";
-
                             // Query the database for groups
-                            $sql['groups'] = "SELECT * FROM `" . $groups_table . "`";
-                            $qry['groups'] = $tData->query($sql['groups']);
-
-                            $groups = explode(",", $user['groups']);
-
+                            $query = $tData->select_from_table($tData->prefix."_groups", array("alias", "name"));
+                            
                             // Loop through all groups, showing as options
-                            while ($group = $qry['groups']->fetch_assoc()) {
+                            $results = $tData->fetch_rows($query);
+                            foreach ($results as $group) {
                                 $selected = in_array($group['alias'], $pageGroups) ? "selected" : "";
                                 echo "<option " . $selected . " value='" . $group['alias'] . "'>"
                                 . $group['name'] . "</option>";

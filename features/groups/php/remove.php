@@ -4,16 +4,18 @@ $error = array(); // Define an empty error array
 
 $post = filter_input_array(INPUT_POST); // Define filtered post
 
-$group_table = $tDataClass->prefix."_groups"; // Define the groups table
-$user_table = $tDataClass->prefix."_users"; // Define the users table
+$query_data = array(
+    "group_table"   => $tData->prefix."_groups",
+    "user_table"    => $tData->prefix."_users",
+    "user_data"    => array(),
+    "user_clause"  => array()
+);
 
 // Get group ID
 $id = false;
 if ($post['group_id'] != "") {
     $id = $post['group_id'];
-    if (is_numeric($id)) {
-        $id = $tData->real_escape_string($id);
-    } else {
+    if (!is_numeric($id)) {
         $error[] = "The ID provided is invalid.";
     }
 } else {
@@ -21,14 +23,15 @@ if ($post['group_id'] != "") {
 }
 
 $group = false;
-if ($id) {
-    // Query the database for an existing group
-    $sql['check'] = "SELECT * FROM `".$group_table."` WHERE `id`='".$id."'";
-    $qry['check'] = $tData->query($sql['check']);
+if ($id != false) {
+    $query_check = $tData->select_from_table($query_data['group_table'], array("alias"), array(
+        "operator"  => "",
+        "conditions"=> array("id" => $id)
+    ));
 
-    if ($qry['check']) {
-        if ($qry['check']->num_rows > 0) {
-            $group = $qry['check']->fetch_assoc();
+    if ($query_check != false) {
+        if ($tData->count_rows($query_check) > 0) {
+            $group = $tData->fetch_rows($query_check);
         } else {
             $error[] = "There was an issue finding this group in the database.";
         }
@@ -37,14 +40,20 @@ if ($id) {
     }
 }
 
-if ($group) {
-    $sql['users'] = "SELECT * FROM `".$user_table."` WHERE `groups` LIKE '%".$group['alias']."%'";
-    $qry['users'] = $tData->query($sql['users']);
-    $sql['user_update'] = array();
+if ($group != false) {
+    $query_find_users = $tData->select_from_table($query_data['user_table'], array("id", "groups"), array(
+        "operator"  => "",
+        "conditions"=> array(
+            "[%]groups" => "%".$group['alias']."%"
+        )
+    ));
 
-    if ($qry['users']) {
-        if ($qry['users']->num_rows > 0) {
-            while ($user = $qry['users']->fetch_assoc()) {
+    if ($query_find_users != false) {
+        if ($tData->count_rows($query_find_users) > 0) {
+            $results = $tData->fetch_rows($query_find_users);
+            $users = isset($results[0]) ? $results : array($results);
+
+            foreach ($users as $user) {
                 $user_groups = explode(",", $user['groups']);
                 $new_groups = array();
                 foreach ($user_groups as $ug) {
@@ -52,9 +61,12 @@ if ($group) {
                         $new_groups[] = $ug;
                     }
                 }
-                $user_groups = implode(",", $new_groups);
-                $sql['user_update'][] = "UPDATE `".$user_table."` SET "
-                        . "`groups`='".$user_groups."' WHERE `id`='".$user['id']."';";
+
+                $query_data['user_data'][] = array("groups" => implode(",", $new_groups));
+                $query_data['user_clause'][] = array(
+                    "operator"  => "",
+                    "conditions"=> array("id" => $user['id'])
+                );
             }
         }
     } else {
@@ -66,16 +78,28 @@ if ($group) {
 if (!empty($error)) {
     notify("admin", "failure", $error[0]);
 } else {
-    if (!empty($sql['user_update'])) {
-        foreach ($sql['user_update'] as $uu) {
-            $tData->query($uu);
-        }
+    $clean_users_query = true;
+    if (!empty($query_data['user_data'])) {
+        $clean_users_query = $tData->update_table_row($query_data['user_table'], $query_data['user_data'], $query_data['user_clause']);
     }
 
-    $sql['delete'] = "DELETE FROM `".$group_table."` WHERE `id`='".$id."'";
-    if ($tData->query($sql['delete'])) {
-        notify("admin", "success", "This group has been removed.");
+    if ($clean_users_query != false) {
+        // Clear the db buffer before moving on
+        if ($tData->use_pdo == true) {
+            $clean_users_query->closeCursor();
+        }
+
+        $query = $tData->delete_table_row($query_data['group_table'], array(
+            "operator"  => "",
+            "conditions"=> array("id" => $id)
+        ));
+
+        if ($query != false) {
+            notify("admin", "success", "This group has been removed.");
+        } else {
+            notify("admin", "failure", "There was an issue deleting this group.");
+        }
     } else {
-        notify("admin", "failure", "There was an issue deleting this group.");
+        notify("admin", "failure", "There was an error updating the users database table.");
     }
 }

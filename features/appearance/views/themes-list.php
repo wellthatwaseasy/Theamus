@@ -1,21 +1,8 @@
 <?php
 
 $get = filter_input_array(INPUT_GET);
-
-$search = "";
-if (isset($get['search'])) {
-    $search = $tData->real_escape_string($get['search']);
-}
-
-$page = 1;
-if (isset($get['page'])) {
-    $page = $tData->real_escape_string($get['page']);
-}
-
-$themes_table = $tDataClass->prefix."_themes";
-$s = "SELECT * FROM `".$themes_table."` WHERE "
-        . "`alias` LIKE '".$search."%' || "
-        . "`name` LIKE '".$search."%'";
+$search = isset($get['search']) ? $get['search'] : "";
+$page = isset($get['page']) ? $get['page'] : 1;
 
 $template_header = <<<TEMPLATE
         <ul class="header">
@@ -38,13 +25,32 @@ $template = <<<TEMPLATE
 </ul>
 TEMPLATE;
 
-$tPages->set_page_data(array(
-    "sql" => $s,
-    "per_page" => 25,
-    "current" => $page,
-    "list_template" => $template,
-    "template_header" => $template_header
+$query = $tData->select_from_table($tData->prefix."_themes", array("name", "id", "permanent", "active", "alias"), array(
+    "operator"  => "OR",
+    "conditions"=> array(
+        "[%]alias"  => $search."%",
+        "[%]name"   => $search."%"
+    )
 ));
 
-$tPages->print_list();
-$tPages->print_pagination();
+if ($query != false) {
+    if ($tData->count_rows($query) > 0) {
+        $results = $tData->fetch_rows($query);
+        $themes = isset($results[0]) ? $results : array($results);
+
+        $tPages->set_page_data(array(
+            "data"              => $themes,
+            "per_page"          => 25,
+            "current"           => $page,
+            "template_header"   => $template_header,
+            "list_template"     => $template
+        ));
+
+        $tPages->print_list();
+        $tPages->print_pagination();
+    } else {
+        notify("admin", "info", "There are no themes to show.");
+    }
+} else {
+    notify("admin", "failure", "There was an issue when querying the database for themes.");
+}

@@ -45,7 +45,6 @@ function submit_remove_group() {
         url: "groups/remove/",
         result: "remove_result",
         extra_fields: "group_id",
-        hide_result: 3,
         after: {
             do_function: ["close_remove_group", "search_groups"]
         }

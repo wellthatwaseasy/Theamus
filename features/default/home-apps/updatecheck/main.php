@@ -3,16 +3,16 @@
 $error = false; // Start out the day nicely.
 
 // Define and check the system settings
-$settings_query = $tData->query("SELECT * FROM `".$tDataClass->prefix."_settings`");
+$settings_query = $tData->select_from_table($tData->prefix."_settings", array("version"));
 if (!$settings_query) {
     $error = "There was an error gathering information about the host system.";
 } else {
-    $settings = $settings_query->fetch_assoc();
+    $settings = $tData->fetch_rows($settings_query);
 }
 
 // Make the AJAX call to the update server
 $server = "http://theamus.com/release-manager/update-info/";
-$info = $tDataClass->api(array(
+$info = $tData->api(array(
     "type"  => "get",
     "url"   => $server,
     "method"=> array("Releases", "get_update_info"),

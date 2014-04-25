@@ -1,5 +1,7 @@
 <?php
 
+$query_data = array("table_name" => $tData->prefix."_users", "data" => array(), "clause" => array());
+
 // Define the current user's information
 $user = $tUser->user;
 
@@ -10,9 +12,7 @@ if ($user != false) {
     // Check email
     if ($_POST['email'] != "") {
         $email = urldecode($_POST['email']);
-        if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $email = $tData->real_escape_string($email);
-        } else {
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $error[] = "Please enter a valid email.";
         }
     } else {
@@ -31,7 +31,7 @@ if ($user != false) {
         }
 
         if (strlen($numbers) == 10 && is_numeric($numbers)) {   // If the phone number is 10 integers
-            $phone = $tData->real_escape_string($numbers);
+            $phone = $numbers;
         }
     } else {
         $phone = "";
@@ -41,15 +41,13 @@ if ($user != false) {
     if (!empty($error)) {
         alert_notify("danger", $error[0]);
     } else {
-        // Define the user table
-        $users_table = $tDataClass->prefix."_users";
-
         // Update the database
-        $sql['update'] = "UPDATE `".$users_table."` SET `email`='".$email."',"
-            . " `phone`='".$phone."' WHERE `id`='".$user['id']."'";
-        $qry['update'] = $tData->query($sql['update']);
-
-        // Notify the user
-        alert_notify("success", "Your contact information has been saved.");
+        $query_data['data'] = array("email" => $email, "phone"  => $phone);
+        $query_data['clause'] = array("operator" => "", "conditions" => array("id" => $user['id']));
+        if ($tData->update_table_row($query_data['table_name'], $query_data['data'], $query_data['clause'])) {
+            alert_notify("success", "Your contact information has been saved.");
+        } else {
+            alert_notify("danger", "There was an error saving this information.");
+        }
     }
 }

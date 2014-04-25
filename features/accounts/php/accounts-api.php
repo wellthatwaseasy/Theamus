@@ -14,7 +14,7 @@ class AccountsApi extends Accounts {
         // Check the username
         if (isset($args['username'])) {
             if ($args['username'] != "") {
-                $username = $this->tData->db->real_escape_string(urldecode($args['username']));
+                $username = urldecode($args['username']);
             } else {
                 $this->api_error("Please fill out the 'Username' field.");
                 return $this->api_return;
@@ -27,8 +27,7 @@ class AccountsApi extends Accounts {
         // Check the password
         if (isset($args['password'])) {
             if ($args['password'] != "") {
-                $hashed_password = hash("SHA256", urldecode($args['password']).$this->tData->get_config_salt("password"));
-                $password = $this->tData->db->real_escape_string($hashed_password);
+                $password = hash("SHA256", urldecode($args['password']).$this->tData->get_config_salt("password"));
             } else {
                 $this->api_error("Please fill out the 'Password' field.");
                 return $this->api_return;
@@ -40,14 +39,15 @@ class AccountsApi extends Accounts {
 
 
         // Query the database for an existing user
-        $fetch_query = $this->tData->db->query("SELECT * FROM `".$this->tData->prefix."_users` WHERE `username`='$username' AND `password`='$password'");
-        if ($fetch_query->num_rows == 0) {
+        $fetch_query = $this->tData->select_from_table($this->tData->prefix."_users", array("active", "id"),
+            array("operator" => "AND", "conditions" => array("username" => $username, "password" => $password)));
+        if ($this->tData->count_rows($fetch_query) == 0) {
             $this->api_error("Invalid credentials.");
             return $this->api_return;
         }
 
         // Define the user information
-        $row = $fetch_query->fetch_assoc();
+        $row = $this->tData->fetch_rows($fetch_query);
 
         // Check for an active user
         if ($row['active'] == 0) {
@@ -107,5 +107,32 @@ class AccountsApi extends Accounts {
 
     public function register_user($args) {
         return $this->create_registered_user($args);
+    }
+
+
+    /**
+     * Defines the information to send out to the parent class, then runs a parent
+     * function to activate a user
+     *
+     * @param array $args
+     * @return array
+     */
+    public function activate_user($args) {
+        // Define or fail on the email address
+        if ($args['email'] == "") {
+            return array("error" => true, "message" => "Couldn't activate because there is no email address defined.");
+        } else {
+            $email = parent::encode_string(urldecode($args['email']), true);
+        }
+
+        // Define or fail on the activation code
+        if ($args['code'] == "") {
+            return array("error" => true, "message" => "Couldn't activation because there is no activation code defined.");
+        } else {
+            $code = parent::encode_string(urldecode($args['code']), true);
+        }
+
+        // Activate the user
+        return parent::activate_user($email, $code);
     }
 }

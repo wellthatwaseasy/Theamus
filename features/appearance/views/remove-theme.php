@@ -5,13 +5,14 @@ $get = filter_input_array(INPUT_GET);
 if (isset($get['id'])) {
     $id = $get['id'];
     if (is_numeric($id)) {
-        $themes_table = $tDataClass->prefix."_themes";
-        $sql['theme'] = "SELECT * FROM `".$themes_table."` WHERE `id`='".$id."'";
-        $qry['theme'] = $tData->query($sql['theme']);
+        $query = $tData->select_from_table($tData->prefix."_themes", array("id", "name"), array(
+            "operator"  => "",
+            "conditions"=> array("id" => $id)
+        ));
 
-        if ($qry['theme']) {
-            if ($qry['theme']->num_rows > 0) {
-                $theme = $qry['theme']->fetch_assoc();
+        if ($query != false) {
+            if ($tData->count_rows($query) > 0) {
+                $theme = $tData->fetch_rows($query);
             } else {
                 $error[] = "There was an error when finding the theme requested.";
             }

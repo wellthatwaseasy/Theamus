@@ -27,11 +27,12 @@ $user = $tUser->user;
             <?php
             $groups = explode(",", $user['groups']);
             foreach ($groups as $group) {
-                $query = $tData->query("SELECT * FROM `".$tDataClass->get_system_prefix()."_features` WHERE `groups` LIKE '".$group."%'");
+                $query = $tData->select_from_table($tData->prefix."_features", array("name"), array("operator" => "", "conditions" => array("groups" => $group)));
 
-                if ($query->num_rows >= 0) {
-                    while ($feature = $query->fetch_assoc()) {
-                        echo $feature['name']."<br />";
+                if ($tData->count_rows($query) > 0) {
+                    $results = $tData->fetch_rows($query);
+                    foreach ($results as $feature) {
+                        echo $feature['name']."<br>";
                     }
                 }
             }

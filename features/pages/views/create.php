@@ -36,21 +36,16 @@
                 <div class="admin-forminput">
                     <select name="groups" multiple="multiple" size="7">
                     <?php
-                    // Define the groups table
-                    $groups_table = $tDataClass->prefix."_groups";
+                        // Query the database for groups
+                        $query = $tData->select_from_table($tData->prefix."_groups", array("alias", "name"));
 
-                    // Query the database for groups
-                    $sql['groups'] 	= "SELECT * FROM `".$groups_table."`";
-                    $qry['groups']	= $tData->query($sql['groups']);
-
-                    $groups = explode(",", $user['groups']);
-
-                    // Loop through all groups, showing as options
-                    while ($group = $qry['groups']->fetch_assoc()) {
-                        $selected = $group['alias'] == "everyone" ? "selected" : "";
-                        echo "<option ".$selected." value='".$group['alias']."'>"
-                                .$group['name']."</option>";
-                    }
+                        // Loop through all groups, showing as options
+                        $results = $tData->fetch_rows($query);
+                        foreach ($results as $group) {
+                            $selected = $group['alias'] == "everyone" ? "selected" : "";
+                            echo "<option ".$selected." value='".$group['alias']."'>"
+                                    .$group['name']."</option>";
+                        }
                     ?>
                     </select>
                 </div>

@@ -3,29 +3,29 @@
 class Navigation {
     private $tDataClass;
     private $tData;
-    
+
     public function __construct() {
         $this->initialize_variables();
         return;
     }
-    
+
     public function __destruct() {
         $this->tDataClass->disconnect();
         return;
     }
-    
+
     private function initialize_variables() {
-        $this->tDataClass   = new tData();
-        $this->tData        = $this->tDataClass->connect();
-        $this->tDataClass->prefix = $this->tDataClass->get_system_prefix();
+        $this->tDataClass           = new tData();
+        $this->tData                = $this->tDataClass->connect();
+        $this->tDataClass->prefix   = $this->tDataClass->get_system_prefix();
         return;
     }
-    
+
     private function get_current_theme() {
         $q = $this->tData->query("SELECT * FROM `".$this->tDataClass->prefix."_themes` WHERE `active`=1");
         return $q->fetch_assoc();
     }
-    
+
     private function get_nav_positions() {
         $theme = $this->get_current_theme();
         $path = path(ROOT."/themes/".$theme['alias']."/config.json");
@@ -35,7 +35,7 @@ class Navigation {
         }
         return false;
     }
-    
+
     public function get_positions_select($current = "") {
         $pos = $this->get_nav_positions();
         if ($pos) {
@@ -47,7 +47,7 @@ class Navigation {
         }
         return "<option value='main'>Main</option>";
     }
-    
+
     public function get_children_select($child_of = 0) {
         $ret = array("<option value='0'>Not a Child</option>");
         $q = $this->tData->query("SELECT * FROM `".$this->tDataClass->prefix."_links` ORDER BY `text` ASC");

@@ -1,31 +1,27 @@
 <?php
 
+// Define the incoming information
 $get = filter_input_array(INPUT_GET);
 
+// Define the search
 $search = "";
 if (isset($get['search'])) {
-    $search = $tData->real_escape_string($get['search']);
+    $search = $get['search'];
 }
 
+// Define the page number
 $page = 1;
 if (isset($get['page'])) {
-    $page = $tData->real_escape_string($get['page']);
+    $page = $get['page'];
 }
 
-$users_table = $tDataClass->prefix."_users";
-$s = "SELECT * FROM `".$users_table."` WHERE "
-        . "`username` LIKE '".$search."%' || "
-        . "CONCAT(`firstname`, ' ', `lastname`) LIKE '".$search."%' || "
-        . "`email` LIKE '".$search."%' ||"
-        . "`phone` LIKE '".$search."%'";
-
+// Define the template
 $template_header = <<<TEMPLATE
         <ul class="header">
             <li style="width: 150px;">Username</li>
             <li style="width: 200px;">Full Name</li>
         </ul>
 TEMPLATE;
-
 $template = <<<TEMPLATE
 <ul>
     <li class="admin-listoptions">
@@ -37,13 +33,37 @@ $template = <<<TEMPLATE
 </ul>
 TEMPLATE;
 
-$tPages->set_page_data(array(
-    "sql" => $s,
-    "per_page" => 25,
-    "current" => $page,
-    "list_template" => $template,
-    "template_header" => $template_header
-));
+// Query the database for users
+$query_data = array(
+    "table_name"    => $tData->prefix."_users",
+    "clause"        => array(
+        "operator"  => "OR",
+        "conditions"=> array(
+            "[%]username" => $search."%",
+            "[`%]CONCAT(`firstname`, ' ', `lastname`)" => $search."%"
+        )
+    ));
+$query = $tData->select_from_table($query_data['table_name'], array(), $query_data['clause']);
 
-$tPages->print_list();
-$tPages->print_pagination();
+// Check the query
+if ($query != false) {
+    if ($tData->count_rows($query) > 0) {
+        $results = $tData->fetch_rows($query);
+        $users = isset($results[0]) ? $results : array($results);
+
+        $tPages->set_page_data(array(
+            "data" => $users,
+            "per_page" => 25,
+            "current" => $page,
+            "list_template" => $template,
+            "template_header" => $template_header
+        ));
+
+        $tPages->print_list();
+        $tPages->print_pagination();
+    } else {
+        notify("admin", "info", "There are no users to display.");
+    }
+} else {
+    notify("admin", "failure", "There was an error finding users in the database.");
+}

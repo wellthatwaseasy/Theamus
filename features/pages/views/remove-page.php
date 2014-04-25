@@ -5,13 +5,14 @@ $get = filter_input_array(INPUT_GET);
 if (isset($get['id'])) {
     $id = $get['id'];
     if (is_numeric($id)) {
-        $pages_table = $tDataClass->prefix."_pages";
-        $sql['page'] = "SELECT * FROM `".$pages_table."` WHERE `id`='".$id."'";
-        $qry['page'] = $tData->query($sql['page']);
+        $query_page = $tData->select_from_table($tData->prefix."_pages", array("id", "title", "alias"), array(
+            "operator"  => "",
+            "conditions"=> array("id" => $id)
+        ));
 
-        if ($qry['page']) {
-            if ($qry['page']->num_rows > 0) {
-                $page = $qry['page']->fetch_assoc();
+        if ($query_page != false) {
+            if ($tData->count_rows($query_page) > 0) {
+                $page = $tData->fetch_rows($query_page);
             } else {
                 $error[] = "There was an error when finding the page requested.";
             }
@@ -47,12 +48,13 @@ if (isset($get['id'])) {
     <br/><br/>Removing a page cannot be undone.
     <?php
     // Find associated links
-    $links_table = $tDataClass->prefix."_links";
-    $sql['link'] = "SELECT * FROM `$links_table` WHERE `path` LIKE '".$page['alias']."%'";
-    $qry['link'] = $tData->query($sql['link']);
+    $query_links = $tData->select_from_table($tData->prefix."_links", array("id"), array(
+        "operator"  => "",
+        "conditions"=> array("[%]path" => $page['alias']."%")
+    ));
 
-    if ($qry['link']) {
-        if ($qry['link']->num_rows > 0):
+    if ($query_links != false) {
+        if ($tData->count_rows($query_links) > 0):
     ?>
     <h2>More options</h2>
     <div class="admin-cboxwrapper">
@@ -71,7 +73,7 @@ if (isset($get['id'])) {
         else:
             echo "<input type='hidden' id='remove_links' name='remove_links' value='false' />";
         endif;
-    } 
+    }
     ?>
     <div class="window-options">
         <input type="button" value="OK" onclick="return submit_remove_page();" class="admin-greenbtn" />

@@ -1,17 +1,10 @@
 <?php
 
-// Define the table
-$table = $tDataClass->prefix."_pages";
-
-// SQL friendly variables
-$alias = $tData->real_escape_string($tTheme->get_page_variable("page_alias"));
-
 // Query the database for this page
-$sql = "SELECT * FROM `".$table."` WHERE `alias`='".$alias."'";
-$query = $tData->query($sql);
+$query = $tData->select_from_table($tData->prefix."_pages", array("groups", "views", "content"), array("operator" => "", "conditions" => array("alias" => $tTheme->get_page_variable("page_alias"))));
 
 // Get the database values
-$page = $query->fetch_assoc();
+$page = $tData->fetch_rows($query);
 
 // Only allow relevant people
 $groups = explode(",", $page['groups']);
@@ -26,8 +19,7 @@ if (in_array("true", $ingroup)) {
 
 	// Update the page view count
 	$views = $page['views'] + 1;
-	$update = "UPDATE `".$table."` SET `views`='".$views."' WHERE `alias`='".$alias."'";
-	$tData->query($update);
+    $tData->update_table_row($tData->prefix."_pages", array("views" => $views), array("operator" => "", "conditions" => array("alias" => $tTheme->get_page_variable("page_alias"))));
 } else {
     echo '<div class="content-header">Hah! Caught you.</div>';
 	echo "Here's your fun fact of the day: you don't belong here.";

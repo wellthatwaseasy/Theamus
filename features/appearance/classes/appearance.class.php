@@ -33,7 +33,7 @@ class Appearance {
 
     private function get_file_get() {
         $file = filter_input(INPUT_GET, "file");
-        if (isset($file)) return $file;
+        if (isset($file)) return $file.".php";
         else throw new Exception("Cannot retrieve requested settings file.");
     }
 

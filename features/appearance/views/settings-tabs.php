@@ -2,7 +2,7 @@
 <div class="theme_tabs-wrapper">
     <ul>
     <?php foreach ($tabs as $key => $val): ?>
-        <li><a href="#" name="theme_settings-tab" data-path="<?=$val?>"><?=$key?></a></li>
+        <li><a href="#" name="theme_settings-tab" data-path="<?php echo trim($val, ".php"); ?>"><?=$key?></a></li>
     <?php endforeach; ?>
     </ul>
 </div>

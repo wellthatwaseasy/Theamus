@@ -110,7 +110,7 @@ function save_home_layout() {
     theamus.ajax.run({
         url: "default/admin/save-positions/&" + url_info,
         result: "adminhome-result",
-        hide_result: 3
+        //hide_result: 3
     });
 
     return false;
