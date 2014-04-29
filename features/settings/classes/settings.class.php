@@ -205,7 +205,6 @@ class Settings {
             $file = fopen(path($temp_directory.$temp_filename.".zip"), 'w+');
             fputs($file, $data);
             fclose($file);
-            chmod(path($temp_directory.$temp_filename.".zip"), 0777);
 
             // Check if the newly created file exists and return
             if (!file_exists(path($temp_directory.$temp_filename.".zip"))) {

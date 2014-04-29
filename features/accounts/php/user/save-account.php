@@ -68,7 +68,6 @@ if ($user != false) {
         // Upload the file and the database
         if ($file != false) {
             if (@move_uploaded_file($file['tmp_name'], $media_path.$filename)) {
-                chmod($media_path.$filename, "777");
                 $query_data['data'][] = array("picture" => $filename);
                 $query_data['clause'][] = array("operator" => "", "conditions" => array("id" => $user['id']));
 

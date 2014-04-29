@@ -220,7 +220,6 @@ class Appearance {
         $path = ROOT."/features/appearance/temp/";
         $temp_name = md5(time()).".zip";
         if (move_uploaded_file($file['tmp_name'], path($path.$temp_name))) {
-            chmod(path($path.$temp_name), 0777);
             return $temp_name;
         } else throw new Exception("The file failed to upload.");
     }

@@ -47,7 +47,7 @@ if ($info['version'] != ""):
     <div class="admin-formlabel">Feature Version</div>
     <div class="admin-formtext"><?=$info['version']?></div>
 </div>
-<?php 
+<?php
 endif;
 if ($info['notes'] != ""):
 ?>
@@ -64,37 +64,37 @@ if ($info['notes'] != ""):
 <?php
 endif;
 
-if ($info['author'] != "" || $info['alias'] != "" || $info['email'] != "" || $info['company'] != "") echo "<hr />";
+if ($info['author']['author'] != "" || $info['author']['alias'] != "" || $info['author']['email'] != "" || $info['author']['company'] != "") echo "<hr />";
 
-if ($info['author'] != ""):
+if ($info['author']['author'] != ""):
 ?>
 <div class="admin-formrow">
     <div class="admin-formlabel">Author Name</div>
-    <div class="admin-formtext"><?=$info['author']?></div>
+    <div class="admin-formtext"><?=$info['author']['author']?></div>
 </div>
 <?php
 endif;
-if ($info['alias'] != ""):
+if ($info['author']['alias'] != ""):
 ?>
 <div class="admin-formrow">
     <div class="admin-formlabel">Author Alias</div>
-    <div class="admin-formtext"><?=$info['alias']?></div>
+    <div class="admin-formtext"><?=$info['author']['alias']?></div>
 </div>
 <?php
 endif;
-if ($info['email'] != ""):
+if ($info['author']['email'] != ""):
 ?>
 <div class="admin-formrow">
     <div class="admin-formlabel">Author Email</div>
-    <div class="admin-formtext"><?=$info['email']?></div>
+    <div class="admin-formtext"><?=$info['author']['email']?></div>
 </div>
 <?php
 endif;
-if ($info['company'] != ""):
+if ($info['author']['company'] != ""):
 ?>
 <div class="admin-formrow">
     <div class="admin-formlabel">Author Company</div>
-    <div class="admin-formtext"><?=$info['company']?></div>
+    <div class="admin-formtext"><?=$info['author']['company']?></div>
 </div>
 <?php
 endif;

@@ -25,7 +25,7 @@ class Features {
 
     private function get_upload_file() {
         if (!isset($_FILES['file'])) return false;
-        
+
         // Define the file array and the file name
         $file = $_FILES['file'];
         $name_arr = explode(".", $file['name']);
@@ -43,7 +43,7 @@ class Features {
         if ($this->tFiles->extract_zip(path($path.$f), path(trim($path.$f, ".zip")))) return true;
         else throw new Exception("There was an issue extracting the theme");
     }
-    
+
     private function extract_feature($f, $c) {
         // Define the path
         $temp_path = path(ROOT."/features/features/temp/$f");
@@ -53,7 +53,7 @@ class Features {
         if ($this->tFiles->extract_zip($temp_path, $path)) return true;
         else throw new Exception("There was an issue extracting the theme");
     }
-    
+
 
     private function check_structure($f) {
         // Define the path to the config file
@@ -88,10 +88,10 @@ class Features {
 
         // Check for all valid requirements
         if (in_array(false, $temp)) throw new Exception("One or more requirements are missing in the feature configuration file.");
-        
+
         // Define the feature folder alias for the feature
         $this->feature_folder_alias = $feature['alias'];
-        
+
         // Return
         return $feature;
     }
@@ -105,7 +105,6 @@ class Features {
 
         // Upload the file
         if (move_uploaded_file($file['tmp_name'], path($path.$temp_name))) {
-            chmod(path($path.$temp_name), 0777);
             return $temp_name;
         } elseif ($file != false) throw new Exception("The file failed to upload.");
     }
@@ -129,18 +128,18 @@ class Features {
         // Define the SQL
         $this->install_sql = $Features->install->get_install_sql();
     }
-    
-    
+
+
     private function gather_remove_scripts($folder) {
         // Include the config file
         $config_path = path(ROOT."/features/$folder/config.php");
         if (file_exists($config_path)) include $config_path;
-        
+
         // Check if we should bother going on or not
         if (isset($feature['remove']['script'])) {
             // Define the path to the script
             $path = path(ROOT."/features/$folder/".$feature['remove']['script']);
-        
+
             // Define the install class
             include path(ROOT."/features/features/classes/uninstall.class.php");
             $Features = $this;
@@ -153,148 +152,157 @@ class Features {
             $this->uninstall_sql = $Features->uninstall->get_uninstall_sql();
         }
     }
-    
+
     private function format_bytes($bytes) {
         // Define the units
-        $units = array('B', 'KB', 'MB', 'GB', 'TB'); 
+        $units = array('B', 'KB', 'MB', 'GB', 'TB');
 
         // Do the math to get the new bytesize
-        $bytes = max($bytes, 0); 
-        $pow = floor(($bytes ? log($bytes) : 0) / log(1024)); 
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
         $pow = min($pow, count($units) - 1);
         $bytes /= pow(1024, $pow);
 
         // Return the bytesize
-        return round($bytes, 2) . ' ' . $units[$pow]; 
+        return round($bytes, 2) . ' ' . $units[$pow];
     }
-    
+
     private function gather_information($f, $c) {
         // Define the filename of the upload
         $return['filename'] = $f;
-        
+
         // Define the files in the folder
         $files = $this->tFiles->scan_folder(path(ROOT."/features/features/temp/".trim($f, ".zip")));
-        
+
         // Define the counts of things that will change
         $return['files']        = count($files);
         $return['db_changes']   = count($this->install_sql);
-        
+
         // Define the filesize that will be used
         $filesize = 0;
         foreach ($files as $file) $filesize += filesize($file);
         $return['filesize']     = $this->format_bytes($filesize);
-        
+
         // Define the information given from the configuration file
         $return['alias']        = $c['alias'];
         $return['name']         = $c['name'];
         $return['version']      = isset($c['version']) ? $c['version'] : "";
         $return['notes']        = isset($c['notes']) ? $c['notes'] : "";
-        
+
         // Define the author's information
         if (isset($c['author'])) {
-            $return['author']   = isset($c['author']['name']) ? $c['author']['name'] : "";
-            $return['alias']    = isset($c['author']['alias']) ? $c['author']['alias'] : "";
-            $return['email']    = isset($c['author']['email']) ? $c['author']['email'] : "";
-            $return['company']  = isset($c['author']['company']) ? $c['author']['company'] : "";
+            $return['author']['author']   = isset($c['author']['name']) ? $c['author']['name'] : "";
+            $return['author']['alias']    = isset($c['author']['alias']) ? $c['author']['alias'] : "";
+            $return['author']['email']    = isset($c['author']['email']) ? $c['author']['email'] : "";
+            $return['author']['company']  = isset($c['author']['company']) ? $c['author']['company'] : "";
         }
-        
+
         // Return the information
         return $return;
     }
-    
+
     private function get_filename() {
         $filename = urldecode(filter_input(INPUT_POST, "filename"));
         if ($filename == "") throw new Exception("There was an error finding the filename.");
         return $filename;
     }
-    
+
     private function install_database() {
         // Check for any queries to install
         if (!empty($this->install_sql)) {
             // Query the database, running the install queries
             $query = $this->tData->multi_query(implode("", $this->install_sql));
-            
+
             // Check the query and flush the memory from the multi_query
             if (!$query) throw new Exception("There was an error running the database queries for this feature.");
             while ($this->tData->next_result()) continue;
         }
     }
-    
+
     private function uninstall_database() {
         // Check for any queries to run
         if (!empty($this->uninstall_sql)) {
             // Query the database, running the queries
             $query = $this->tData->multi_query(implode("", $this->uninstall_sql));
-            
+
             // Check the query and flush the memory from the multi_query
             if (!$query) throw new Exception("There was an error running the database queries for this feature.");
             while ($this->tData->next_result()) continue;
         }
     }
-    
+
     private function install_database_feature($config = array()) {
         // Check the config argument
         if (empty($config) || !is_array($config)) throw new Exception("Cannot install the feature in the database with this information.");
-        
+
         // Define the database friendly information
         $alias = $this->tData->real_escape_string($config['alias']);
         $name = $this->tData->real_escape_string($config['name']);
         $groups = $this->tData->real_escape_string(implode(",", $config['groups']));
         $prefix = $this->tData->real_escape_string($config['db_prefix']);
-        
+
         // Query the database, installing the feature in the theamus features table
         $query = $this->tData->query("INSERT INTO `".$this->tDataClass->prefix."_features` ".
                 "(`alias`, `name`, `groups`, `permanent`, `enabled`, `db_prefix`) VALUES ".
                 "('$alias', '$name', '$groups', 0, 1, '$prefix')");
-        
+
         // Check the query
         if (!$query) throw new Exception("There was an error installing this feature in the database.");
     }
-    
+
     private function define_post_information($required = array()) {
         // Define the filtered post array
         $post = filter_input_array(INPUT_POST);
-        
+
         // Check the values, adding the sanitized ones to the return array
         foreach ($required as $item) {
             if (!isset($post[$item]) || $post[$item] == "") throw new Exception("Please fill out the '$item' field.");
             $return[$item] = urldecode($post[$item]);
         }
-        
+
         // Return the information
         return $return;
     }
-    
+
     private function get_feature_information($id = 0) {
         // Query the database for the feature
         $query = $this->tData->query("SELECT * FROM `".$this->tDataClass->prefix."_features` WHERE `id`='$id'");
-        
+
         // Check the query and return
         if (!$query) throw new Exception("There was an error finding the feature information in the database.");
         return $query->fetch_assoc();
     }
-    
+
     private function remove_feature_tables($prefix = "") {
         // Check for a blank prefix
         if ($prefix == "") return;
-        
+
         // Generate the queries to run
-        $query = $this->tData->query("SELECT CONCAT('DROP TABLE ', GROUP_CONCAT(table_name), ';') AS statement FROM information_schema.tables WHERE table_name LIKE '$prefix%';");
-        
+        $query = $this->tData->query("SHOW TABLES");
+
         // Check the query
         if (!$query) throw new Exception("There was an error finding all of the related database tables.");
         if ($query->num_rows == 0) return;
-        
-        // Define the queries and run them
-        $generated = $query->fetch_assoc();
-        if ($generated['statement'] != "") $this->tData->query($generated['statement']);
+
+        // Define the tables to remove
+        $remove_tables = array();
+        while ($table = $query->fetch_array()) {
+            if (strpos($table[0], $prefix) !== false) {
+                $remove_tables[] = $table[0];
+            }
+        }
+
+        // Drop the related tables
+        if (!empty($remove_tables)) {
+            $this->tData->query("DROP TABLES ".implode(", ", $remove_tables).";");
+        }
     }
-    
+
     private function remove_relevant_data($alias = "") {
         // Check the alias, define a database-friendly variable
         if ($alias == "") throw new Exception("The alias to remove related database information cannot be blank.");
         $alias = $this->tData->real_escape_string($alias);
-        
+
         // Delete the feature from the features table, check it too
         $query = $this->tData->query("DELETE FROM `".$this->tDataClass->prefix."_features` WHERE `alias`='$alias'");
         if (!$query) throw new Exception("There was an error removing this feature from the database.");
@@ -303,13 +311,13 @@ class Features {
         $query = $this->tData->query("DELETE FROM `".$this->tDataClass->prefix."_permissions` WHERE `feature`='$alias'");
         if (!$query) throw new Exception("There was an error removing the permissions associated to this feature from the database.");
     }
-    
+
     public function remove_feature_folder() {
-        // Define the path
-        $path = path(ROOT."/features/".$this->feature_folder_alias);
-        
-        // Check for the folder's existance
-        if (is_dir($path)) {
+        // Make sure the feature folder is defined, don't want to delete the feature folder
+        if (isset($this->feature_folder_alias) && $this->feature_folder_alias != "") {
+            // Define the path
+            $path = path(ROOT."/features/".$this->feature_folder_alias);
+
             // Remove the folder
             $this->tFiles->remove_folder($path);
         }
@@ -330,39 +338,39 @@ class Features {
         // Upload and extract the file
         $filename = $this->upload_feature();
         $this->extract_temp_feature($filename);
-        
+
         // Perform checks
         $this->check_structure($filename);
         $config = $this->check_config($filename);
-        
+
         // Gather information
         $this->gather_scripts($filename, $config, "install");
         return $this->gather_information($filename, $config);
     }
-    
+
     public function install_feature() {
         // Define the filename
         $filename = $this->get_filename();
-        
+
         // Define the config information and gather the install information
         $config = $this->check_config($filename);
         $this->gather_scripts($filename, $config, "install");
-        
+
         // Extract the files to their location
         $this->extract_feature($filename, $config);
-        
+
         // Attempt to install the database information
         $this->install_database_feature($config);
         $this->install_database();
-        
+
         // Clean the temp folder
         $this->clean_temp_folder();
     }
-    
+
     public function update_feature() {
         // Check for an uploaded file
         $filename = $this->upload_feature(true);
-        
+
         // Check for an upload, extract the files
         if ($filename != false) {
             $this->extract_temp_feature($filename);
@@ -379,47 +387,47 @@ class Features {
 
             // Clean the temp folder
             $this->clean_temp_folder();
-            
+
             // Notify the user
             notify("admin", "success", "This feature was updated successfully.");
         }
     }
-    
+
     public function save_feature_information() {
         // Define the post information
         $post = $this->define_post_information(array("id", "groups", "enabled"));
-        
+
         // Define sql-friendly database variables
         $id         = $this->tData->real_escape_string($post['id']);
         $groups     = $this->tData->real_escape_string($post['groups']);
         $enabled    = $post['enabled'] == "true" ? "1" : "0";
-        
+
         // Query the database, saving the changes
         $query = $this->tData->query("UPDATE `".$this->tDataClass->prefix."_features` SET `groups`='$groups', `enabled`='$enabled' WHERE `id`='$id'");
-        
+
         // Check the query and return
         if (!$query) throw new Exception("There was an error saving this information.");
         notify("admin", "success", "This information has been saved.");
     }
-    
+
     public function remove_feature() {
         // Define the post information
         $post = $this->define_post_information(array("feature_id"));
-        
+
         // Get the feature information from the database and the config file
         $feature = $this->get_feature_information($post['feature_id']);
         $this->gather_remove_scripts($feature['alias']);
-        
+
         // Remove any related database tables
         $this->remove_feature_tables($feature['db_prefix']);
-        
+
         // Delete all auto-installed information and run the uninstall queries
         $this->remove_relevant_data($feature['alias']);
         $this->uninstall_database();
-        
+
         // Delete the folder
         $this->tFiles->remove_folder(path(ROOT."/features/".$feature['alias']));
-        
+
         // Notify the user
         notify("admin", "success", "This feature has been removed.");
     }

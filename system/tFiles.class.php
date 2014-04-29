@@ -80,11 +80,9 @@ class tFiles {
         $dir = path($path);
         if (!file_exists($dir)) return true;
         if (!is_dir($dir) || is_link($dir)) return unlink($dir);
-        chmod($dir, 0777);
         foreach (scandir($dir) as $item) {
             if ($item == "." || $item == "..") continue;
             if (!$this->remove_folder($dir."/".$item)) {
-                chmod($dir."/".$item, 0777);
                 if (!$this->remove_folder($dir."/".$item)) return false;
             }
         }

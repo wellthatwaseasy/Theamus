@@ -27,7 +27,6 @@ if (!empty($error)) {
 
 	// Upload the file and make it writable
 	move_uploaded_file($file['tmp_name'], $tempPath.$filename);
-	chmod($tempPath.$filename, 0755);
 
 	// Create a new zip object
 	$zip = new ZipArchive();
