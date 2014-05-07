@@ -17,7 +17,7 @@
         <div class="login_area-wrapper">
             <div class="login_area"><?php $tTheme->content(); ?></div>
             <div class="login_site-link">
-                <a href="./">< Back to <?php $tTheme->get_system_variable("name"); ?></a>
+                <a href="./">< Back to <?php echo $tTheme->get_system_variable("name"); ?></a>
             </div>
         </div>
     </body>

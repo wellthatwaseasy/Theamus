@@ -446,6 +446,8 @@ var ajax = new function() {
 
     // Theamus AJAX API --------------------------------------------------------
     this.api = function(args) {
+        api_return = false;
+
         this.allow_file_upload = true;
         this.api_fail = false; // By default, we are good to go
 
@@ -480,6 +482,7 @@ var ajax = new function() {
         // Run the AJAX to call the API
         if (this.api_fail === false) {
             $.ajax({
+                async: false,
                 type: api_vars.type,
                 url: api_vars.url,
                 data: api_vars.form_data,
@@ -514,10 +517,12 @@ var ajax = new function() {
                     } catch (e) {}
 
                     // Run the defined success function with the data
-                    api_vars.success(data);
+                    api_return = api_vars.success(data);
                 }
             });
         }
+
+        return api_return;
     };
 
 

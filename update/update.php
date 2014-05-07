@@ -20,7 +20,7 @@ function update($system_info) {
             break;
     }
 
-    if (update_version() == false) return false;
+    if (update_version("1.2") == false) return false;
     update_cleanup();
     return true;
 }

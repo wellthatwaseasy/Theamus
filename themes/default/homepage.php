@@ -4,7 +4,7 @@
         <?php echo $tTheme->get_page_variable("base"); ?>
 		<title><?php echo $tTheme->get_page_variable("title"); ?></title>
         <?php echo $tTheme->get_page_variable("css"); ?>
-		<link rel="stylesheet" href="<?php echo $tTheme->get_page_variable("theme_path"); ?>/css/homepage.css" />
+		<link rel="stylesheet" href="<?php echo $tTheme->get_page_variable("theme_path"); ?>css/homepage.css" />
         <?php echo $tTheme->get_page_variable("js"); ?>
 	</head>
 

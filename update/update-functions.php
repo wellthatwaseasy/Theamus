@@ -55,7 +55,7 @@ function update_11() {
             }
         }
     }
-    
+
     // Define more queries
     $queries[] = "UPDATE `".$prefix."_media` SET `type`='image'";
 
@@ -98,7 +98,7 @@ function update_11() {
     }
 }
 
-function update_version() {
+function update_version($version) {
     // Define the return array, connect and define database variables
     $return = array();
     $tDataClass = new tData();
@@ -106,7 +106,7 @@ function update_version() {
     $prefix = $tDataClass->get_system_prefix();
 
     // Update the version
-    $return[] = $tData->query("UPDATE `".$prefix."_settings` SET `version`='1.1'") ? true : false;
+    $return[] = $tData->query("UPDATE `".$prefix."_settings` SET `version`='$version'") ? true : false;
 
     // Disconnect from the database and return
     $tDataClass->disconnect();

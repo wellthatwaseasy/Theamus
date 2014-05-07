@@ -125,6 +125,11 @@ class tData {
      * @return boolean
      */
     public function connect($pdo = false) {
+        // Check the configuration settings
+        if (!isset($this->config['Database'])) {
+            return false;
+        }
+
         if ($pdo == false) {
             $connection = @new mysqli($this->config['Database']['Host Address'],
                                       $this->config['Database']['Username'],

@@ -131,50 +131,8 @@ class tInstall {
      */
     public function run_installer() {
         if ($this->config_file == false || $this->db_exists == false || $this->installed == false) {
-            die($this->show_installer_page($this->url));
-            return false;
+            return true;
         }
-        return true;
-    }
-
-
-     /**
-     * Defines information to be passed to javasript on page load
-     *
-     * @return json $info
-     */
-    private function define_javascript_info() {
-        $info = array(
-            "site_base" => base_url
-        );
-        return json_encode($info);
-    }
-
-
-    /**
-     * Shows the contents of the installer
-     *
-     * @return boolean
-     */
-    private function show_installer_page() {
-        $tUser = new tUser();
-        $data['base']   = $this->url;
-        $js_files = array(
-            "<script src='system/js/jquery.js'></script>",
-            "<script src='system/js/ajax/ajax.js'></script>",
-            "<script src='system/editor/js/editor.js'></script>",
-            "<script src='system/js/main.js'></script>",
-            "<script>theamus.info = ".$this->define_javascript_info()."</script>"
-        );
-        $data['js'] = implode("", $js_files);
-
-
-        $tUser->set_420hash();
-        $ajax_hash_cookie = isset($_COOKIE['420hash']) ? $_COOKIE['420hash'] : "";
-
-        include path(ROOT."/themes/installer/html.php");
-        open_page($data);
-        echo '<input type="hidden" id="ajax-hash-data" name="ajax-hash-data" value=\'{"key":"'.$ajax_hash_cookie.'"}\' />';
-        close_page();
+        return false;
     }
 }

@@ -77,8 +77,15 @@ class tTheme {
         $this->data = $data;
         $this->tUser = new tUser();
         $this->tData = new tData();
-        $this->tData->db = $this->tData->connect(true);
-        $this->tData->prefix = $this->tData->get_system_prefix();
+
+        // Define a class variable that determines a connection to the database or not
+        $this->no_database = isset($data['no_database']) && $data['no_database'] == true ? true : false;
+
+        // Don't connect to the database if it isn't required to do so
+        if ($this->no_database == false) {
+            $this->tData->db = $this->tData->connect(true);
+            $this->tData->prefix = $this->tData->get_system_prefix();
+        }
 
         try {
             $this->nice_data = $this->clean_data();
@@ -110,9 +117,13 @@ class tTheme {
      * @throws Exception
      */
     private function get_settings() {
-        $query = $this->tData->select_from_table($this->tData->prefix."_settings");
-        if (!$query) throw new Exception("Error getting system settings information from the database.");
-        return $this->tData->fetch_rows($query);
+        if ($this->no_database == false) {
+            $query = $this->tData->select_from_table($this->tData->prefix."_settings");
+            if (!$query) throw new Exception("Error getting system settings information from the database.");
+            return $this->tData->fetch_rows($query);
+        } else {
+            return;
+        }
     }
 
 
@@ -128,7 +139,7 @@ class tTheme {
         $ret['header'] = isset($this->data['header']) ? $this->data['header'] : "";
         $ret['theme_path'] = trim(web_path(trim(str_replace(ROOT, "", $this->data['theme']), "/")), "/")."/";
         $ret['wrapper_top'] = $this->tUser->is_admin() ? "style='top:37px;'" : "";
-        $ret['site_name'] = urldecode(stripslashes($settings['name']));
+        $ret['site_name'] = urldecode(stripslashes(isset($settings['name']) ? $settings['name'] : ""));
         $ret['error_type'] = isset($this->data['error_type']) ? $this->data['error_type'] : 0;
         $ret['js'] = isset($this->data['js']) ? $this->data['js'] : "";
         $ret['css'] = isset($this->data['css']) ? $this->data['css'] : "";
@@ -216,8 +227,11 @@ class tTheme {
      */
     public function content() {
         $tData          = $this->tData;
-        $tData->prefix  = $this->tData->prefix;
-        $tData->db      = $this->tData->db;
+
+        if ($this->no_database == false) {
+            $tData->prefix  = $this->tData->prefix;
+            $tData->db      = $this->tData->db;
+        }
 
         $tFiles = new tFiles();
         $tPages = new tPages();

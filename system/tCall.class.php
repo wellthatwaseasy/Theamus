@@ -307,7 +307,11 @@ class tCall {
 
             if ($q) {
                 $settings = $this->tData->fetch_rows($q);
-                ini_set("display_errors", $settings['display_errors']);
+                if (isset($settings['display_errors'])) {
+                    ini_set("display_errors", $settings['display_errors']);
+                } else {
+                    ini_set("display_errors", 0);
+                }
             }
         }
         return true;
@@ -432,6 +436,8 @@ class tCall {
      * @return array $ret
      */
     private function define_call() {
+        $this->install = false;
+
         $post = filter_input_array(INPUT_POST);
         $get = filter_input_array(INPUT_GET);
         if (!isset($post['ajax']) && !isset($get['ajax'])) {
@@ -439,9 +445,11 @@ class tCall {
             $install = new tInstall($this->base_url);
             $installed = $install->run_installer();
 
+            $this->install = $installed ? true : false;
+
             $ret['type'] = "regular";
-            $ret['look_folder'] = $installed ? "view" : false;
-            $ret['do_call'] = $installed ? "show_page" : false;
+            $ret['look_folder'] = "view";
+            $ret['do_call'] = "show_page";
         } else {
             $this->ajax = true;
             $ajax = $api_from = false;
@@ -552,7 +560,9 @@ class tCall {
      */
     private function define_feature() {
         $params = $this->parameters;
-        if (array_key_exists(0, $params)) {
+        if ($this->install == true) {
+            $feature = "install";
+        } elseif (array_key_exists(0, $params)) {
             $feature_folder = strtolower($params[0]);
             $feature_path = path(ROOT."/features/$feature_folder");
 
@@ -690,21 +700,25 @@ class tCall {
      * @return boolean|array
      */
     private function get_feature_information() {
-        $query_data = array(
-            "table"     => $this->tData->prefix."_features",
-            "clause"    => array(
-                "operator"  => "",
-                "conditions"=> array("alias" => $this->feature_folder)
-            )
-        );
-        $query = $this->tData->select_from_table($query_data['table'], array(), $query_data['clause']);
+        if ($this->install == false) {
+            $query_data = array(
+                "table"     => $this->tData->prefix."_features",
+                "clause"    => array(
+                    "operator"  => "",
+                    "conditions"=> array("alias" => $this->feature_folder)
+                )
+            );
+            $query = $this->tData->select_from_table($query_data['table'], array(), $query_data['clause']);
 
-        if ($query) {
-            $results = $this->tData->fetch_rows($query);
+            if ($query) {
+                $results = $this->tData->fetch_rows($query);
 
-            if (count($results) > 0) {
-                return $results;
+                if (count($results) > 0) {
+                    return $results;
+                }
             }
+        } else {
+            return array("groups" => "everyone", "enabled" => 1);
         }
         return false;
     }
@@ -717,6 +731,7 @@ class tCall {
      */
     private function show_page() {
         $feature_info = $this->get_feature_information();
+
         foreach (explode(',', $feature_info['groups']) as $group) {
             $in_group[] = $this->tUser->in_group($group) ? true : false;
         }
@@ -730,8 +745,12 @@ class tCall {
 
         $this->tUser->set_420hash();
 
-        $query = $this->tData->select_from_table($this->tData->prefix."_settings", array("name"));
-        $settings = $this->tData->fetch_rows($query);
+        if ($this->install == false) {
+            $query = $this->tData->select_from_table($this->tData->prefix."_settings", array("name"));
+            $settings = $this->tData->fetch_rows($query);
+        } else {
+            $settings['name'] = "Theamus Installation";
+        }
 
         $data = $this->define_theme_data($settings['name']);
         if ($this->define_classes()) {
@@ -767,6 +786,7 @@ class tCall {
         $data['file_path']  = $this->complete_file_path;
         $data['page_alias'] = $this->page_alias;
         $data['url_params'] = $this->parameters;
+        $data['no_database']= $this->install;
 
         return $data;
     }
@@ -781,36 +801,33 @@ class tCall {
      * @return string
      */
     private function define_theme_path($type = "html") {
-        $tData          = $this->tData;
-        $tData->prefix  = $this->tData->prefix;
-        $tData->db      = $this->tData->db;
+        if ($this->install == false) {
+            $tData          = $this->tData;
+            $tData->prefix  = $this->tData->prefix;
+            $tData->db      = $this->tData->db;
 
-        $folder = "default";
-        if ($tData) {
-            $query_data = array(
-                "table" => $this->tData->prefix."_themes",
-                "clause"=> array(
-                    "operator"  => "",
-                    "conditions"=> array("active" => 1)
-                )
-            );
-            $query = $this->tData->select_from_table($query_data['table'], array(), $query_data['clause']);
+            $folder = "default";
+            if ($tData) {
+                $query_data = array(
+                    "table" => $this->tData->prefix."_themes",
+                    "clause"=> array(
+                        "operator"  => "",
+                        "conditions"=> array("active" => 1)
+                    )
+                );
+                $query = $this->tData->select_from_table($query_data['table'], array(), $query_data['clause']);
 
-            if ($this->tData->count_rows($query) > 0) {
-                $results = $this->tData->fetch_rows($query);
-                $folder = $results['alias'];
+                if ($this->tData->count_rows($query) > 0) {
+                    $results = $this->tData->fetch_rows($query);
+                    $folder = $results['alias'];
+                }
             }
+
+            $path = path(ROOT."/themes/$folder/");
+        } else {
+            $path = path(ROOT."/themes/installer/");
         }
 
-        $path = path(ROOT."/themes/$folder/");
-
-        $html = 'html.php';
-        if (isset($this->feature['files']['html'])) {
-            if ($this->feature['files']['html'] == false) $html = "blank.php";
-            if ($this->feature['files']['html'] != '') $html = $this->feature['files']['html'].".php";
-        }
-
-        $theme_path = file_exists($path.$html) ? $path.$html : $path."html.php";
         return $path;
     }
 
@@ -1237,25 +1254,25 @@ class tCall {
      * @return boolean
      */
     private function error_page($type="404") {
-        if ($this->tData->db) {
+        if ($this->install == false) {
             $query = $this->tData->select_from_table($this->tData->prefix."_settings");
-
-            if ($query) {
-                $settings = $this->tData->fetch_rows($query);
-
-                $data['name']       = $settings['name'];
-                $data['base']       = $this->base_url;
-                $data['title']      = $data['header'] = "Error";
-                $data['theme']      = $this->define_theme_path();
-                $data['template']   = "error";
-                $data['error_type'] = $type;
-                $data['nav']        = false;
-                $data['css']        = $this->get_css();
-                $data['js']         = $this->get_javascript();
-
-                $tTheme = new tTheme($data);
-            }
+            $settings = $this->tData->fetch_rows($query);
+        } else {
+            $settings['name'] = "Theamus Installation";
         }
+
+        $data['name']       = $settings['name'];
+        $data['base']       = $this->base_url;
+        $data['title']      = $data['header'] = "Error";
+        $data['theme']      = $this->define_theme_path();
+        $data['template']   = "error";
+        $data['error_type'] = $type;
+        $data['nav']        = false;
+        $data['css']        = $this->get_css();
+        $data['js']         = $this->get_javascript();
+        $data['no_database']= $this->install;
+
+        new tTheme($data);
         return;
     }
 

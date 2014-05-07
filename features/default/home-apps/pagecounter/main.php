@@ -6,11 +6,13 @@ $query = $tData->select_from_table($pages_table, array("title", "views"), array(
 if ($query != false) {
     if ($tData->count_rows($query) > 0) {
         $results = $tData->fetch_rows($query);
-        foreach ($results as $page) {
+        $pages = isset($results[0]) ? $results : array($results);
+
+        foreach ($pages as $page) {
             $title = strlen($page['title']) > 10 ? substr($page['title'], 0, 10)."..." : $page['title'];
-            $pages[$title] = $page['views'];
+            $all_pages[$title] = $page['views'];
         }
-        $pages = json_encode($pages);
+        $all_pages = json_encode($all_pages);
 ?>
 <canvas id="page_canvas" width="420" height="250" style="margin:0 auto; display:block;"></canvas>
 <?php
@@ -23,5 +25,5 @@ if ($query != false) {
 ?>
 
 <script type="text/javascript">
-    function init(){if(typeof show_count_chart==="undefined"){setTimeout(function(){init()},50)}else{show_count_chart(<?php echo $pages; ?>)}}$(function(){init()})
+    function init(){if(typeof show_count_chart==="undefined"){setTimeout(function(){init()},50)}else{show_count_chart(<?php echo $all_pages; ?>)}}$(function(){init()})
 </script>

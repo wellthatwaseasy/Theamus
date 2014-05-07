@@ -1,0 +1,18 @@
+.dependency-row {
+    text-align: center;
+}
+.dependency-row span.glyphicon {
+    font-size: 2em;
+}
+.dependency-row span.ion-checkmark-round {
+    color: #73d470;
+}
+.dependency-row span.ion-close-round {
+    color: #d47370;
+}
+.dependency-row p {
+    display: inline-block;
+    font-family: Roboto, sans-serif;
+    font-size: 1.5em;
+    margin: 0;
+}

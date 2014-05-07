@@ -1,0 +1,50 @@
+{
+    "layouts":
+        [
+            {
+                "layout":"default",
+                "file":"index.php",
+                "allow_nav":true
+            },
+            {
+                "layout":"error",
+                "file":"error.php",
+                "allow_nav":false
+            },
+            {
+                "layout":"blank",
+                "file":"blank.php",
+                "allow_nav":false
+            },
+            {
+                "layout":"empty",
+                "file":"empty.php",
+                "allow_nav":false
+            },
+            {
+                "layout":"homepage",
+                "file":"homepage.php",
+                "allow_nav":false
+            }
+        ],
+    "areas":
+        {
+            "header":"header.php",
+            "body":"body.php"
+        },
+    "navigation": ["main"],
+    "settings": false,
+    "theme":
+        {
+            "folder":"installer",
+            "name":"Theamus Installation Theme",
+            "version":"1.0"
+        },
+    "author":
+        {
+            "name":"Eyrah Temet",
+            "alias":"Eyraahh",
+            "company":"Theamus",
+            "email":"eyrah.temet@theamus.com"
+        }
+}
