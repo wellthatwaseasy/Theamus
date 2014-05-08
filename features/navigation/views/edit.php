@@ -52,11 +52,12 @@ else: ?>
 <form id="info-form" style="visiblity: hidden; position: absolute;">
     <input type="hidden" name="page-type" value="save" />
     <?php
-    $cols = array("id", "alias", "text", "path", "weight", "groups", "type", "position", "child_of");
+    $cols = array("id", "alias", "text", "path", "weight", "groups", "type", "child_of");
     foreach ($cols as $item):
     ?>
     <input type="hidden" name="<?=$item?>" value="<?=htmlspecialchars($link[$item])?>" />
     <?php endforeach; ?>
+    <input type="hidden" name="position" value="<?=htmlspecialchars($link["location"])?>" />
 </form>
 <div class="admin_page-content" id="form-wrapper"></div>
 <?php endif; ?>
