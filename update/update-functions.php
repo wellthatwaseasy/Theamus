@@ -1,101 +1,67 @@
 <?php
 
+/**
+ * Updates from 0.2
+ * 
+ * @return boolean
+ */
 function update_02() {
-    // Define the return array, connect and define database variables, define the file class
-    $return = array();
-    $tDataClass = new tData();
-    $tData = $tDataClass->connect();
-    $prefix = $tDataClass->get_system_prefix();
-    $tFiles = new tFiles();
+    // // Connect to the database
+    $tData      = new tData();
+    $tData->db  = $tData->connect(true);
 
-    // Define the queries to perform
-    $queries = array("CREATE TABLE IF NOT EXISTS `".$prefix."_themes-data` (`id` INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(`id`), `key` TEXT NOT NULL, `value` TEXT NOT NULL, `selector` TEXT NOT NULL, `theme` VARCHAR(50) NOT NULL);");
+    // Create the themes-data table
+    $query = $tData->db->query("CREATE TABLE IF NOT EXISTS `".$tData->get_system_prefix()."_themes-data` (`id` INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(`id`), `key` TEXT NOT NULL, `value` TEXT NOT NULL, `selector` TEXT NOT NULL, `theme` VARCHAR(50) NOT NULL);");
 
-    // Perform the queries
-    foreach ($queries as $query) {
-        $return[] = $tData->query($query) ? true : false;
+    // Check the query and return
+    if ($query == false) {
+        return false;
     }
-
-    // Remove the old system folders
-    $tFiles->remove_folder(path(ROOT."/system/rta_old/"));
-    $tFiles->remove_folder(path(ROOT."/system/rta/"));
-    $tFiles->remove_folder(path(ROOT."/system/js/legacy/"));
-
-    // Disconnect from the database and return
-    $tDataClass->disconnect();
-    return in_array(false, $return) ? false : true;
+    return true;
 }
 
+/**
+ * Updates to 1.1
+ * 
+ * @return boolean
+ */
 function update_11() {
-    // Define the return array, connect and define database variables, define the file class
-    $return     = array();
+    // Connect to the database
     $tData      = new tData();
     $tData->db  = $tData->connect();
     $prefix     = $tData->get_system_prefix();
 
-    // Define the queries to perform
-    $queries = array(
-        "CREATE TABLE IF NOT EXISTS `".$prefix."_user-sessions` (`id` INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(`id`), `key` TEXT NOT NULL, `value` TEXT NOT NULL, `ip_address` TEXT NOT NULL, `user_id` INT NOT NULL);",
-        "RENAME TABLE `".$prefix."_images` TO `".$prefix."_media`"
-    );
-    $drop_queries = array(
-        "session" => array("SELECT * FROM `".$prefix."_users`", "ALTER TABLE `".$prefix."_users` DROP COLUMN `session`;"),
-        "type"  => array("SELECT * FROM `".$prefix."_media`", "ALTER TABLE `".$prefix."_media` ADD `type` TEXT NOT NULL;")
-    );
-
-    // Define the drop queries
-    foreach ($drop_queries as $key => $value) {
-        $drop_test_query = $tData->db->query($value[0]);
-        if (!$drop_test_query) {
-            $queries[] = $value[1];
-        } else {
-            $drop_test = $drop_test_query->fetch_assoc();
-            if (isset($drop_test[$key])) {
-                $queries[] = $value[1];
-            }
-        }
+    // Create the user sessions table
+    $tData->db->query("CREATE TABLE IF NOT EXISTS `".$prefix."_user-sessions` (`id` INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(`id`), `key` TEXT NOT NULL, `value` TEXT NOT NULL, `ip_address` TEXT NOT NULL, `user_id` INT NOT NULL);");
+    
+    // Get the tables from the database
+    $tables = array();
+    $tables_query = $tData->db->query("SHOW TABLES");
+    while ($row = $tables_query->fetch_array()) {
+        $tables[] = $row[0];
     }
-
-    // Define more queries
-    $queries[] = "UPDATE `".$prefix."_media` SET `type`='image'";
-
-    // Perform the queries
-    $tData->db->autocommit(false);
-    foreach ($queries as $query) {
-        $return[] = $tData->db->query($query) ? true : false;
+    
+    // Rename the images table
+    if (!in_array($prefix."_media", $tables));
+    $tData->db->query("RENAME TABLE `".$prefix."_images` TO `".$prefix."_media`");
+    
+    // Find the session column in the user's table
+    $users_table = $tData->db->query("SELECT `session` FROM `".$prefix."_users` LIMIT 1");
+    
+    // Drop the session column
+    if ($users_table) {
+        $tData->db->query("ALTER TABLE `".$prefix."_users` DROP COLUMN `session`;");
     }
-
-    // Define files to remove
-    $files = array(
-        "themes/default/blank.html",
-        "themes/default/body.html",
-        "themes/default/empty.html",
-        "themes/default/error.html",
-        "themes/default/extra-nav.html",
-        "themes/default/header.html",
-        "themes/default/homepage.html",
-        "themes/default/index.html",
-        "themes/default/login.html",
-        "features/accounts/php/login.php",
-        "features/accounts/php/register.php"
-    );
-
-    // Remove the files
-    foreach ($files as $file) {
-        $file_path = path(ROOT."/$file");
-        if (file_exists($file_path)) {
-            unlink($file_path);
-        }
+    
+    // Find the type column in the media table
+    $media_table = $tData->db->query("SELECT `type` FROM `".$prefix."_media` LIMIT 1");
+    
+    // Add the type column
+    if (!$media_table) {
+        $tData->db->query("ALTER TABLE `".$prefix."_media` ADD `type` TEXT NOT NULL;");
     }
-    if (in_array(false, $return)) {
-        $tData->db->rollback();
-        $tData->disconnect();
-        return false;
-    } else {
-        $tData->db->commit();
-        $tData->disconnect();
-        return true;
-    }
+    
+    return true;
 }
 
 function update_version($version) {
