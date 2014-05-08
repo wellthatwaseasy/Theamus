@@ -7,7 +7,8 @@
             "Fixed an issue where the feature folder gets deleted if the feature installation failed.",
             "Removed chmod from the system because I shouldn't be playing with peoples file permissions.",
             "Fixed an issue where feature relevant databases weren't being removed with the feature.",
-            "Updated the Theamus installer to be more helpful and secure."
+            "Updated the Theamus installer to be more helpful and secure.",
+            "Fixed an issue that overwrote all of the links when updating one link."
         ]
     },
     "authors": [

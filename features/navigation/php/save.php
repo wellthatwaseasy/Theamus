@@ -123,7 +123,7 @@ if (!empty($error)) {
         "location"  => $position,
         "child_of"  => $child_of
     );
-    $query_data['update'] = array(
+    $query_data['clause'] = array(
         "operator"  => "",
         "conditions"=> array("id" => $id)
     );
