@@ -41,9 +41,16 @@ var editor = new function() {
         editor.codemirror = false;
         if (typeof CodeMirror !== "undefined") {
             if (CodeMirror.xml_loaded === undefined) {
-                var xml_script = "system/editor/js/codemirror/mode/xml/xml.js?x="+editor.load_time;
+                var xml_script = "system/editor/js/codemirror/mode/xml/xml.js?x="+editor.load_time,
+                    js_script = "system/editor/js/codemirror/mode/javascript/javascript.js?x="+editor.load_time,
+                    css_script = "system/editor/js/codemirror/mode/css/css.js?x="+editor.load_time,
+                    html_script = "system/editor/js/codemirror/mode/htmlmixed/htmlmixed.js?x="+editor.load_time;
 
                 if (check_js_file(xml_script) === true) add_js_file(xml_script);
+                if (check_js_file(js_script) === true) add_js_file(js_script);
+                if (check_js_file(css_script) === true) add_js_file(css_script);
+                if (check_js_file(html_script) === true) add_js_file(html_script);
+
                 add_css("system/editor/css/codemirror.css?x="+editor.load_time);
             }
         }
@@ -124,7 +131,7 @@ var editor = new function() {
     };
 
     this.nl2br = function(string) {
-        return string.replace(/(\r\n|\n\r|\r|\n)/g, "<br>");
+        return string.replace(/(\r\n|\n\r|\r|\n)/g, "<br/>");
     };
 
     this.load_listeners = function() {
@@ -343,13 +350,8 @@ var editor = new function() {
         this.editor_interact({
             action: ["keyup", "click"],
             "do": function() {
-                var e_children = editor.el.children,
-                    last_child = e_children[e_children.length - 1];
-                if (!last_child) return false;
-                if (!editor.dataset(last_child, "tail")) {
-                    var tail = document.createElement("br");
-                    editor.dataset(tail, "tail", true);
-                    editor.el.appendChild(tail);
+                if (editor.el.innerHTML.slice(-1) != " ") {
+                    editor.el.appendChild(document.createTextNode(" "));
                 }
             }
         });
@@ -389,11 +391,21 @@ var editor = new function() {
             action: "paste",
             "do": function(e) {
                 e.preventDefault();
-                editor.range = rangy.serializeSelection(rangy.getSelection(), true);
-                var text = (e.originalEvent || e).clipboardData.getData('text/plain');
-                editor.insert_at_caret(document.createTextNode(text));
+
+                var sel = rangy.getSelection(),                                           // User's current selection of text
+                    text = (e.originalEvent || e).clipboardData.getData('text/plain'),    // Text from the clip board
+                    span = document.createElement("span"),                                // Text element
+                    range = sel.getRangeAt(0);                                            // Selection range
+
+                // Define the contents of the text element
+                span.innerHTML = editor.nl2br(text.replace(/\ /g, "&nbsp;").replace(/(<([^>]+)>)/ig,""));
+
+                // Replace the contents of the selection/where the caret is
+                sel.getRangeAt(0).deleteContents();
+                node = range.createContextualFragment(span.innerHTML);
+                sel.getRangeAt(0).insertNode(node);
             }
-        });
+        })
     };
 
     this.decode_html = function(s, way) {
@@ -426,7 +438,7 @@ var editor = new function() {
             element: editor.codemirror_el,
             action: ["keyup", "click"],
             "do": function() {
-                editor.el.innerHTML = editor.nl2br(editor.decode_html(editor.codemirror.getValue()), "encode");
+                editor.el.innerHTML = editor.decode_html(editor.codemirror.getValue(), "encode");
             }
         });
     };
@@ -438,7 +450,7 @@ var editor = new function() {
     this.toggle_code = function() {
         if (editor.codemirror === false) {
             editor.codemirror = CodeMirror.fromTextArea(editor.code_el, {
-                mode: "xml",
+                mode: "htmlmixed",
                 lineNumbers: true,
                 indentUnit: 4,
                 extraKeys: {
@@ -447,7 +459,8 @@ var editor = new function() {
                         cm.replaceSelection(spaces);
                         cm.setCursor(cm.getCursor());
                     }
-                }
+                },
+                enableCodeFormatting: true
             });
             editor.codemirror_el = editor.codemirror.getWrapperElement();
             if (editor.codemirror_el)
@@ -459,13 +472,19 @@ var editor = new function() {
             editor.codemirror_el.classList.remove("editor_code-open");
             editor.codemirror_el.style.display = "none";
             editor.el.classList.remove("editor_fancy-closed");
-            editor.el.innerHTML = editor.nl2br(editor.decode_html(editor.codemirror.getValue()), "encode");
+            editor.el.innerHTML = editor.decode_html(editor.codemirror.getValue().replace(/\    /g, "").replace(/\  /g, "&nbsp;").replace(/<br>\n/g, "<br>"), "encode");
         } else {
             editor.add_current(document.querySelectorAll(".editor_togglecode")[0]);
             editor.codemirror_el.classList.add("editor_code-open");
             editor.codemirror_el.style.display = "";
             editor.el.classList.add("editor_fancy-closed");
-            editor.codemirror.setValue(editor.br2nl(editor.decode_html(editor.el.innerHTML), "decode"));
+            editor.codemirror.setValue(editor.el.innerHTML.replace(/&nbsp;/g, " ").replace(/<br\/>/g, "<br/>\n"));
+            var totalLines = editor.codemirror.lineCount();
+            var totalChars = editor.codemirror.getTextArea().value.length;
+
+            editor.codemirror.autoFormatRange({line:0, ch:0}, {line:totalLines, ch:totalChars});
+
+            editor.codemirror.setCursor(0, 0);
         }
     };
 
