@@ -242,6 +242,8 @@ class tTheme {
             ${$this->data['init-class']} = new $this->data['init-class'];
         }
 
+        $url_params = $this->data['url_params'];
+
         $ajax_hash_cookie = isset($_COOKIE['420hash']) ? $_COOKIE['420hash'] : "";
         echo '<input type="hidden" id="ajax-hash-data" name="ajax-hash-data" value=\'{"key":"'.$ajax_hash_cookie.'"}\' />';
         include $this->data['file_path'];
