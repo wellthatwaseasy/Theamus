@@ -355,18 +355,56 @@ class tUser {
 
         // Get the user browser information
         $browser = $this->tCall->get_browser();
-        $user_browser   = $this->tData->db->real_escape_string($browser['name']." ".$browser['version']);
+        $user_browser   = $browser['name']." ".$browser['version'];
 
         // Define the update queries
-        $sql = array(
-            "UPDATE `".$this->tData->prefix."_user-sessions` SET `value`='$session_key' WHERE `key`='session_key' AND `value`='".$session['session_key']."' AND `ip_address`='$ip' AND `user_id`='$user_id';",
-            "UPDATE `".$this->tData->prefix."_user-sessions` SET `value`='$expire' WHERE `key`='expires' AND `value`='".$session['expires']."' AND `ip_address`='$ip' AND `user_id`='$user_id';",
-            "UPDATE `".$this->tData->prefix."_user-sessions` SET `value`='".time()."' WHERE `key`='last_seen' AND `value`='".$session['last_seen']."' AND `ip_address`='$ip' AND `user_id`='$user_id';",
-            "UPDATE `".$this->tData->prefix."_user-sessions` SET `value`='$user_browser' WHERE `key`='browser' AND `value`='".$session['browser']."' AND `ip_address`='$ip' AND `user_id`='$user_id';"
+        $query_data['data'] = array(
+            array("value" => $session_key),
+            array("value" => $expire),
+            array("value" => time()),
+            array("value" => $user_browser)
         );
-
+        $query_data['clause'] = array(
+            array(
+                "operator"      => "AND",
+                "conditions"    => array(
+                    "key"       => "session_key",
+                    "value"     => $session['session_key'],
+                    "ip_address"=> $ip,
+                    "user_id"   => $user_id
+                )
+            ),
+            array(
+                "operator"      => "AND",
+                "conditions"    => array(
+                    "key"       => "expires",
+                    "value"     => $session['expires'],
+                    "ip_address"=> $ip,
+                    "user_id"   => $user_id
+                )
+            ),
+            array(
+                "operator"      => "AND",
+                "conditions"    => array(
+                    "key"       => "last_seen",
+                    "value"     => $session['last_seen'],
+                    "ip_address"=> $ip,
+                    "user_id"   => $user_id
+                )
+            ),
+            array(
+                "operator"      => "AND",
+                "conditions"    => array(
+                    "key"       => "browser",
+                    "value"     => $session['browser'],
+                    "ip_address"=> $ip,
+                    "user_id"   => $user_id
+                )
+            )
+        );
+        
         // Query the database updating the user session information
-        if ($this->tData->db->multi_query(implode("", $sql))) {
+        if ($this->tData->update_table_row($this->tData->prefix."_user-sessions", $query_data['data'], $query_data['clause']) != false) {
             $this->set_cookies($user_id, $session_key, $expire);
             return true;
         }
