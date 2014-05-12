@@ -65,6 +65,14 @@ class tData {
      * @var boolean $show_query_errors
      */
     public $show_query_errors = false;
+    
+    
+    /**
+     * Allows a developer to connect to a custom database
+     * 
+     * @var array $connection_parameters
+     */
+    public $connection_parameters = array();
 
 
     /**
@@ -129,12 +137,32 @@ class tData {
         if (!isset($this->config['Database'])) {
             return false;
         }
-
+        
+        // Check for a custom connection or not
+        if (!empty($this->connection_parameters)) {
+            if (!isset($this->connection_parameters['Host Address'])) {
+                return false;
+            }
+            if (!isset($this->connection_parameters['Username'])) {
+                return false;
+            }
+            if (!isset($this->connection_parameters['Password'])) {
+                return false;
+            }
+            if (!isset($this->connection_parameters['Name'])) {
+                return false;
+            }
+            
+            $connection_parameters = $this->connection_parameters;
+        } else {
+            $connection_parameters = $this->config['Database'];
+        }
+        
         if ($pdo == false) {
-            $connection = @new mysqli($this->config['Database']['Host Address'],
-                                      $this->config['Database']['Username'],
-                                      $this->config['Database']['Password'],
-                                      $this->config['Database']['Name']);
+            $connection = @new mysqli($connection_parameters['Host Address'],
+                                      $connection_parameters['Username'],
+                                      $connection_parameters['Password'],
+                                      $connection_parameters['Name']);
 
             if ($connection->connect_errno) return false;
             else {
@@ -144,8 +172,8 @@ class tData {
             return false;
         } else {
             try {
-                $connection = new PDO("mysql:host=".$this->config['Database']['Host Address'].";dbname=".$this->config['Database']['Name'].";",
-                    $this->config['Database']['Username'], $this->config['Database']['Password']);
+                $connection = new PDO("mysql:host=".$connection_parameters['Host Address'].";dbname=".$connection_parameters['Name'].";",
+                    $connection_parameters['Username'], $connection_parameters['Password']);
                 $this->connection = $connection;
                 $this->use_pdo = true;
                 return $connection;

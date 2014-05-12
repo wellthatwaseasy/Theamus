@@ -4,7 +4,8 @@
         "database": [],
         "files": [],
         "bugs": [
-            "Fixed the issue in the HTACCESS file where periods were causing internal server errors - https://github.com/Eyraahh/Theamus/issues/24"
+            "Fixed the issue in the HTACCESS file where periods were causing internal server errors - https://github.com/Eyraahh/Theamus/issues/24",
+            "Created a way to be able to connect to custom databases using the Theamus Data class - https://github.com/Eyraahh/Theamus/issues/23"
         ]
     },
     "authors": [
