@@ -40,7 +40,7 @@ if ($post['text'] != "") {
 if ($post['path-type'] != "") {
     // Define the path type
     $pt_exploded = explode("-", $post['path-type']);
-    $type        = $pt_exploded[1];
+    $type = $pt_exploded[1];
 
     // Define the path based on the type selected
     switch ($type) {
@@ -66,11 +66,7 @@ if ($post['path-type'] != "") {
     // Check for a path
     if ($path != "") {
         // Clean the path variable
-        if($type == "null"){
-			  $path = "javascript:void();";
-		  }else{
-			  $path = trim(urldecode($path), "/");
-		  }
+		  $path = trim(urldecode($path), "/");
 		  if ($type != "js") {
             $path = $path."/";
         }

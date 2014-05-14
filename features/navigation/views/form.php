@@ -77,7 +77,7 @@ switch ($post['type']) {
                 <div id="path-null-wrapper" style="<?=$show['null']?>">
                     <div class="admin-formrow">
                         <div class="admin-forminput">
-                            <input type="hidden" name="null" value='null' />
+                            <input type="hidden" name="null" value='javascript:void();' />
                         </div>
                         <div class="admin-forminfo">
                             A Title Box will not take any type of action when it is clicked
