@@ -68,6 +68,9 @@ if ($post['path-type'] != "") {
         case "url":
             $path = $post['url'];
             break;
+        case "null":
+            $path = $post['null'];
+            break;
         case "page":
             $path = $post['page'];
             break;
